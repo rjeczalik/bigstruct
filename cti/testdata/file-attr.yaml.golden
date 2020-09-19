@@ -1,0 +1,30 @@
+testdata:
+    c:
+        file:
+            c:
+                etc:
+                    c:
+                        scylla:
+                            c:
+                                scylla.yaml:
+                                    a: 8192
+                        sysconfig:
+                            c:
+                                scylla-server:
+                                    a: 512
+                                    c:
+                                        SCYLLA_ARGS:
+                                            a: 1024
+                home:
+                    c:
+                        rjeczalik:
+                            c:
+                                ansemble:
+                                    c:
+                                        facts.json:
+                                            a: 256
+                                            c:
+                                                ansible_cmdline:
+                                                    c:
+                                                        root:
+                                                            a: 512
