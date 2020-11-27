@@ -1,93 +1,58 @@
 package cti
 
 import (
-	"encoding/json"
 	"fmt"
 	"path"
 	"strings"
-
-	"github.com/pelletier/go-toml"
-	"gopkg.in/yaml.v3"
 )
 
-type encoding struct {
-	*Encoding
-	name  string
-	id    Attr
-	match func(string) bool
-}
-
 type Serializer struct {
-	encodings []encoding
-	err       []error
+	enc []Encoding
+	aux []Aux
 }
 
 var defaultSerializer = NewSerializer()
 
 func NewSerializer() *Serializer {
-	var (
-		s = &Serializer{}
-	)
+	s := new(Serializer)
 
-	s.mustRegisterEncoding(
-		"json", AttrJSON, suffix(".json"),
-		&Encoding{
-			Marshal:   json.Marshal,
-			Unmarshal: json.Unmarshal,
-		},
-	)
+	for _, enc := range DefaultEncodings {
+		s.mustRegisterEncoding(enc)
+	}
 
-	s.mustRegisterEncoding(
-		"ini", AttrINI, suffix(".ini"),
-		&Encoding{
-			Marshal:   ini.Marshal,
-			Unmarshal: ini.Unmarshal,
-		},
-	)
-
-	s.mustRegisterEncoding(
-		"flag", AttrFlag, suffix(),
-		&Encoding{
-			Marshal:   flag.Marshal,
-			Unmarshal: flag.Unmarshal,
-		},
-	)
-
-	s.mustRegisterEncoding(
-		"toml", AttrTOML, suffix(".toml"),
-		&Encoding{
-			Marshal:   toml.Marshal,
-			Unmarshal: toml.Unmarshal,
-		},
-	)
-
-	s.mustRegisterEncoding(
-		"yaml", AttrYAML, suffix(".yaml", ".yml"),
-		&Encoding{
-			Marshal:   yaml.Marshal,
-			Unmarshal: yaml.Unmarshal,
-		},
-	)
+	for _, aux := range DefaultAuxs {
+		s.mustRegisterAux(aux)
+	}
 
 	return s
 }
 
-func (s *Serializer) RegisterEncoding(name string, id Attr, match func(string) bool, e *Encoding) error {
-	for _, e := range s.encodings {
-		if e.name == name {
-			return fmt.Errorf("%q encoding already registered", name)
+func (s *Serializer) RegisterEncoding(e Encoding) error {
+	for _, enc := range s.enc {
+		if enc.Name == e.Name {
+			return fmt.Errorf("encoding %s already registered", &e)
 		}
-		if e.id&id != 0 {
-			return fmt.Errorf("%q encoding (%b) conflicts with %q (%b)", name, id, e.name, e.id)
+		if enc.ID&e.ID != 0 {
+			return fmt.Errorf("encoding %s conflicts with %s", &e, &enc)
 		}
 	}
 
-	s.encodings = append(s.encodings, encoding{
-		Encoding: e,
-		name:     name,
-		match:    match,
-		id:       id,
-	})
+	s.enc = append(s.enc, e)
+
+	return nil
+}
+
+func (s *Serializer) RegisterAux(x Aux) error {
+	for _, aux := range s.aux {
+		if aux.Name == x.Name {
+			return fmt.Errorf("encoding %s already registered", &x)
+		}
+		if aux.ID&x.ID != 0 {
+			return fmt.Errorf("encoding %s conflicts with %s", &x, &aux)
+		}
+	}
+
+	s.aux = append(s.aux, x)
 
 	return nil
 }
@@ -121,26 +86,29 @@ func (s *Serializer) expand(err *error) Func {
 		var (
 			k   = path.Base(key)
 			n   = o[k]
-			enc *encoding
+			enc *Encoding
 		)
 
-		if enc = s.lookup(n.Attr); enc != nil {
-			if *err = enc.Decode(key, o); *err != nil {
-				return false
-			}
+		if x := s.lookupAux(n.Attr); x != nil {
+			_ = x.Expand(key, o)
+			n = o[k]
 		}
 
-		if len(n.Children) != 0 {
+		if len(n.Children) != 0 || n.Value == nil {
 			return true // not a leaf node, ignore
 		}
 
-		if enc = s.guess(k); enc == nil || enc.Decode(key, o) != nil {
+		if enc = s.lookupEnc(n.Attr); enc != nil {
+			if *err = enc.Decode(key, o); *err != nil {
+				return false
+			}
+		} else if enc = s.guessEnc(k); enc == nil || enc.Decode(key, o) != nil {
 			var ok bool
 
-			for i := range s.encodings {
-				enc = &s.encodings[i]
+			for i := range s.enc {
+				enc = &s.enc[i]
 
-				if enc.Decode(key, o) == nil {
+				if err := enc.Decode(key, o); err == nil {
 					ok = true
 					break
 				}
@@ -152,7 +120,7 @@ func (s *Serializer) expand(err *error) Func {
 		}
 
 		n = o[k]
-		n.Attr |= enc.id
+		n.Attr |= enc.ID
 		o[k] = n
 
 		return true
@@ -164,10 +132,10 @@ func (s *Serializer) compact(err *error) Func {
 		var (
 			k   = path.Base(key)
 			n   = o[k]
-			enc *encoding
+			enc *Encoding
 		)
 
-		if enc = s.lookup(n.Attr); enc == nil {
+		if enc = s.lookupEnc(n.Attr); enc == nil {
 			return true
 		}
 
@@ -179,17 +147,23 @@ func (s *Serializer) compact(err *error) Func {
 	}
 }
 
-func (s *Serializer) mustRegisterEncoding(name string, id Attr, match func(string) bool, e *Encoding) {
-	if err := s.RegisterEncoding(name, id, match, e); err != nil {
-		panic("unexpected error registering " + name + ": " + err.Error())
+func (s *Serializer) mustRegisterEncoding(e Encoding) {
+	if err := s.RegisterEncoding(e); err != nil {
+		panic("unexpected error registering encoding " + e.String() + ": " + err.Error())
 	}
 }
 
-func (s *Serializer) lookup(attr Attr) *encoding {
-	for i := range s.encodings {
-		enc := &s.encodings[i]
+func (s *Serializer) mustRegisterAux(x Aux) {
+	if err := s.RegisterAux(x); err != nil {
+		panic("unexpected error registering aux " + x.String() + ": " + err.Error())
+	}
+}
 
-		if attr.Has(enc.id) {
+func (s *Serializer) lookupEnc(attr Attr) *Encoding {
+	for i := range s.enc {
+		enc := &s.enc[i]
+
+		if attr.Has(enc.ID) {
 			return enc
 		}
 	}
@@ -197,11 +171,23 @@ func (s *Serializer) lookup(attr Attr) *encoding {
 	return nil
 }
 
-func (s *Serializer) guess(key string) *encoding {
-	for i := range s.encodings {
-		enc := &s.encodings[i]
+func (s *Serializer) lookupAux(attr Attr) *Aux {
+	for i := range s.aux {
+		aux := &s.aux[i]
 
-		if enc.match(key) {
+		if attr.Has(aux.ID) {
+			return aux
+		}
+	}
+
+	return nil
+}
+
+func (s *Serializer) guessEnc(key string) *Encoding {
+	for i := range s.enc {
+		enc := &s.enc[i]
+
+		if enc.Match(key) {
 			return enc
 		}
 	}
@@ -209,7 +195,7 @@ func (s *Serializer) guess(key string) *encoding {
 	return nil
 }
 
-func suffix(s ...string) func(string) bool {
+func MatchSuffix(s ...string) func(string) bool {
 	return func(key string) bool {
 		key = strings.ToLower(key)
 

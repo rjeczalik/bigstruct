@@ -1,13 +1,14 @@
 package cti
 
 import (
+	"fmt"
 	"path"
 	"strings"
 )
 
 const (
 	AttrDelete Attr = 1 << iota
-	_
+	AttrString
 	_
 	_
 	_
@@ -22,21 +23,40 @@ const (
 	AttrYAML
 	_
 	_
+	_
+	_
+	_
+	_
+	AttrFile
+	_
+	_
+	_
+	_
+	_
+	_
+	_
+	_
+	_
+	_
+	_
 )
 
 const (
-	AttrOp  = AttrDelete
+	AttrOp  = AttrDelete | AttrString
 	AttrEnc = AttrJSON | AttrINI | AttrFlag | AttrTOML | AttrHCL | AttrYAML
+	AttrAux = AttrFile
 )
 
 var attrs = map[Attr]string{
 	AttrDelete: "delete",
+	AttrString: "string",
 	AttrJSON:   "json",
 	AttrINI:    "ini",
 	AttrFlag:   "flag",
 	AttrTOML:   "toml",
 	AttrHCL:    "hcl",
 	AttrYAML:   "yaml",
+	AttrFile:   "file",
 }
 
 type Attr uint32
@@ -52,6 +72,8 @@ func (a Attr) String() string {
 		if x := Attr(1 << i); a&x != 0 {
 			if s, ok := attrs[x]; ok {
 				attr = append(attr, s)
+			} else {
+				attr = append(attr, fmt.Sprintf("unknown(%b)", x))
 			}
 		}
 	}

@@ -3,7 +3,6 @@ package cti
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"sort"
@@ -94,13 +93,4 @@ func toobj(v interface{}) (m map[string]interface{}, keys []string, err error) {
 	sort.Strings(keys)
 
 	return m, keys, nil
-}
-
-func reencode(in, out interface{}) error {
-	p, err := json.Marshal(in)
-	if err != nil {
-		return err
-	}
-
-	return json.Unmarshal(p, out)
 }

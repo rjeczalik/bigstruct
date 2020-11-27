@@ -1,8 +1,13 @@
 package cti
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
 	"path"
 	"sort"
+	"text/tabwriter"
 
 	"github.com/glaucusio/confetti/internal/objects"
 )
@@ -11,6 +16,7 @@ type Func func(key string, parent Object) (ok bool)
 
 type Object map[string]struct {
 	Attr     Attr        `json:"a,omitempty" yaml:"a,omitempty"`
+	Aux      interface{} `json:"x,omitempty" yaml:"x,omitempty"`
 	Children Object      `json:"c,omitempty" yaml:"c,omitempty"`
 	Value    interface{} `json:"v,omitempty" yaml:"v,omitempty"`
 }
@@ -26,13 +32,14 @@ func (o Object) Copy() Object {
 	return u
 }
 
-func (o Object) Attr() Object {
+func (o Object) Meta() Object {
 	u := make(Object, len(o))
 
 	for k, n := range o {
 		m, _ := u[k] // zero value
 		m.Attr = n.Attr
-		m.Children = n.Children.Attr()
+		m.Aux = n.Aux
+		m.Children = n.Children.Meta()
 		u[k] = m
 	}
 
@@ -59,11 +66,17 @@ func (o Object) Value() interface{} {
 
 func (o Object) Shake() Object {
 	for k, n := range o {
+		// The n.Aux field controls how n.Value is handled, when
+		// the latter is nil then n.Aux alone has no meaning.
 		if len(n.Children) == 0 && n.Value == nil && n.Attr == 0 {
 			delete(o, k)
 		} else {
 			n.Children = n.Children.Shake()
 		}
+	}
+
+	if len(o) == 0 {
+		return nil
 	}
 
 	return o
@@ -112,26 +125,31 @@ func (o Object) Walk(fn Func) {
 	type elm struct {
 		parent Object
 		key    string
+		left   []string
 	}
 
 	var (
 		it    elm
-		queue = []elm{{parent: o, key: "/"}}
+		k     string
+		queue = []elm{{parent: o, key: "/", left: o.Keys()}}
 	)
 
 	for len(queue) != 0 {
 		it, queue = queue[len(queue)-1], queue[:len(queue)-1]
+		k, it.left = it.left[0], it.left[1:]
 
-		for _, k := range it.parent.Keys() {
-			key := path.Join(it.key, k)
+		key := path.Join(it.key, k)
 
-			if ok := fn(key, it.parent); !ok {
-				return
-			}
+		if ok := fn(key, it.parent); !ok {
+			return
+		}
 
-			if parent := it.parent[k].Children; len(parent) != 0 {
-				queue = append(queue, elm{parent: parent, key: key})
-			}
+		if len(it.left) != 0 {
+			queue = append(queue, it)
+		}
+
+		if parent := it.parent[k].Children; len(parent) != 0 {
+			queue = append(queue, elm{parent: parent, key: key, left: parent.Keys()})
 		}
 	}
 }
@@ -140,25 +158,30 @@ func (o Object) ReverseWalk(fn Func) {
 	type elm struct {
 		parent Object
 		key    string
+		left   []string
 	}
 
 	var (
 		it    elm
-		queue = []elm{{parent: o, key: "/"}}
+		k     string
+		queue = []elm{{parent: o, key: "/", left: o.Keys()}}
 		rev   []elm
 	)
 
 	for len(queue) != 0 {
 		it, queue = queue[len(queue)-1], queue[:len(queue)-1]
+		k, it.left = it.left[0], it.left[1:]
 
-		for _, k := range it.parent.Keys() {
-			key := path.Join(it.key, k)
+		key := path.Join(it.key, k)
 
-			rev = append(rev, elm{parent: it.parent, key: key})
+		rev = append(rev, elm{parent: it.parent, key: key})
 
-			if parent := it.parent[k].Children; len(parent) != 0 {
-				queue = append(queue, elm{parent: parent, key: key})
-			}
+		if len(it.left) != 0 {
+			queue = append(queue, it)
+		}
+
+		if parent := it.parent[k].Children; len(parent) != 0 {
+			queue = append(queue, elm{parent: parent, key: key, left: parent.Keys()})
 		}
 	}
 
@@ -199,6 +222,58 @@ func (o Object) Keys() []string {
 	sort.Strings(keys)
 
 	return keys
+}
+
+func (o Object) WriteTab(w io.Writer) (err error) {
+	if _, err = fmt.Fprintln(w, "KEY\tATTR\tAUX\tVALUE"); err != nil {
+		return err
+	}
+
+	o.Walk(func(key string, o Object) bool {
+		var (
+			k = path.Base(key)
+			n = o[k]
+		)
+
+		if n.Value == nil && n.Attr == 0 {
+			return true
+		}
+
+		var aux []byte
+		if n.Aux != nil {
+			if aux, err = json.Marshal(n.Aux); err != nil {
+				return false
+			}
+		}
+
+		_, err = fmt.Fprintf(w, "%s\t%s\t%s\t%+v\n",
+			key,
+			nonempty(n.Attr.String(), "-"),
+			nonempty(string(aux), "-"),
+			nonil(n.Value, "-"),
+		)
+
+		return err == nil
+	})
+
+	return err
+}
+
+func (o Object) String() string {
+	var (
+		buf bytes.Buffer
+		tw  = tabwriter.NewWriter(&buf, 2, 0, 2, ' ', 0)
+	)
+
+	if err := o.WriteTab(tw); err != nil {
+		panic("unexpected error: " + err.Error())
+	}
+
+	if err := tw.Flush(); err != nil {
+		panic("unexpected error: " + err.Error())
+	}
+
+	return buf.String()
 }
 
 func (o Object) Expand() error {

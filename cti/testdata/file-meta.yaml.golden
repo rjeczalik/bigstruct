@@ -7,14 +7,22 @@ testdata:
                         scylla:
                             c:
                                 scylla.yaml:
-                                    a: 8192
+                                    a: 1056768
+                                    x:
+                                        g: rjeczalik
+                                        m: 436
+                                        u: rjeczalik
                         sysconfig:
                             c:
                                 scylla-server:
-                                    a: 512
+                                    a: 1049088
                                     c:
                                         SCYLLA_ARGS:
-                                            a: 1024
+                                            a: 1026
+                                    x:
+                                        g: rjeczalik
+                                        m: 436
+                                        u: rjeczalik
                 home:
                     c:
                         rjeczalik:
@@ -22,9 +30,13 @@ testdata:
                                 ansemble:
                                     c:
                                         facts.json:
-                                            a: 256
+                                            a: 1048832
                                             c:
                                                 ansible_cmdline:
                                                     c:
                                                         root:
-                                                            a: 512
+                                                            a: 514
+                                            x:
+                                                g: rjeczalik
+                                                m: 436
+                                                u: rjeczalik

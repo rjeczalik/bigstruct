@@ -1,11 +1,48 @@
 package cti
 
 import (
+	"encoding/json"
 	"errors"
-	path "path"
+	"fmt"
+	"path"
 
 	"github.com/glaucusio/confetti/internal/objects"
+
+	"github.com/pelletier/go-toml"
+	"gopkg.in/yaml.v1"
 )
+
+var DefaultEncodings = []Encoding{{
+	ID:        AttrJSON,
+	Name:      "json",
+	Marshal:   json.Marshal,
+	Unmarshal: json.Unmarshal,
+	Match:     MatchSuffix(".json"),
+}, {
+	ID:        AttrINI,
+	Name:      "ini",
+	Marshal:   ini.Marshal,
+	Unmarshal: ini.Unmarshal,
+	Match:     MatchSuffix(".json"),
+}, {
+	ID:        AttrFlag,
+	Name:      "flag",
+	Marshal:   flag.Marshal,
+	Unmarshal: flag.Unmarshal,
+	Match:     MatchSuffix(),
+}, {
+	ID:        AttrTOML,
+	Name:      "toml",
+	Marshal:   toml.Marshal,
+	Unmarshal: toml.Unmarshal,
+	Match:     MatchSuffix(".toml"),
+}, {
+	ID:        AttrYAML,
+	Name:      "yaml",
+	Marshal:   yaml.Marshal,
+	Unmarshal: yaml.Unmarshal,
+	Match:     MatchSuffix(".yaml", ".yml"),
+}}
 
 type EncodingError struct {
 	Key string
@@ -23,8 +60,15 @@ func (ee *EncodingError) Unwrap() error {
 }
 
 type Encoding struct {
+	ID        Attr
+	Name      string
 	Marshal   func(interface{}) ([]byte, error)
 	Unmarshal func([]byte, interface{}) error
+	Match     func(key string) bool
+}
+
+func (e *Encoding) String() string {
+	return fmt.Sprintf("%q (%b)", e.Name, e.ID)
 }
 
 func (e *Encoding) Encode(key string, o Object) error {
@@ -41,7 +85,12 @@ func (e *Encoding) Encode(key string, o Object) error {
 		}
 	}
 
-	n.Value = p
+	if n.Attr.Has(AttrString) {
+		n.Value = string(p)
+		n.Attr &= ^AttrString
+	} else {
+		n.Value = p
+	}
 	n.Children = nil
 	o[k] = n
 
@@ -51,6 +100,7 @@ func (e *Encoding) Encode(key string, o Object) error {
 func (e *Encoding) Decode(key string, o Object) error {
 	var (
 		p []byte
+		a Attr
 		k = path.Base(key)
 		n = o[k]
 	)
@@ -60,6 +110,7 @@ func (e *Encoding) Decode(key string, o Object) error {
 		p = v
 	case string:
 		p = []byte(v)
+		a = AttrString
 	case nil:
 		if len(n.Children) == 0 {
 			return &EncodingError{
@@ -67,6 +118,7 @@ func (e *Encoding) Decode(key string, o Object) error {
 				Err: errors.New("nil value in leaf node"),
 			}
 		}
+
 		return nil
 	default:
 		var err error
@@ -96,6 +148,7 @@ func (e *Encoding) Decode(key string, o Object) error {
 		}
 	}
 
+	n.Attr |= a
 	n.Value = nil
 	n.Children = Make(obj)
 	o[k] = n

@@ -62,7 +62,7 @@ func MakeDir(dir string) (Object, error) {
 			return err
 		}
 
-		_ = root.Put(key, Value(p))
+		_ = root.Put(key, Field(AttrFile, newFile(fi), p))
 
 		return nil
 	})
