@@ -1,0 +1,391 @@
+testdata:
+    c:
+        docker:
+            c:
+                scylladb:
+                    c:
+                        scylla:
+                            c:
+                                tag:
+                                    c:
+                                        4.0.11:
+                                            c:
+                                                etc:
+                                                    c:
+                                                        scylla:
+                                                            c:
+                                                                scylla.yaml:
+                                                                    e: yaml
+                                                                    c:
+                                                                        api_address:
+                                                                            v: 127.0.0.1
+                                                                        api_doc_dir:
+                                                                            v: /opt/scylladb/api/api-doc/
+                                                                        api_port:
+                                                                            v: 10000
+                                                                        api_ui_dir:
+                                                                            v: /opt/scylladb/swagger-ui/dist/
+                                                                        batch_size_fail_threshold_in_kb:
+                                                                            v: 50
+                                                                        batch_size_warn_threshold_in_kb:
+                                                                            v: 5
+                                                                        cas_contention_timeout_in_ms:
+                                                                            v: 1000
+                                                                        commitlog_segment_size_in_mb:
+                                                                            v: 32
+                                                                        commitlog_sync:
+                                                                            v: periodic
+                                                                        commitlog_sync_period_in_ms:
+                                                                            v: 10000
+                                                                        commitlog_total_space_in_mb:
+                                                                            v: -1
+                                                                        endpoint_snitch:
+                                                                            v: SimpleSnitch
+                                                                        listen_address:
+                                                                            v: localhost
+                                                                        murmur3_partitioner_ignore_msb_bits:
+                                                                            v: 12
+                                                                        native_transport_port:
+                                                                            v: 9042
+                                                                        num_tokens:
+                                                                            v: 256
+                                                                        partitioner:
+                                                                            v: org.apache.cassandra.dht.Murmur3Partitioner
+                                                                        read_request_timeout_in_ms:
+                                                                            v: 5000
+                                                                        rpc_address:
+                                                                            v: localhost
+                                                                        rpc_port:
+                                                                            v: 9160
+                                                                        seed_provider:
+                                                                            c:
+                                                                                "0":
+                                                                                    c:
+                                                                                        class_name:
+                                                                                            v: org.apache.cassandra.locator.SimpleSeedProvider
+                                                                                        parameters:
+                                                                                            c:
+                                                                                                "0":
+                                                                                                    c:
+                                                                                                        seeds:
+                                                                                                            v: 127.0.0.1
+                                                                        write_request_timeout_in_ms:
+                                                                            v: 2000
+                                                        scylla.d:
+                                                            c:
+                                                                cpuset.conf:
+                                                                    e: ini
+                                                                    c:
+                                                                        CPUSET:
+                                                                            e: flag
+                                                                            c:
+                                                                                --cpuset:
+                                                                                    v: "0"
+                                                                                --smp:
+                                                                                    v: "1"
+                                                                io.conf:
+                                                                    e: ini
+                                                                    c:
+                                                                        SEASTAR_IO:
+                                                                            e: flag
+                                                                            c:
+                                                                                --max-io-requests:
+                                                                                    v: "1"
+                                                                                --num-io-queues:
+                                                                                    v: "1"
+                                                        sysconfig:
+                                                            c:
+                                                                scylla-server:
+                                                                    e: ini
+                                                                    c:
+                                                                        AMI:
+                                                                            v: "no"
+                                                                        BRIDGE:
+                                                                            v: virbr0
+                                                                        ETHDRV:
+                                                                            v: ""
+                                                                        ETHPCIID:
+                                                                            v: ""
+                                                                        GROUP:
+                                                                            v: scylla
+                                                                        IFNAME:
+                                                                            v: eth0
+                                                                        NETWORK_MODE:
+                                                                            v: posix
+                                                                        NR_HUGEPAGES:
+                                                                            v: "64"
+                                                                        SCYLLA_ARGS:
+                                                                            e: flag
+                                                                            c:
+                                                                                --default-log-level:
+                                                                                    v: info
+                                                                                --log-to-stdout:
+                                                                                    v: "1"
+                                                                                --log-to-syslog:
+                                                                                    v: "0"
+                                                                                --network-stack:
+                                                                                    v: posix
+                                                                        SCYLLA_CONF:
+                                                                            v: /etc/scylla
+                                                                        SCYLLA_HOME:
+                                                                            v: /var/lib/scylla
+                                                                        SET_NIC_AND_DISKS:
+                                                                            v: "no"
+                                                                        TAP:
+                                                                            v: tap0
+                                                                        USER:
+                                                                            v: scylla
+                                        4.1.9:
+                                            c:
+                                                etc:
+                                                    c:
+                                                        scylla:
+                                                            c:
+                                                                scylla.yaml:
+                                                                    e: yaml
+                                                                    c:
+                                                                        api_address:
+                                                                            v: 127.0.0.1
+                                                                        api_doc_dir:
+                                                                            v: /opt/scylladb/api/api-doc/
+                                                                        api_port:
+                                                                            v: 10000
+                                                                        api_ui_dir:
+                                                                            v: /opt/scylladb/swagger-ui/dist/
+                                                                        batch_size_fail_threshold_in_kb:
+                                                                            v: 50
+                                                                        batch_size_warn_threshold_in_kb:
+                                                                            v: 5
+                                                                        cas_contention_timeout_in_ms:
+                                                                            v: 1000
+                                                                        commitlog_segment_size_in_mb:
+                                                                            v: 32
+                                                                        commitlog_sync:
+                                                                            v: periodic
+                                                                        commitlog_sync_period_in_ms:
+                                                                            v: 10000
+                                                                        commitlog_total_space_in_mb:
+                                                                            v: -1
+                                                                        endpoint_snitch:
+                                                                            v: SimpleSnitch
+                                                                        listen_address:
+                                                                            v: localhost
+                                                                        murmur3_partitioner_ignore_msb_bits:
+                                                                            v: 12
+                                                                        native_transport_port:
+                                                                            v: 9042
+                                                                        num_tokens:
+                                                                            v: 256
+                                                                        partitioner:
+                                                                            v: org.apache.cassandra.dht.Murmur3Partitioner
+                                                                        read_request_timeout_in_ms:
+                                                                            v: 5000
+                                                                        rpc_address:
+                                                                            v: localhost
+                                                                        rpc_port:
+                                                                            v: 9160
+                                                                        seed_provider:
+                                                                            c:
+                                                                                "0":
+                                                                                    c:
+                                                                                        class_name:
+                                                                                            v: org.apache.cassandra.locator.SimpleSeedProvider
+                                                                                        parameters:
+                                                                                            c:
+                                                                                                "0":
+                                                                                                    c:
+                                                                                                        seeds:
+                                                                                                            v: 127.0.0.1
+                                                                        write_request_timeout_in_ms:
+                                                                            v: 2000
+                                                        scylla.d:
+                                                            c:
+                                                                cpuset.conf:
+                                                                    e: ini
+                                                                    c:
+                                                                        CPUSET:
+                                                                            e: flag
+                                                                            c:
+                                                                                --cpuset:
+                                                                                    v: "0"
+                                                                                --smp:
+                                                                                    v: "1"
+                                                                io.conf:
+                                                                    e: ini
+                                                                    c:
+                                                                        SEASTAR_IO:
+                                                                            e: flag
+                                                                            c:
+                                                                                --max-io-requests:
+                                                                                    v: "1"
+                                                                                --num-io-queues:
+                                                                                    v: "1"
+                                                        sysconfig:
+                                                            c:
+                                                                scylla-server:
+                                                                    e: ini
+                                                                    c:
+                                                                        AMI:
+                                                                            v: "no"
+                                                                        BRIDGE:
+                                                                            v: virbr0
+                                                                        ETHDRV:
+                                                                            v: ""
+                                                                        ETHPCIID:
+                                                                            v: ""
+                                                                        GROUP:
+                                                                            v: scylla
+                                                                        IFNAME:
+                                                                            v: eth0
+                                                                        NETWORK_MODE:
+                                                                            v: posix
+                                                                        NR_HUGEPAGES:
+                                                                            v: "64"
+                                                                        SCYLLA_ARGS:
+                                                                            e: flag
+                                                                            c:
+                                                                                --default-log-level:
+                                                                                    v: info
+                                                                                --log-to-stdout:
+                                                                                    v: "1"
+                                                                                --log-to-syslog:
+                                                                                    v: "0"
+                                                                                --network-stack:
+                                                                                    v: posix
+                                                                        SCYLLA_CONF:
+                                                                            v: /etc/scylla
+                                                                        SCYLLA_HOME:
+                                                                            v: /var/lib/scylla
+                                                                        SET_NIC_AND_DISKS:
+                                                                            v: "no"
+                                                                        TAP:
+                                                                            v: tap0
+                                                                        USER:
+                                                                            v: scylla
+                                        4.2.1:
+                                            c:
+                                                etc:
+                                                    c:
+                                                        scylla:
+                                                            c:
+                                                                scylla.yaml:
+                                                                    e: yaml
+                                                                    c:
+                                                                        api_address:
+                                                                            v: 127.0.0.1
+                                                                        api_doc_dir:
+                                                                            v: /opt/scylladb/api/api-doc/
+                                                                        api_port:
+                                                                            v: 10000
+                                                                        api_ui_dir:
+                                                                            v: /opt/scylladb/swagger-ui/dist/
+                                                                        batch_size_fail_threshold_in_kb:
+                                                                            v: 50
+                                                                        batch_size_warn_threshold_in_kb:
+                                                                            v: 5
+                                                                        cas_contention_timeout_in_ms:
+                                                                            v: 1000
+                                                                        commitlog_segment_size_in_mb:
+                                                                            v: 32
+                                                                        commitlog_sync:
+                                                                            v: periodic
+                                                                        commitlog_sync_period_in_ms:
+                                                                            v: 10000
+                                                                        commitlog_total_space_in_mb:
+                                                                            v: -1
+                                                                        endpoint_snitch:
+                                                                            v: SimpleSnitch
+                                                                        listen_address:
+                                                                            v: localhost
+                                                                        murmur3_partitioner_ignore_msb_bits:
+                                                                            v: 12
+                                                                        native_transport_port:
+                                                                            v: 9042
+                                                                        num_tokens:
+                                                                            v: 256
+                                                                        partitioner:
+                                                                            v: org.apache.cassandra.dht.Murmur3Partitioner
+                                                                        read_request_timeout_in_ms:
+                                                                            v: 5000
+                                                                        rpc_address:
+                                                                            v: localhost
+                                                                        rpc_port:
+                                                                            v: 9160
+                                                                        seed_provider:
+                                                                            c:
+                                                                                "0":
+                                                                                    c:
+                                                                                        class_name:
+                                                                                            v: org.apache.cassandra.locator.SimpleSeedProvider
+                                                                                        parameters:
+                                                                                            c:
+                                                                                                "0":
+                                                                                                    c:
+                                                                                                        seeds:
+                                                                                                            v: 127.0.0.1
+                                                                        write_request_timeout_in_ms:
+                                                                            v: 2000
+                                                        scylla.d:
+                                                            c:
+                                                                cpuset.conf:
+                                                                    e: ini
+                                                                    c:
+                                                                        CPUSET:
+                                                                            e: flag
+                                                                            c:
+                                                                                --cpuset:
+                                                                                    v: "0"
+                                                                                --smp:
+                                                                                    v: "1"
+                                                                io.conf:
+                                                                    e: ini
+                                                                    c:
+                                                                        SEASTAR_IO:
+                                                                            e: flag
+                                                                            c:
+                                                                                --max-io-requests:
+                                                                                    v: "1"
+                                                                                --num-io-queues:
+                                                                                    v: "1"
+                                                        sysconfig:
+                                                            c:
+                                                                scylla-server:
+                                                                    e: ini
+                                                                    c:
+                                                                        AMI:
+                                                                            v: "no"
+                                                                        BRIDGE:
+                                                                            v: virbr0
+                                                                        ETHDRV:
+                                                                            v: ""
+                                                                        ETHPCIID:
+                                                                            v: ""
+                                                                        GROUP:
+                                                                            v: scylla
+                                                                        IFNAME:
+                                                                            v: eth0
+                                                                        NETWORK_MODE:
+                                                                            v: posix
+                                                                        NR_HUGEPAGES:
+                                                                            v: "64"
+                                                                        SCYLLA_ARGS:
+                                                                            e: flag
+                                                                            c:
+                                                                                --default-log-level:
+                                                                                    v: info
+                                                                                --log-to-stdout:
+                                                                                    v: "1"
+                                                                                --log-to-syslog:
+                                                                                    v: "0"
+                                                                                --network-stack:
+                                                                                    v: posix
+                                                                        SCYLLA_CONF:
+                                                                            v: /etc/scylla
+                                                                        SCYLLA_HOME:
+                                                                            v: /var/lib/scylla
+                                                                        SET_NIC_AND_DISKS:
+                                                                            v: "no"
+                                                                        TAP:
+                                                                            v: tap0
+                                                                        USER:
+                                                                            v: scylla

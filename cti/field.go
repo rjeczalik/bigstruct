@@ -1,19 +1,28 @@
-package ctiutil
+package cti
 
 import (
 	"path"
 	"sort"
-
-	"github.com/glaucusio/confetti/cti"
 )
 
 type Field struct {
 	Key      string
-	Encoding cti.Encoding
+	Encoding Encoding
 	Value    interface{}
 }
 
-func (f Field) Set(key string, o cti.Object) bool {
+var (
+	_ Func = Field{}.Set
+)
+
+func Value(v interface{}, encoding ...string) Func {
+	return Field{
+		Encoding: Encoding(encoding),
+		Value:    v,
+	}.Set
+}
+
+func (f Field) Set(key string, o Object) bool {
 	var (
 		k = path.Base(key)
 		n = o[k]
@@ -29,11 +38,11 @@ func (f Field) Set(key string, o cti.Object) bool {
 type Fields []Field
 
 var (
-	_ cti.Func       = (*Fields)(nil).Append
+	_ Func           = (*Fields)(nil).Append
 	_ sort.Interface = (*Fields)(nil)
 )
 
-func (f *Fields) Append(key string, o cti.Object) bool {
+func (f *Fields) Append(key string, o Object) bool {
 	var (
 		k = path.Base(key)
 		n = o[k]
@@ -58,8 +67,8 @@ func (f Fields) Keys() []string {
 	return keys
 }
 
-func (f Fields) Object() cti.Object {
-	o := make(cti.Object)
+func (f Fields) Object() Object {
+	o := make(Object)
 
 	for _, f := range f {
 		o.Put(f.Key, f.Set)

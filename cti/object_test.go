@@ -12,7 +12,7 @@ import (
 func TestObject(t *testing.T) {
 	o := make(cti.Object)
 
-	o.Put("/foo/bar", cti.Field(cti.AttrJSON, nil, `["qux","baz"]`))
+	o.Put("/foo/bar", cti.Value("[\"qux\",\"baz\"]", "json"))
 	o.Put("/ascii/48", cti.Value('a'))
 	o.Put("/ascii/49", cti.Value('b'))
 	o.Put("/ascii/50", cti.Value('c'))
@@ -33,9 +33,9 @@ func TestObject(t *testing.T) {
 	}, {
 		Key: "/foo",
 	}, {
-		Key:   "/foo/bar",
-		Attr:  cti.AttrJSON,
-		Value: `["qux","baz"]`,
+		Key:      "/foo/bar",
+		Encoding: cti.Encoding{"json"},
+		Value:    "[\"qux\",\"baz\"]",
 	}, {
 		Key:   "/yaml",
 		Value: "json: '{\"ini\":\"k=\\\"v\\\"\\nkey=\\\"value\\\"\\n\"}'\n",
@@ -66,8 +66,8 @@ func TestObject(t *testing.T) {
 	}, {
 		Key: "/foo",
 	}, {
-		Key:  "/foo/bar",
-		Attr: cti.AttrString | cti.AttrJSON,
+		Key:      "/foo/bar",
+		Encoding: cti.Encoding{"json"},
 	}, {
 		Key:   "/foo/bar/0",
 		Value: "qux",
@@ -75,14 +75,14 @@ func TestObject(t *testing.T) {
 		Key:   "/foo/bar/1",
 		Value: "baz",
 	}, {
-		Key:  "/yaml",
-		Attr: cti.AttrString | cti.AttrYAML,
+		Key:      "/yaml",
+		Encoding: cti.Encoding{"yaml"},
 	}, {
-		Key:  "/yaml/json",
-		Attr: cti.AttrString | cti.AttrJSON,
+		Key:      "/yaml/json",
+		Encoding: cti.Encoding{"json"},
 	}, {
-		Key:  "/yaml/json/ini",
-		Attr: cti.AttrString | cti.AttrINI,
+		Key:      "/yaml/json/ini",
+		Encoding: cti.Encoding{"ini"},
 	}, {
 		Key:   "/yaml/json/ini/k",
 		Value: "v",
@@ -138,7 +138,7 @@ func TestObject(t *testing.T) {
 	}
 
 	var cgot ctiutil.Fields
-	want[6].Attr = cti.AttrYAML
+	want[6].Encoding = cti.Encoding{"yaml"}
 
 	if err := o.Compact(); err != nil {
 		t.Fatalf("o.Expand()=%s", err)

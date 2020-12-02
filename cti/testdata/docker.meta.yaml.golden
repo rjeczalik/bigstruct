@@ -1,0 +1,91 @@
+testdata:
+    c:
+        docker:
+            c:
+                scylladb:
+                    c:
+                        scylla:
+                            c:
+                                tag:
+                                    c:
+                                        4.0.11:
+                                            c:
+                                                etc:
+                                                    c:
+                                                        scylla:
+                                                            c:
+                                                                scylla.yaml:
+                                                                    e: yaml
+                                                        scylla.d:
+                                                            c:
+                                                                cpuset.conf:
+                                                                    c:
+                                                                        CPUSET:
+                                                                            e: flag
+                                                                    e: ini
+                                                                io.conf:
+                                                                    c:
+                                                                        SEASTAR_IO:
+                                                                            e: flag
+                                                                    e: ini
+                                                        sysconfig:
+                                                            c:
+                                                                scylla-server:
+                                                                    c:
+                                                                        SCYLLA_ARGS:
+                                                                            e: flag
+                                                                    e: ini
+                                        4.1.9:
+                                            c:
+                                                etc:
+                                                    c:
+                                                        scylla:
+                                                            c:
+                                                                scylla.yaml:
+                                                                    e: yaml
+                                                        scylla.d:
+                                                            c:
+                                                                cpuset.conf:
+                                                                    c:
+                                                                        CPUSET:
+                                                                            e: flag
+                                                                    e: ini
+                                                                io.conf:
+                                                                    c:
+                                                                        SEASTAR_IO:
+                                                                            e: flag
+                                                                    e: ini
+                                                        sysconfig:
+                                                            c:
+                                                                scylla-server:
+                                                                    c:
+                                                                        SCYLLA_ARGS:
+                                                                            e: flag
+                                                                    e: ini
+                                        4.2.1:
+                                            c:
+                                                etc:
+                                                    c:
+                                                        scylla:
+                                                            c:
+                                                                scylla.yaml:
+                                                                    e: yaml
+                                                        scylla.d:
+                                                            c:
+                                                                cpuset.conf:
+                                                                    c:
+                                                                        CPUSET:
+                                                                            e: flag
+                                                                    e: ini
+                                                                io.conf:
+                                                                    c:
+                                                                        SEASTAR_IO:
+                                                                            e: flag
+                                                                    e: ini
+                                                        sysconfig:
+                                                            c:
+                                                                scylla-server:
+                                                                    c:
+                                                                        SCYLLA_ARGS:
+                                                                            e: flag
+                                                                    e: ini

@@ -2,7 +2,6 @@ package cti
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"path"
@@ -15,8 +14,7 @@ import (
 type Func func(key string, parent Object) (ok bool)
 
 type Object map[string]struct {
-	Attr     Attr        `json:"a,omitempty" yaml:"a,omitempty"`
-	Aux      interface{} `json:"x,omitempty" yaml:"x,omitempty"`
+	Encoding Encoding    `json:"e,omitempty" yaml:"e,omitempty"`
 	Children Object      `json:"c,omitempty" yaml:"c,omitempty"`
 	Value    interface{} `json:"v,omitempty" yaml:"v,omitempty"`
 }
@@ -25,6 +23,7 @@ func (o Object) Copy() Object {
 	u := make(Object, len(o))
 
 	for k, n := range o {
+		n.Encoding = n.Encoding.Copy()
 		n.Children = n.Children.Copy()
 		u[k] = n
 	}
@@ -37,8 +36,7 @@ func (o Object) Meta() Object {
 
 	for k, n := range o {
 		m, _ := u[k] // zero value
-		m.Attr = n.Attr
-		m.Aux = n.Aux
+		m.Encoding = n.Encoding.Copy()
 		m.Children = n.Children.Meta()
 		u[k] = m
 	}
@@ -66,9 +64,7 @@ func (o Object) Value() interface{} {
 
 func (o Object) Shake() Object {
 	for k, n := range o {
-		// The n.Aux field controls how n.Value is handled, when
-		// the latter is nil then n.Aux alone has no meaning.
-		if len(n.Children) == 0 && n.Value == nil && n.Attr == 0 {
+		if len(n.Children) == 0 && n.Value == nil && len(n.Encoding) == 0 {
 			delete(o, k)
 		} else {
 			n.Children = n.Children.Shake()
@@ -128,6 +124,10 @@ func (o Object) Walk(fn Func) {
 		left   []string
 	}
 
+	if len(o) == 0 {
+		return
+	}
+
 	var (
 		it    elm
 		k     string
@@ -159,6 +159,10 @@ func (o Object) ReverseWalk(fn Func) {
 		parent Object
 		key    string
 		left   []string
+	}
+
+	if len(o) == 0 {
+		return
 	}
 
 	var (
@@ -225,7 +229,7 @@ func (o Object) Keys() []string {
 }
 
 func (o Object) WriteTab(w io.Writer) (err error) {
-	if _, err = fmt.Fprintln(w, "KEY\tATTR\tAUX\tVALUE"); err != nil {
+	if _, err = fmt.Fprintln(w, "KEY\tENCODING\tVALUE"); err != nil {
 		return err
 	}
 
@@ -235,21 +239,13 @@ func (o Object) WriteTab(w io.Writer) (err error) {
 			n = o[k]
 		)
 
-		if n.Value == nil && n.Attr == 0 {
+		if n.Value == nil && len(n.Children) != 0 && len(n.Encoding) == 0 {
 			return true
 		}
 
-		var aux []byte
-		if n.Aux != nil {
-			if aux, err = json.Marshal(n.Aux); err != nil {
-				return false
-			}
-		}
-
-		_, err = fmt.Fprintf(w, "%s\t%s\t%s\t%+v\n",
+		_, err = fmt.Fprintf(w, "%s\t%s\t%+v\n",
 			key,
-			nonempty(n.Attr.String(), "-"),
-			nonempty(string(aux), "-"),
+			nonempty(n.Encoding.String(), "-"),
 			nonil(n.Value, "-"),
 		)
 

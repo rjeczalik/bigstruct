@@ -7,8 +7,7 @@ import (
 )
 
 type Serializer struct {
-	enc []Encoding
-	aux []Aux
+	enc []Encoder
 }
 
 var defaultSerializer = NewSerializer()
@@ -16,43 +15,21 @@ var defaultSerializer = NewSerializer()
 func NewSerializer() *Serializer {
 	s := new(Serializer)
 
-	for _, enc := range DefaultEncodings {
+	for _, enc := range DefaultEncoders {
 		s.mustRegisterEncoding(enc)
-	}
-
-	for _, aux := range DefaultAuxs {
-		s.mustRegisterAux(aux)
 	}
 
 	return s
 }
 
-func (s *Serializer) RegisterEncoding(e Encoding) error {
+func (s *Serializer) RegisterEncoding(e Encoder) error {
 	for _, enc := range s.enc {
-		if enc.Name == e.Name {
-			return fmt.Errorf("encoding %s already registered", &e)
-		}
-		if enc.ID&e.ID != 0 {
-			return fmt.Errorf("encoding %s conflicts with %s", &e, &enc)
+		if enc.String() == e.String() {
+			return fmt.Errorf("encoding %s already registered", e)
 		}
 	}
 
 	s.enc = append(s.enc, e)
-
-	return nil
-}
-
-func (s *Serializer) RegisterAux(x Aux) error {
-	for _, aux := range s.aux {
-		if aux.Name == x.Name {
-			return fmt.Errorf("encoding %s already registered", &x)
-		}
-		if aux.ID&x.ID != 0 {
-			return fmt.Errorf("encoding %s conflicts with %s", &x, &aux)
-		}
-	}
-
-	s.aux = append(s.aux, x)
 
 	return nil
 }
@@ -84,31 +61,27 @@ func (s *Serializer) Unmarshal(o Object, v interface{}) error {
 func (s *Serializer) expand(err *error) Func {
 	return func(key string, o Object) bool {
 		var (
-			k   = path.Base(key)
-			n   = o[k]
-			enc *Encoding
+			k     = path.Base(key)
+			n     = o[k]
+			stack encstack
 		)
-
-		if x := s.lookupAux(n.Attr); x != nil {
-			_ = x.Expand(key, o)
-			n = o[k]
-		}
 
 		if len(n.Children) != 0 || n.Value == nil {
 			return true // not a leaf node, ignore
 		}
 
-		if enc = s.lookupEnc(n.Attr); enc != nil {
-			if *err = enc.Decode(key, o); *err != nil {
+		if stack, *err = s.lookupEncstack(n.Encoding); *err == nil && len(stack) != 0 {
+			if *err = stack.Decode(key, o); *err != nil {
 				return false
 			}
-		} else if enc = s.guessEnc(k); enc == nil || enc.Decode(key, o) != nil {
+		} else if *err != nil {
+			return false
+		} else if stack = s.guessEncstack(k); stack == nil || stack.Decode(key, o) != nil {
 			var ok bool
 
-			for i := range s.enc {
-				enc = &s.enc[i]
-
+			for _, enc := range s.enc {
 				if err := enc.Decode(key, o); err == nil {
+					stack = encstack{enc}
 					ok = true
 					break
 				}
@@ -120,7 +93,7 @@ func (s *Serializer) expand(err *error) Func {
 		}
 
 		n = o[k]
-		n.Attr |= enc.ID
+		n.Encoding = stack.encoding()
 		o[k] = n
 
 		return true
@@ -130,16 +103,16 @@ func (s *Serializer) expand(err *error) Func {
 func (s *Serializer) compact(err *error) Func {
 	return func(key string, o Object) bool {
 		var (
-			k   = path.Base(key)
-			n   = o[k]
-			enc *Encoding
+			k     = path.Base(key)
+			n     = o[k]
+			stack encstack
 		)
 
-		if enc = s.lookupEnc(n.Attr); enc == nil {
-			return true
+		if stack, *err = s.lookupEncstack(n.Encoding); len(stack) == 0 {
+			return *err == nil
 		}
 
-		if *err = enc.Encode(key, o); *err != nil {
+		if *err = stack.Encode(key, o); *err != nil {
 			return false
 		}
 
@@ -147,23 +120,38 @@ func (s *Serializer) compact(err *error) Func {
 	}
 }
 
-func (s *Serializer) mustRegisterEncoding(e Encoding) {
+func (s *Serializer) mustRegisterEncoding(e Encoder) {
 	if err := s.RegisterEncoding(e); err != nil {
 		panic("unexpected error registering encoding " + e.String() + ": " + err.Error())
 	}
 }
 
-func (s *Serializer) mustRegisterAux(x Aux) {
-	if err := s.RegisterAux(x); err != nil {
-		panic("unexpected error registering aux " + x.String() + ": " + err.Error())
+func (s *Serializer) lookupEncstack(e Encoding) (stack encstack, err error) {
+	for i := len(e) - 1; i >= 0; i-- {
+		enc := s.lookupEnc(e[i])
+
+		if enc == nil {
+			return nil, fmt.Errorf("unsupported encoding: %q", e[i])
+		}
+
+		stack = append(stack, enc)
 	}
+
+	return stack, nil
 }
 
-func (s *Serializer) lookupEnc(attr Attr) *Encoding {
-	for i := range s.enc {
-		enc := &s.enc[i]
+func (s *Serializer) guessEncstack(key string) (stack encstack) {
+	for _, ext := range filext(path.Base(key)) {
+		if enc := s.lookupEncByExt(ext); enc != nil {
+			stack = append(stack, enc)
+		}
+	}
+	return stack
+}
 
-		if attr.Has(enc.ID) {
+func (s *Serializer) lookupEnc(typ string) Encoder {
+	for _, enc := range s.enc {
+		if enc.String() == typ {
 			return enc
 		}
 	}
@@ -171,40 +159,64 @@ func (s *Serializer) lookupEnc(attr Attr) *Encoding {
 	return nil
 }
 
-func (s *Serializer) lookupAux(attr Attr) *Aux {
-	for i := range s.aux {
-		aux := &s.aux[i]
-
-		if attr.Has(aux.ID) {
-			return aux
-		}
-	}
-
-	return nil
-}
-
-func (s *Serializer) guessEnc(key string) *Encoding {
-	for i := range s.enc {
-		enc := &s.enc[i]
-
-		if enc.Match(key) {
-			return enc
-		}
-	}
-
-	return nil
-}
-
-func MatchSuffix(s ...string) func(string) bool {
-	return func(key string) bool {
-		key = strings.ToLower(key)
-
-		for _, s := range s {
-			if strings.HasSuffix(key, s) {
-				return true
+func (s *Serializer) lookupEncByExt(ext string) Encoder {
+	for _, enc := range s.enc {
+		for _, s := range enc.FileExt() {
+			if s == ext {
+				return enc
 			}
 		}
-
-		return false
 	}
+
+	return nil
+}
+
+type encstack []Encoder
+
+func (stack encstack) encoding() (e Encoding) {
+	e = make([]string, 0, len(stack))
+
+	for _, enc := range stack {
+		e = append(e, enc.String())
+	}
+
+	return e
+}
+
+func (stack encstack) Decode(key string, o Object) error {
+	for _, enc := range stack {
+		if err := enc.Decode(key, o); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (stack encstack) Encode(key string, o Object) error {
+	for _, enc := range stack {
+		if err := enc.Encode(key, o); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func filext(name string) (ext []string) {
+	s := strings.Split(name, ".")
+	if len(s) < 2 {
+		return nil
+	}
+
+	for _, s := range s[1:] {
+		switch s = strings.ToLower(s); s {
+		case "tgz":
+			ext = append(ext, "tar", "gz")
+		default:
+			ext = append(ext, s)
+		}
+	}
+
+	return ext
 }

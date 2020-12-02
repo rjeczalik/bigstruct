@@ -1,28 +1,51 @@
 package cti
 
 import (
+	"encoding"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"path"
+	"path/filepath"
+	"strings"
 )
 
-func Field(a Attr, aux, value interface{}) Func {
-	return func(key string, o Object) bool {
-		var (
-			k = path.Base(key)
-			n = o[k]
-		)
+var errEmpty = errors.New("byte slice is empty")
 
-		n.Attr = a
-		n.Aux = aux
-		n.Value = value
-		o[k] = n
-
-		return true
+func tobytes(v interface{}) (p []byte, err error) {
+	switch v := v.(type) {
+	case nil:
+		// ignore
+	case []byte:
+		p = v
+	case string:
+		p = []byte(v)
+	case encoding.TextMarshaler:
+		p, err = v.MarshalText()
+	case encoding.BinaryMarshaler:
+		p, err = v.MarshalBinary()
+	default:
+		err = fmt.Errorf("value is neither string nor []byte: %T", v)
 	}
+
+	switch {
+	case err != nil:
+		return nil, err
+	case len(p) == 0:
+		return nil, errEmpty
+	}
+
+	return p, nil
 }
 
-func Value(v interface{}) Func {
-	return Field(0, nil, v)
+func cleanpath(s string) string {
+	s = strings.TrimLeft(s, `/.\`)
+	s = filepath.FromSlash(s)
+	s = filepath.Clean(s)
+	s = filepath.ToSlash(s)
+	s = path.Join("/", s)
+
+	return s
 }
 
 func reencode(in, out interface{}) error {

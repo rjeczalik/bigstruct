@@ -2,10 +2,8 @@ package cti_test
 
 import (
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"os"
-	path "path"
 	"testing"
 
 	"github.com/glaucusio/confetti/cti"
@@ -23,7 +21,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestCti(t *testing.T) {
-	orig, err := cti.MakeDir("testdata/file")
+	orig, err := cti.MakeDir("testdata/docker")
 	if err != nil {
 		t.Fatalf("FileTree()=%s", err)
 	}
@@ -37,30 +35,28 @@ func TestCti(t *testing.T) {
 		t.Fatalf("s.Expand()=%s", err)
 	}
 
-	exp.Meta().Walk(debug)
-
 	var (
 		meta = reencode(exp.Meta())
 		vgot = reencode(exp.Value())
 	)
 
 	if *updateGolden {
-		if err := writeFile("testdata/file.yaml.golden", exp); err != nil {
+		if err := writeFile("testdata/docker.object.yaml.golden", exp); err != nil {
 			t.Fatalf("writeFile()=%s", err)
 		}
 
-		if err := writeFile("testdata/file-value.yaml.golden", vgot); err != nil {
+		if err := writeFile("testdata/docker.yaml.golden", vgot); err != nil {
 			t.Fatalf("writeFile()=%s", err)
 		}
 
-		if err := writeFile("testdata/file-meta.yaml.golden", meta); err != nil {
+		if err := writeFile("testdata/docker.meta.yaml.golden", meta); err != nil {
 			t.Fatalf("writeFile()=%s", err)
 		}
 
 		return
 	}
 
-	vwant, err := vReadFile("testdata/file-value.yaml.golden")
+	vwant, err := vReadFile("testdata/docker.yaml.golden")
 	if err != nil {
 		t.Fatalf("vReadFile()=%s", err)
 	}
@@ -69,7 +65,7 @@ func TestCti(t *testing.T) {
 		t.Fatalf("vgot != vwant:\n%s", cmp.Diff(vgot, vwant))
 	}
 
-	awant, err := vReadFile("testdata/file-meta.yaml.golden")
+	awant, err := vReadFile("testdata/docker.meta.yaml.golden")
 	if err != nil {
 		t.Fatalf("vReadFile()=%s", err)
 	}
@@ -84,7 +80,7 @@ func TestCti(t *testing.T) {
 		t.Fatalf("s.Compact()=%s", err)
 	}
 
-	objwant, err := objReadFile("testdata/file.yaml.golden")
+	objwant, err := objReadFile("testdata/docker.object.yaml.golden")
 	if err != nil {
 		t.Fatalf("objReadFile()=%s", err)
 	}
@@ -156,26 +152,4 @@ func reencode(v interface{}) (w interface{}) {
 	}
 
 	return w
-}
-
-func debug(key string, o cti.Object) bool {
-	var (
-		k = path.Base(key)
-		n = o[k]
-	)
-
-	switch {
-	case len(n.Children) != 0 && n.Attr != 0:
-		fmt.Printf("%s (%s)\n", key, n.Attr)
-	case len(n.Children) != 0:
-		fmt.Printf("%s\n", key)
-	case n.Value != nil && n.Attr != 0:
-		fmt.Printf("%s=%s (%s)\n", key, n.Value, n.Attr)
-	case n.Attr != 0:
-		fmt.Printf("%s (%s)\n", key, n.Attr)
-	default:
-		fmt.Printf("%s=%s\n", key, n.Value)
-	}
-
-	return true
 }

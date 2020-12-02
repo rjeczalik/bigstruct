@@ -2,156 +2,131 @@ package cti
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
-	"path"
-
-	"github.com/glaucusio/confetti/internal/objects"
+	"strings"
 
 	"github.com/pelletier/go-toml"
-	"gopkg.in/yaml.v1"
+	"gopkg.in/yaml.v3"
 )
 
-var DefaultEncodings = []Encoding{{
-	ID:        AttrJSON,
-	Name:      "json",
-	Marshal:   json.Marshal,
-	Unmarshal: json.Unmarshal,
-	Match:     MatchSuffix(".json"),
-}, {
-	ID:        AttrINI,
-	Name:      "ini",
-	Marshal:   ini.Marshal,
-	Unmarshal: ini.Unmarshal,
-	Match:     MatchSuffix(".json"),
-}, {
-	ID:        AttrFlag,
-	Name:      "flag",
-	Marshal:   flag.Marshal,
-	Unmarshal: flag.Unmarshal,
-	Match:     MatchSuffix(),
-}, {
-	ID:        AttrTOML,
-	Name:      "toml",
-	Marshal:   toml.Marshal,
-	Unmarshal: toml.Unmarshal,
-	Match:     MatchSuffix(".toml"),
-}, {
-	ID:        AttrYAML,
-	Name:      "yaml",
-	Marshal:   yaml.Marshal,
-	Unmarshal: yaml.Unmarshal,
-	Match:     MatchSuffix(".yaml", ".yml"),
-}}
+type Encoding []string
+
+var (
+	_ json.Marshaler   = (*Encoding)(nil)
+	_ json.Unmarshaler = (*Encoding)(nil)
+	_ yaml.Marshaler   = (*Encoding)(nil)
+	_ yaml.Unmarshaler = (*Encoding)(nil)
+)
+
+func (e Encoding) Has(enc string) bool {
+	for _, e := range e {
+		if e == enc {
+			return true
+		}
+	}
+	return false
+}
+
+func (e Encoding) String() string {
+	return strings.Join(e, "/")
+}
+
+func (e Encoding) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + e.String() + `"`), nil
+}
+
+func (e *Encoding) UnmarshalJSON(p []byte) error {
+	var s string
+
+	if err := json.Unmarshal(p, &s); err != nil {
+		return err
+	}
+
+	*e = strings.Split(s, "/")
+
+	return nil
+}
+
+func (e Encoding) MarshalYAML() (interface{}, error) {
+	return strings.Join(e, "/"), nil
+}
+
+func (e *Encoding) UnmarshalYAML(n *yaml.Node) error {
+	var s string
+
+	if err := n.Decode(&s); err != nil {
+		return err
+	}
+
+	*e = strings.Split(s, "/")
+
+	return nil
+}
+
+func (e Encoding) Copy() Encoding {
+	eCopy := make(Encoding, len(e))
+	copy(eCopy, e)
+	return eCopy
+}
+
+type Encoder interface {
+	Encode(key string, o Object) error
+	Decode(key string, o Object) error
+	FileExt() []string
+	String() string
+}
+
+var DefaultEncoders = []Encoder{
+	ObjectEncoder{
+		Name:      "json",
+		Ext:       []string{"json"},
+		Marshal:   json.Marshal,
+		Unmarshal: json.Unmarshal,
+	},
+	ObjectEncoder{
+		Name:      "ini",
+		Ext:       []string{"conf"},
+		Marshal:   ini.Marshal,
+		Unmarshal: ini.Unmarshal,
+	},
+	ObjectEncoder{
+		Name:      "flag",
+		Marshal:   flag.Marshal,
+		Unmarshal: flag.Unmarshal,
+	},
+	ObjectEncoder{
+		Name:      "toml",
+		Ext:       []string{"toml"},
+		Marshal:   toml.Marshal,
+		Unmarshal: toml.Unmarshal,
+	},
+	ObjectEncoder{
+		Name:      "yaml",
+		Ext:       []string{"yml", "yaml"},
+		Marshal:   yaml.Marshal,
+		Unmarshal: yaml.Unmarshal,
+	},
+	BytesEncoder{
+		Name:      "gzip",
+		Ext:       []string{"gz", "gzip"},
+		Marshal:   gzip.Marshal,
+		Unmarshal: gzip.Unmarshal,
+	},
+	TarEncoder{},
+	ZipEncoder{},
+}
 
 type EncodingError struct {
-	Key string
-	Err error
+	Encoding string
+	Key      string
+	Err      error
 }
 
 var _ error = (*EncodingError)(nil)
 
 func (ee *EncodingError) Error() string {
-	return `failed to encode "` + ee.Key + `": ` + ee.Err.Error()
+	return ee.Encoding + `: failed to encode "` + ee.Key + `": ` + ee.Err.Error()
 }
 
 func (ee *EncodingError) Unwrap() error {
 	return ee.Err
-}
-
-type Encoding struct {
-	ID        Attr
-	Name      string
-	Marshal   func(interface{}) ([]byte, error)
-	Unmarshal func([]byte, interface{}) error
-	Match     func(key string) bool
-}
-
-func (e *Encoding) String() string {
-	return fmt.Sprintf("%q (%b)", e.Name, e.ID)
-}
-
-func (e *Encoding) Encode(key string, o Object) error {
-	var (
-		k = path.Base(key)
-		n = o[k]
-	)
-
-	p, err := e.Marshal(n.Children.Value())
-	if err != nil {
-		return &EncodingError{
-			Key: key,
-			Err: err,
-		}
-	}
-
-	if n.Attr.Has(AttrString) {
-		n.Value = string(p)
-		n.Attr &= ^AttrString
-	} else {
-		n.Value = p
-	}
-	n.Children = nil
-	o[k] = n
-
-	return nil
-}
-
-func (e *Encoding) Decode(key string, o Object) error {
-	var (
-		p []byte
-		a Attr
-		k = path.Base(key)
-		n = o[k]
-	)
-
-	switch v := n.Value.(type) {
-	case []byte:
-		p = v
-	case string:
-		p = []byte(v)
-		a = AttrString
-	case nil:
-		if len(n.Children) == 0 {
-			return &EncodingError{
-				Key: key,
-				Err: errors.New("nil value in leaf node"),
-			}
-		}
-
-		return nil
-	default:
-		var err error
-
-		if p, err = e.Marshal(v); err != nil {
-			return &EncodingError{
-				Key: key,
-				Err: err,
-			}
-		}
-	}
-
-	var v interface{}
-
-	if err := e.Unmarshal(p, &v); err != nil {
-		return &EncodingError{
-			Key: key,
-			Err: err,
-		}
-	}
-
-	obj := objects.Object(v)
-	if len(obj) == 0 {
-		return &EncodingError{
-			Key: key,
-			Err: errors.New("not a struct or non-empty map"),
-		}
-	}
-
-	n.Attr |= a
-	n.Value = nil
-	n.Children = Make(obj)
-	o[k] = n
-
-	return nil
 }
