@@ -113,20 +113,5 @@ var DefaultEncoders = []Encoder{
 	},
 	TarEncoder{},
 	ZipEncoder{},
-}
-
-type EncodingError struct {
-	Encoding string
-	Key      string
-	Err      error
-}
-
-var _ error = (*EncodingError)(nil)
-
-func (ee *EncodingError) Error() string {
-	return ee.Encoding + `: failed to encode "` + ee.Key + `": ` + ee.Err.Error()
-}
-
-func (ee *EncodingError) Unwrap() error {
-	return ee.Err
+	ConfettiEncoder{},
 }

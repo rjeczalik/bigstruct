@@ -33,8 +33,9 @@ func (te TarEncoder) Encode(key string, o Object) error {
 	for _, f := range f {
 		p, err := tobytes(f.Value)
 		if err != nil {
-			return &EncodingError{
+			return &Error{
 				Encoding: te.String(),
+				Op:       "encode",
 				Key:      f.Key,
 				Err:      err,
 			}
@@ -54,16 +55,18 @@ func (te TarEncoder) Encode(key string, o Object) error {
 		}
 
 		if err := tw.WriteHeader(hdr); err != nil {
-			return &EncodingError{
+			return &Error{
 				Encoding: te.String(),
+				Op:       "encode",
 				Key:      f.Key,
 				Err:      err,
 			}
 		}
 
 		if _, err := tw.Write(p); err != nil {
-			return &EncodingError{
+			return &Error{
 				Encoding: te.String(),
+				Op:       "encode",
 				Key:      f.Key,
 				Err:      err,
 			}
@@ -71,8 +74,9 @@ func (te TarEncoder) Encode(key string, o Object) error {
 	}
 
 	if err := tw.Close(); err != nil {
-		return &EncodingError{
+		return &Error{
 			Encoding: te.String(),
+			Op:       "encode",
 			Key:      key,
 			Err:      err,
 		}
@@ -94,8 +98,9 @@ func (te TarEncoder) Decode(key string, o Object) error {
 
 	p, err := tobytes(n.Value)
 	if err != nil {
-		return &EncodingError{
+		return &Error{
 			Encoding: te.String(),
+			Op:       "decode",
 			Key:      key,
 			Err:      err,
 		}
@@ -116,8 +121,9 @@ func (te TarEncoder) Decode(key string, o Object) error {
 			break
 		}
 		if err != nil {
-			return &EncodingError{
+			return &Error{
 				Encoding: te.String(),
+				Op:       "decode",
 				Key:      key,
 				Err:      err,
 			}
@@ -127,8 +133,9 @@ func (te TarEncoder) Decode(key string, o Object) error {
 
 		p, err := ioutil.ReadAll(tr)
 		if err != nil {
-			return &EncodingError{
+			return &Error{
 				Encoding: te.String(),
+				Op:       "decode",
 				Key:      key,
 				Err:      err,
 			}

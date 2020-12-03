@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/glaucusio/confetti/cti"
-	"github.com/glaucusio/confetti/cti/ctiutil"
 
 	"github.com/google/go-cmp/cmp"
 )
@@ -18,8 +17,8 @@ func TestObject(t *testing.T) {
 	o.Put("/ascii/50", cti.Value('c'))
 	o.Put("/yaml", cti.Value("json: '{\"ini\":\"k=\\\"v\\\"\\nkey=\\\"value\\\"\\n\"}'\n"))
 
-	var got ctiutil.Fields
-	want := ctiutil.Fields{{
+	got := o.Fields()
+	want := cti.Fields{{
 		Key: "/ascii",
 	}, {
 		Key:   "/ascii/48",
@@ -41,8 +40,6 @@ func TestObject(t *testing.T) {
 		Value: "json: '{\"ini\":\"k=\\\"v\\\"\\nkey=\\\"value\\\"\\n\"}'\n",
 	}}
 
-	o.Walk(got.Append)
-
 	if !cmp.Equal(got, want) {
 		t.Fatalf("got != want:\n%s", cmp.Diff(got, want))
 	}
@@ -51,8 +48,8 @@ func TestObject(t *testing.T) {
 		t.Fatalf("o.Expand()=%s", err)
 	}
 
-	var egot ctiutil.Fields
-	ewant := ctiutil.Fields{{
+	egot := o.Fields()
+	ewant := cti.Fields{{
 		Key: "/ascii",
 	}, {
 		Key:   "/ascii/48",
@@ -91,13 +88,11 @@ func TestObject(t *testing.T) {
 		Value: "value",
 	}}
 
-	o.Walk(egot.Append)
-
 	if !cmp.Equal(egot, ewant) {
 		t.Fatalf("egot != ewant:\n%s", cmp.Diff(egot, ewant))
 	}
 
-	var rgot ctiutil.Fields
+	var rgot cti.Fields
 	rwant := []string{
 		"/yaml/json/ini/key",
 		"/yaml/json/ini/k",
@@ -120,7 +115,7 @@ func TestObject(t *testing.T) {
 		t.Fatalf("rgot != rwant:\n%s", cmp.Diff(rgot.Keys(), rwant))
 	}
 
-	var igot ctiutil.Fields
+	var igot cti.Fields
 	iwant := []string{
 		"/ascii/48",
 		"/ascii/49",
@@ -137,7 +132,7 @@ func TestObject(t *testing.T) {
 		t.Fatalf("igot != iwant:\n%s", cmp.Diff(igot.Keys(), iwant))
 	}
 
-	var cgot ctiutil.Fields
+	var cgot cti.Fields
 	want[6].Encoding = cti.Encoding{"yaml"}
 
 	if err := o.Compact(); err != nil {

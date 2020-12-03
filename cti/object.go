@@ -44,6 +44,12 @@ func (o Object) Meta() Object {
 	return u.Shake()
 }
 
+func (o Object) Fields() Fields {
+	var f Fields
+	o.Walk(f.Append)
+	return f
+}
+
 func (o Object) Value() interface{} {
 	obj := make(map[string]interface{})
 
@@ -57,6 +63,10 @@ func (o Object) Value() interface{} {
 
 	if a := objects.Slice(obj); len(a) != 0 {
 		return a
+	}
+
+	if len(obj) == 0 {
+		return nil
 	}
 
 	return obj
@@ -228,48 +238,60 @@ func (o Object) Keys() []string {
 	return keys
 }
 
-func (o Object) WriteTab(w io.Writer) (err error) {
-	if _, err = fmt.Fprintln(w, "KEY\tENCODING\tVALUE"); err != nil {
-		return err
+func (o Object) WriteTab(w io.Writer) (n int64, err error) {
+	var m int
+
+	if m, err = fmt.Fprintln(w, "KEY\tENCODING\tVALUE"); err != nil {
+		return int64(m), err
 	}
 
 	o.Walk(func(key string, o Object) bool {
 		var (
 			k = path.Base(key)
-			n = o[k]
+			u = o[k]
 		)
 
-		if n.Value == nil && len(n.Children) != 0 && len(n.Encoding) == 0 {
+		if u.Value == nil && len(u.Children) != 0 && len(u.Encoding) == 0 {
 			return true
 		}
 
-		_, err = fmt.Fprintf(w, "%s\t%s\t%+v\n",
+		m, err = fmt.Fprintf(w, "%s\t%s\t%+v\n",
 			key,
-			nonempty(n.Encoding.String(), "-"),
-			nonil(n.Value, "-"),
+			nonempty(u.Encoding.String(), "-"),
+			nonil(u.Value, "-"),
 		)
+
+		n += int64(m)
 
 		return err == nil
 	})
 
-	return err
+	return n, err
 }
 
 func (o Object) String() string {
-	var (
-		buf bytes.Buffer
-		tw  = tabwriter.NewWriter(&buf, 2, 0, 2, ' ', 0)
-	)
+	var buf bytes.Buffer
 
-	if err := o.WriteTab(tw); err != nil {
-		panic("unexpected error: " + err.Error())
-	}
-
-	if err := tw.Flush(); err != nil {
+	if _, err := o.WriteTo(&buf); err != nil {
 		panic("unexpected error: " + err.Error())
 	}
 
 	return buf.String()
+}
+
+func (o Object) WriteTo(w io.Writer) (int64, error) {
+	tw := tabwriter.NewWriter(w, 2, 0, 2, ' ', 0)
+
+	n, err := o.WriteTab(tw)
+	if err != nil {
+		return n, err
+	}
+
+	if err := tw.Flush(); err != nil {
+		return n, err
+	}
+
+	return n, err
 }
 
 func (o Object) Expand() error {
@@ -278,4 +300,8 @@ func (o Object) Expand() error {
 
 func (o Object) Compact() error {
 	return defaultSerializer.Compact(o)
+}
+
+func (o Object) Validate() error {
+	return defaultSerializer.Validate(o)
 }

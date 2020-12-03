@@ -21,7 +21,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestCti(t *testing.T) {
-	orig, err := cti.MakeDir("testdata/docker")
+	orig, err := cti.MakeFile("testdata/docker")
 	if err != nil {
 		t.Fatalf("FileTree()=%s", err)
 	}
@@ -41,7 +41,7 @@ func TestCti(t *testing.T) {
 	)
 
 	if *updateGolden {
-		if err := writeFile("testdata/docker.object.yaml.golden", exp); err != nil {
+		if err := writeFile("testdata/docker.cti.yaml.golden", exp); err != nil {
 			t.Fatalf("writeFile()=%s", err)
 		}
 
@@ -80,7 +80,7 @@ func TestCti(t *testing.T) {
 		t.Fatalf("s.Compact()=%s", err)
 	}
 
-	objwant, err := objReadFile("testdata/docker.object.yaml.golden")
+	objwant, err := objReadFile("testdata/docker.cti.yaml.golden")
 	if err != nil {
 		t.Fatalf("objReadFile()=%s", err)
 	}

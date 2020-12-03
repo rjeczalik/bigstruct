@@ -23,8 +23,9 @@ func (be BytesEncoder) Encode(key string, o Object) error {
 
 	p, err := tobytes(n.Value)
 	if err != nil {
-		return &EncodingError{
+		return &Error{
 			Encoding: be.String(),
+			Op:       "encode",
 			Key:      key,
 			Err:      err,
 		}
@@ -32,8 +33,9 @@ func (be BytesEncoder) Encode(key string, o Object) error {
 
 	q, err := be.Marshal(p)
 	if err != nil {
-		return &EncodingError{
+		return &Error{
 			Encoding: be.String(),
+			Op:       "encode",
 			Key:      key,
 			Err:      err,
 		}
@@ -53,8 +55,9 @@ func (be BytesEncoder) Decode(key string, o Object) error {
 
 	p, err := tobytes(n.Value)
 	if err != nil {
-		return &EncodingError{
+		return &Error{
 			Encoding: be.String(),
+			Op:       "decode",
 			Key:      key,
 			Err:      err,
 		}
@@ -62,8 +65,9 @@ func (be BytesEncoder) Decode(key string, o Object) error {
 
 	q, err := be.Unmarshal(p)
 	if err != nil {
-		return &EncodingError{
+		return &Error{
 			Encoding: be.String(),
+			Op:       "decode",
 			Key:      key,
 			Err:      err,
 		}

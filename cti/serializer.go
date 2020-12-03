@@ -1,6 +1,7 @@
 package cti
 
 import (
+	"errors"
 	"fmt"
 	"path"
 	"strings"
@@ -32,6 +33,41 @@ func (s *Serializer) RegisterEncoding(e Encoder) error {
 	s.enc = append(s.enc, e)
 
 	return nil
+}
+
+func (s *Serializer) Validate(o Object) error {
+	var err error
+
+	o.Walk(s.validate(&err))
+
+	return err
+}
+
+func (s *Serializer) validate(err *error) Func {
+	return func(key string, o Object) bool {
+		var (
+			k = path.Base(key)
+			n = o[k]
+		)
+
+	validate:
+		for _, want := range n.Encoding {
+			for _, enc := range s.enc {
+				if want == enc.String() {
+					continue validate
+				}
+			}
+
+			*err = (&Error{
+				Encoding: want,
+				Op:       "validate",
+				Key:      key,
+				Err:      errors.New("unsupported encoding"),
+			}).Chain(*err)
+		}
+
+		return true
+	}
 }
 
 func (s *Serializer) Expand(o Object) error {
@@ -213,6 +249,8 @@ func filext(name string) (ext []string) {
 		switch s = strings.ToLower(s); s {
 		case "tgz":
 			ext = append(ext, "tar", "gz")
+		case "cgz":
+			ext = append(ext, "cti", "gz")
 		default:
 			ext = append(ext, s)
 		}

@@ -32,8 +32,9 @@ func (te ZipEncoder) Encode(key string, o Object) error {
 	for _, f := range f {
 		p, err := tobytes(f.Value)
 		if err != nil {
-			return &EncodingError{
+			return &Error{
 				Encoding: te.String(),
+				Op:       "encode",
 				Key:      f.Key,
 				Err:      err,
 			}
@@ -48,16 +49,18 @@ func (te ZipEncoder) Encode(key string, o Object) error {
 
 		zf, err := zw.Create(name)
 		if err != nil {
-			return &EncodingError{
+			return &Error{
 				Encoding: te.String(),
+				Op:       "encode",
 				Key:      f.Key,
 				Err:      err,
 			}
 		}
 
 		if _, err := zf.Write(p); err != nil {
-			return &EncodingError{
+			return &Error{
 				Encoding: te.String(),
+				Op:       "encode",
 				Key:      f.Key,
 				Err:      err,
 			}
@@ -65,8 +68,9 @@ func (te ZipEncoder) Encode(key string, o Object) error {
 	}
 
 	if err := zw.Close(); err != nil {
-		return &EncodingError{
+		return &Error{
 			Encoding: te.String(),
+			Op:       "encode",
 			Key:      key,
 			Err:      err,
 		}
@@ -88,21 +92,23 @@ func (te ZipEncoder) Decode(key string, o Object) error {
 
 	p, err := tobytes(n.Value)
 	if err != nil {
-		return &EncodingError{
+		return &Error{
 			Encoding: te.String(),
+			Op:       "decode",
 			Key:      key,
 			Err:      err,
 		}
 	}
 
 	if len(enc) > 1 {
-		enc = enc[:len(enc)]
+		enc = enc[:len(enc)-1]
 	}
 
 	zr, err := zip.NewReader(bytes.NewReader(p), int64(len(p)))
 	if err != nil {
-		return &EncodingError{
+		return &Error{
 			Encoding: te.String(),
+			Op:       "decode",
 			Key:      key,
 			Err:      err,
 		}
@@ -115,8 +121,9 @@ func (te ZipEncoder) Decode(key string, o Object) error {
 
 		rc, err := zf.Open()
 		if err != nil {
-			return &EncodingError{
+			return &Error{
 				Encoding: te.String(),
+				Op:       "decode",
 				Key:      key,
 				Err:      err,
 			}
@@ -125,8 +132,9 @@ func (te ZipEncoder) Decode(key string, o Object) error {
 		p, err := ioutil.ReadAll(rc)
 		_ = rc.Close()
 		if err != nil {
-			return &EncodingError{
+			return &Error{
 				Encoding: te.String(),
+				Op:       "decode",
 				Key:      key,
 				Err:      err,
 			}

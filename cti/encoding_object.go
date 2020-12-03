@@ -24,12 +24,23 @@ func (oe ObjectEncoder) Encode(key string, o Object) error {
 	var (
 		k = path.Base(key)
 		n = o[k]
+		v = n.Children.Value()
 	)
 
-	p, err := oe.Marshal(n.Children.Value())
-	if err != nil {
-		return &EncodingError{
+	if v == nil {
+		return &Error{
 			Encoding: oe.String(),
+			Op:       "encode",
+			Key:      key,
+			Err:      errors.New("nothing to encode"),
+		}
+	}
+
+	p, err := oe.Marshal(v)
+	if err != nil {
+		return &Error{
+			Encoding: oe.String(),
+			Op:       "encode",
 			Key:      key,
 			Err:      err,
 		}
@@ -50,8 +61,9 @@ func (oe ObjectEncoder) Decode(key string, o Object) error {
 
 	p, err := tobytes(n.Value)
 	if err != nil {
-		return &EncodingError{
+		return &Error{
 			Encoding: oe.String(),
+			Op:       "decode",
 			Key:      key,
 			Err:      err,
 		}
@@ -60,8 +72,9 @@ func (oe ObjectEncoder) Decode(key string, o Object) error {
 	var v interface{}
 
 	if err := oe.Unmarshal(p, &v); err != nil {
-		return &EncodingError{
+		return &Error{
 			Encoding: oe.String(),
+			Op:       "decode",
 			Key:      key,
 			Err:      err,
 		}
@@ -69,8 +82,9 @@ func (oe ObjectEncoder) Decode(key string, o Object) error {
 
 	obj := objects.Object(v)
 	if len(obj) == 0 {
-		return &EncodingError{
+		return &Error{
 			Encoding: oe.String(),
+			Op:       "decode",
 			Key:      key,
 			Err:      errors.New("not a struct or non-empty map"),
 		}

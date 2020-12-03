@@ -45,27 +45,48 @@ func Make(obj map[string]interface{}) Object {
 	return root
 }
 
-func MakeDir(dir string) (Object, error) {
-	root := make(Object)
+func MakeFile(path string) (Object, error) {
+	var f Fields
 
-	err := filepath.Walk(dir, func(key string, fi os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
+	switch fi, err := os.Stat(path); {
+	case err != nil:
+		return nil, err
+	case fi.IsDir():
+		err := filepath.Walk(path, func(key string, fi os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
 
-		if fi.IsDir() {
+			if fi.IsDir() {
+				return nil
+			}
+
+			p, err := ioutil.ReadFile(key)
+			if err != nil {
+				return err
+			}
+
+			f = append(f, Field{
+				Key:   cleanpath(key),
+				Value: string(p),
+			})
+
 			return nil
-		}
-
-		p, err := ioutil.ReadFile(key)
+		})
 		if err != nil {
-			return err
+			return nil, err
+		}
+	default:
+		p, err := ioutil.ReadFile(path)
+		if err != nil {
+			return nil, err
 		}
 
-		_ = root.Put(key, Field{Value: p}.Set)
+		f = append(f, Field{
+			Key:   cleanpath(path),
+			Value: p,
+		})
+	}
 
-		return nil
-	})
-
-	return root, err
+	return f.Object(), nil
 }
