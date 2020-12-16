@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/glaucusio/confetti/cti"
+	_ "github.com/glaucusio/confetti/cti/codec"
 
 	"github.com/google/go-cmp/cmp"
 )
@@ -11,85 +12,98 @@ import (
 func TestObject(t *testing.T) {
 	o := make(cti.Object)
 
-	o.Put("/foo/bar", cti.Value("[\"qux\",\"baz\"]", "json"))
-	o.Put("/ascii/48", cti.Value('a'))
-	o.Put("/ascii/49", cti.Value('b'))
-	o.Put("/ascii/50", cti.Value('c'))
+	o.Put("/foo/bar", cti.Value("[\"qux\",\"baz\"]", "object", "json"))
+	o.Put("/ascii/48", cti.Value(int('a')))
+	o.Put("/ascii/49", cti.Value(int('b')))
+	o.Put("/ascii/50", cti.Value(int('c')))
 	o.Put("/yaml", cti.Value("json: '{\"ini\":\"k=\\\"v\\\"\\nkey=\\\"value\\\"\\n\"}'\n"))
+	o.Put("/yaml/json/ini", cti.Value(nil, "object", "ini"))
 
 	got := o.Fields()
 	want := cti.Fields{{
 		Key: "/ascii",
 	}, {
 		Key:   "/ascii/48",
-		Value: 'a',
+		Value: int('a'),
 	}, {
 		Key:   "/ascii/49",
-		Value: 'b',
+		Value: int('b'),
 	}, {
 		Key:   "/ascii/50",
-		Value: 'c',
+		Value: int('c'),
 	}, {
 		Key: "/foo",
 	}, {
 		Key:      "/foo/bar",
-		Encoding: cti.Encoding{"json"},
+		Encoding: "object/json",
 		Value:    "[\"qux\",\"baz\"]",
 	}, {
 		Key:   "/yaml",
 		Value: "json: '{\"ini\":\"k=\\\"v\\\"\\nkey=\\\"value\\\"\\n\"}'\n",
+	}, {
+		Key: "/yaml/json",
+	}, {
+		Key:      "/yaml/json/ini",
+		Encoding: "object/ini",
 	}}
 
-	if !cmp.Equal(got, want) {
-		t.Fatalf("got != want:\n%s", cmp.Diff(got, want))
+	if !cmp.Equal(want, got) {
+		t.Fatalf("got != want:\n%s", cmp.Diff(want, got))
 	}
 
-	if err := o.Expand(); err != nil {
-		t.Fatalf("o.Expand()=%s", err)
+	if err := o.Decode(nil); err != nil {
+		t.Fatalf("o.Decode(nil)=%+v", err)
 	}
 
 	egot := o.Fields()
 	ewant := cti.Fields{{
 		Key: "/ascii",
 	}, {
-		Key:   "/ascii/48",
-		Value: 'a',
+		Key:      "/ascii/48",
+		Encoding: "value/number",
+		Value:    int('a'),
 	}, {
-		Key:   "/ascii/49",
-		Value: 'b',
+		Key:      "/ascii/49",
+		Encoding: "value/number",
+		Value:    int('b'),
 	}, {
-		Key:   "/ascii/50",
-		Value: 'c',
+		Key:      "/ascii/50",
+		Encoding: "value/number",
+		Value:    int('c'),
 	}, {
 		Key: "/foo",
 	}, {
 		Key:      "/foo/bar",
-		Encoding: cti.Encoding{"json"},
+		Encoding: "object/json",
 	}, {
-		Key:   "/foo/bar/0",
-		Value: "qux",
+		Key:      "/foo/bar/0",
+		Encoding: "value/string",
+		Value:    "qux",
 	}, {
-		Key:   "/foo/bar/1",
-		Value: "baz",
+		Key:      "/foo/bar/1",
+		Encoding: "value/string",
+		Value:    "baz",
 	}, {
 		Key:      "/yaml",
-		Encoding: cti.Encoding{"yaml"},
+		Encoding: "object/yaml",
 	}, {
 		Key:      "/yaml/json",
-		Encoding: cti.Encoding{"json"},
+		Encoding: "object/json",
 	}, {
 		Key:      "/yaml/json/ini",
-		Encoding: cti.Encoding{"ini"},
+		Encoding: "object/ini",
 	}, {
-		Key:   "/yaml/json/ini/k",
-		Value: "v",
+		Key:      "/yaml/json/ini/k",
+		Encoding: "value/string",
+		Value:    "v",
 	}, {
-		Key:   "/yaml/json/ini/key",
-		Value: "value",
+		Key:      "/yaml/json/ini/key",
+		Encoding: "value/string",
+		Value:    "value",
 	}}
 
-	if !cmp.Equal(egot, ewant) {
-		t.Fatalf("egot != ewant:\n%s", cmp.Diff(egot, ewant))
+	if !cmp.Equal(ewant, egot) {
+		t.Fatalf("egot != ewant:\n%s", cmp.Diff(ewant, egot))
 	}
 
 	var rgot cti.Fields
@@ -111,8 +125,8 @@ func TestObject(t *testing.T) {
 
 	o.ReverseWalk(rgot.Append)
 
-	if !cmp.Equal(rgot.Keys(), rwant) {
-		t.Fatalf("rgot != rwant:\n%s", cmp.Diff(rgot.Keys(), rwant))
+	if !cmp.Equal(rwant, rgot.Keys()) {
+		t.Fatalf("rgot != rwant:\n%s", cmp.Diff(rwant, rgot.Keys()))
 	}
 
 	var igot cti.Fields
@@ -128,20 +142,64 @@ func TestObject(t *testing.T) {
 
 	o.ForEach(igot.Append)
 
-	if !cmp.Equal(igot.Keys(), iwant) {
-		t.Fatalf("igot != iwant:\n%s", cmp.Diff(igot.Keys(), iwant))
+	if !cmp.Equal(iwant, igot.Keys()) {
+		t.Fatalf("igot != iwant:\n%s", cmp.Diff(iwant, igot.Keys()))
 	}
 
 	var cgot cti.Fields
-	want[6].Encoding = cti.Encoding{"yaml"}
+	want[6].Encoding = "object/yaml"
 
-	if err := o.Compact(); err != nil {
-		t.Fatalf("o.Expand()=%s", err)
+	if err := o.Encode(nil); err != nil {
+		t.Fatalf("o.Encode()=%+v", err)
 	}
 
 	o.Walk(cgot.Append)
 
-	if !cmp.Equal(cgot, want) {
-		t.Fatalf("cgot != want:\n%s", cmp.Diff(cgot, want))
+	cwant := cti.Fields{{
+		Key: "/ascii",
+	}, {
+		Key:      "/ascii/48",
+		Encoding: "value/number",
+		Value:    int('a'),
+	}, {
+		Key:      "/ascii/49",
+		Encoding: "value/number",
+		Value:    int('b'),
+	}, {
+		Key:      "/ascii/50",
+		Encoding: "value/number",
+		Value:    int('c'),
+	}, {
+		Key: "/foo",
+	}, {
+		Key:      "/foo/bar",
+		Encoding: "object/json",
+		Value:    "[\"qux\",\"baz\"]",
+	}, {
+		Key:      "/foo/bar/0",
+		Encoding: "value/string",
+	}, {
+		Key:      "/foo/bar/1",
+		Encoding: "value/string",
+	}, {
+		Key:      "/yaml",
+		Encoding: "object/yaml",
+		Value:    "json: '{\"ini\":\"k=\\\"v\\\"\\nkey=\\\"value\\\"\\n\"}'\n",
+	}, {
+		Key:      "/yaml/json",
+		Encoding: "object/json",
+	}, {
+		Key:      "/yaml/json/ini",
+		Encoding: "object/ini",
+	}, {
+		Key:      "/yaml/json/ini/k",
+		Encoding: "value/string",
+	}, {
+		Key:      "/yaml/json/ini/key",
+		Encoding: "value/string",
+	}}
+
+	if !cmp.Equal(cwant, cgot) {
+		t.Fatalf("cgot != want:\n%s", cmp.Diff(cwant, cgot))
 	}
 }

@@ -15,125 +15,169 @@ testdata:
                                                         scylla:
                                                             c:
                                                                 scylla.yaml:
-                                                                    e: yaml
+                                                                    e: object/yaml
                                                                     c:
                                                                         api_address:
-                                                                            v: 127.0.0.1
+                                                                            e: value/number
+                                                                            v: 127
                                                                         api_doc_dir:
+                                                                            e: value/string
                                                                             v: /opt/scylladb/api/api-doc/
                                                                         api_port:
+                                                                            e: value/number
                                                                             v: 10000
                                                                         api_ui_dir:
+                                                                            e: value/string
                                                                             v: /opt/scylladb/swagger-ui/dist/
                                                                         batch_size_fail_threshold_in_kb:
+                                                                            e: value/number
                                                                             v: 50
                                                                         batch_size_warn_threshold_in_kb:
+                                                                            e: value/number
                                                                             v: 5
                                                                         cas_contention_timeout_in_ms:
+                                                                            e: value/number
                                                                             v: 1000
                                                                         commitlog_segment_size_in_mb:
+                                                                            e: value/number
                                                                             v: 32
                                                                         commitlog_sync:
+                                                                            e: value/string
                                                                             v: periodic
                                                                         commitlog_sync_period_in_ms:
+                                                                            e: value/number
                                                                             v: 10000
                                                                         commitlog_total_space_in_mb:
+                                                                            e: value/number
                                                                             v: -1
                                                                         endpoint_snitch:
+                                                                            e: value/string
                                                                             v: SimpleSnitch
                                                                         listen_address:
+                                                                            e: value/string
                                                                             v: localhost
                                                                         murmur3_partitioner_ignore_msb_bits:
+                                                                            e: value/number
                                                                             v: 12
                                                                         native_transport_port:
+                                                                            e: value/number
                                                                             v: 9042
                                                                         num_tokens:
+                                                                            e: value/number
                                                                             v: 256
                                                                         partitioner:
+                                                                            e: value/string
                                                                             v: org.apache.cassandra.dht.Murmur3Partitioner
                                                                         read_request_timeout_in_ms:
+                                                                            e: value/number
                                                                             v: 5000
                                                                         rpc_address:
+                                                                            e: value/string
                                                                             v: localhost
                                                                         rpc_port:
+                                                                            e: value/number
                                                                             v: 9160
                                                                         seed_provider:
                                                                             c:
                                                                                 "0":
                                                                                     c:
                                                                                         class_name:
+                                                                                            e: value/string
                                                                                             v: org.apache.cassandra.locator.SimpleSeedProvider
                                                                                         parameters:
                                                                                             c:
                                                                                                 "0":
                                                                                                     c:
                                                                                                         seeds:
-                                                                                                            v: 127.0.0.1
+                                                                                                            e: value/number
+                                                                                                            v: 127
                                                                         write_request_timeout_in_ms:
+                                                                            e: value/number
                                                                             v: 2000
                                                         scylla.d:
                                                             c:
                                                                 cpuset.conf:
-                                                                    e: ini
+                                                                    e: object/ini
                                                                     c:
                                                                         CPUSET:
-                                                                            e: flag
+                                                                            e: object/flag
                                                                             c:
                                                                                 --cpuset:
-                                                                                    v: "0"
+                                                                                    e: value/number
+                                                                                    v: 0
                                                                                 --smp:
-                                                                                    v: "1"
+                                                                                    e: value/number
+                                                                                    v: 1
                                                                 io.conf:
-                                                                    e: ini
+                                                                    e: object/ini
                                                                     c:
                                                                         SEASTAR_IO:
-                                                                            e: flag
+                                                                            e: object/flag
                                                                             c:
                                                                                 --max-io-requests:
-                                                                                    v: "1"
+                                                                                    e: value/number
+                                                                                    v: 1
                                                                                 --num-io-queues:
-                                                                                    v: "1"
+                                                                                    e: value/number
+                                                                                    v: 1
                                                         sysconfig:
                                                             c:
                                                                 scylla-server:
-                                                                    e: ini
+                                                                    e: object/ini
                                                                     c:
                                                                         AMI:
+                                                                            e: value/string
                                                                             v: "no"
                                                                         BRIDGE:
+                                                                            e: value/string
                                                                             v: virbr0
                                                                         ETHDRV:
-                                                                            v: ""
+                                                                            e: value/bool
+                                                                            v: false
                                                                         ETHPCIID:
-                                                                            v: ""
+                                                                            e: value/bool
+                                                                            v: false
                                                                         GROUP:
+                                                                            e: value/string
                                                                             v: scylla
                                                                         IFNAME:
+                                                                            e: value/string
                                                                             v: eth0
                                                                         NETWORK_MODE:
+                                                                            e: value/string
                                                                             v: posix
                                                                         NR_HUGEPAGES:
-                                                                            v: "64"
+                                                                            e: value/number
+                                                                            v: 64
                                                                         SCYLLA_ARGS:
-                                                                            e: flag
+                                                                            e: object/flag
                                                                             c:
                                                                                 --default-log-level:
+                                                                                    e: value/string
                                                                                     v: info
                                                                                 --log-to-stdout:
-                                                                                    v: "1"
+                                                                                    e: value/number
+                                                                                    v: 1
                                                                                 --log-to-syslog:
-                                                                                    v: "0"
+                                                                                    e: value/number
+                                                                                    v: 0
                                                                                 --network-stack:
+                                                                                    e: value/string
                                                                                     v: posix
                                                                         SCYLLA_CONF:
+                                                                            e: value/string
                                                                             v: /etc/scylla
                                                                         SCYLLA_HOME:
+                                                                            e: value/string
                                                                             v: /var/lib/scylla
                                                                         SET_NIC_AND_DISKS:
+                                                                            e: value/string
                                                                             v: "no"
                                                                         TAP:
+                                                                            e: value/string
                                                                             v: tap0
                                                                         USER:
+                                                                            e: value/string
                                                                             v: scylla
                                         4.1.9:
                                             c:
@@ -142,125 +186,169 @@ testdata:
                                                         scylla:
                                                             c:
                                                                 scylla.yaml:
-                                                                    e: yaml
+                                                                    e: object/yaml
                                                                     c:
                                                                         api_address:
-                                                                            v: 127.0.0.1
+                                                                            e: value/number
+                                                                            v: 127
                                                                         api_doc_dir:
+                                                                            e: value/string
                                                                             v: /opt/scylladb/api/api-doc/
                                                                         api_port:
+                                                                            e: value/number
                                                                             v: 10000
                                                                         api_ui_dir:
+                                                                            e: value/string
                                                                             v: /opt/scylladb/swagger-ui/dist/
                                                                         batch_size_fail_threshold_in_kb:
+                                                                            e: value/number
                                                                             v: 50
                                                                         batch_size_warn_threshold_in_kb:
+                                                                            e: value/number
                                                                             v: 5
                                                                         cas_contention_timeout_in_ms:
+                                                                            e: value/number
                                                                             v: 1000
                                                                         commitlog_segment_size_in_mb:
+                                                                            e: value/number
                                                                             v: 32
                                                                         commitlog_sync:
+                                                                            e: value/string
                                                                             v: periodic
                                                                         commitlog_sync_period_in_ms:
+                                                                            e: value/number
                                                                             v: 10000
                                                                         commitlog_total_space_in_mb:
+                                                                            e: value/number
                                                                             v: -1
                                                                         endpoint_snitch:
+                                                                            e: value/string
                                                                             v: SimpleSnitch
                                                                         listen_address:
+                                                                            e: value/string
                                                                             v: localhost
                                                                         murmur3_partitioner_ignore_msb_bits:
+                                                                            e: value/number
                                                                             v: 12
                                                                         native_transport_port:
+                                                                            e: value/number
                                                                             v: 9042
                                                                         num_tokens:
+                                                                            e: value/number
                                                                             v: 256
                                                                         partitioner:
+                                                                            e: value/string
                                                                             v: org.apache.cassandra.dht.Murmur3Partitioner
                                                                         read_request_timeout_in_ms:
+                                                                            e: value/number
                                                                             v: 5000
                                                                         rpc_address:
+                                                                            e: value/string
                                                                             v: localhost
                                                                         rpc_port:
+                                                                            e: value/number
                                                                             v: 9160
                                                                         seed_provider:
                                                                             c:
                                                                                 "0":
                                                                                     c:
                                                                                         class_name:
+                                                                                            e: value/string
                                                                                             v: org.apache.cassandra.locator.SimpleSeedProvider
                                                                                         parameters:
                                                                                             c:
                                                                                                 "0":
                                                                                                     c:
                                                                                                         seeds:
-                                                                                                            v: 127.0.0.1
+                                                                                                            e: value/number
+                                                                                                            v: 127
                                                                         write_request_timeout_in_ms:
+                                                                            e: value/number
                                                                             v: 2000
                                                         scylla.d:
                                                             c:
                                                                 cpuset.conf:
-                                                                    e: ini
+                                                                    e: object/ini
                                                                     c:
                                                                         CPUSET:
-                                                                            e: flag
+                                                                            e: object/flag
                                                                             c:
                                                                                 --cpuset:
-                                                                                    v: "0"
+                                                                                    e: value/number
+                                                                                    v: 0
                                                                                 --smp:
-                                                                                    v: "1"
+                                                                                    e: value/number
+                                                                                    v: 1
                                                                 io.conf:
-                                                                    e: ini
+                                                                    e: object/ini
                                                                     c:
                                                                         SEASTAR_IO:
-                                                                            e: flag
+                                                                            e: object/flag
                                                                             c:
                                                                                 --max-io-requests:
-                                                                                    v: "1"
+                                                                                    e: value/number
+                                                                                    v: 1
                                                                                 --num-io-queues:
-                                                                                    v: "1"
+                                                                                    e: value/number
+                                                                                    v: 1
                                                         sysconfig:
                                                             c:
                                                                 scylla-server:
-                                                                    e: ini
+                                                                    e: object/ini
                                                                     c:
                                                                         AMI:
+                                                                            e: value/string
                                                                             v: "no"
                                                                         BRIDGE:
+                                                                            e: value/string
                                                                             v: virbr0
                                                                         ETHDRV:
-                                                                            v: ""
+                                                                            e: value/bool
+                                                                            v: false
                                                                         ETHPCIID:
-                                                                            v: ""
+                                                                            e: value/bool
+                                                                            v: false
                                                                         GROUP:
+                                                                            e: value/string
                                                                             v: scylla
                                                                         IFNAME:
+                                                                            e: value/string
                                                                             v: eth0
                                                                         NETWORK_MODE:
+                                                                            e: value/string
                                                                             v: posix
                                                                         NR_HUGEPAGES:
-                                                                            v: "64"
+                                                                            e: value/number
+                                                                            v: 64
                                                                         SCYLLA_ARGS:
-                                                                            e: flag
+                                                                            e: object/flag
                                                                             c:
                                                                                 --default-log-level:
+                                                                                    e: value/string
                                                                                     v: info
                                                                                 --log-to-stdout:
-                                                                                    v: "1"
+                                                                                    e: value/number
+                                                                                    v: 1
                                                                                 --log-to-syslog:
-                                                                                    v: "0"
+                                                                                    e: value/number
+                                                                                    v: 0
                                                                                 --network-stack:
+                                                                                    e: value/string
                                                                                     v: posix
                                                                         SCYLLA_CONF:
+                                                                            e: value/string
                                                                             v: /etc/scylla
                                                                         SCYLLA_HOME:
+                                                                            e: value/string
                                                                             v: /var/lib/scylla
                                                                         SET_NIC_AND_DISKS:
+                                                                            e: value/string
                                                                             v: "no"
                                                                         TAP:
+                                                                            e: value/string
                                                                             v: tap0
                                                                         USER:
+                                                                            e: value/string
                                                                             v: scylla
                                         4.2.1:
                                             c:
@@ -269,123 +357,167 @@ testdata:
                                                         scylla:
                                                             c:
                                                                 scylla.yaml:
-                                                                    e: yaml
+                                                                    e: object/yaml
                                                                     c:
                                                                         api_address:
-                                                                            v: 127.0.0.1
+                                                                            e: value/number
+                                                                            v: 127
                                                                         api_doc_dir:
+                                                                            e: value/string
                                                                             v: /opt/scylladb/api/api-doc/
                                                                         api_port:
+                                                                            e: value/number
                                                                             v: 10000
                                                                         api_ui_dir:
+                                                                            e: value/string
                                                                             v: /opt/scylladb/swagger-ui/dist/
                                                                         batch_size_fail_threshold_in_kb:
+                                                                            e: value/number
                                                                             v: 50
                                                                         batch_size_warn_threshold_in_kb:
+                                                                            e: value/number
                                                                             v: 5
                                                                         cas_contention_timeout_in_ms:
+                                                                            e: value/number
                                                                             v: 1000
                                                                         commitlog_segment_size_in_mb:
+                                                                            e: value/number
                                                                             v: 32
                                                                         commitlog_sync:
+                                                                            e: value/string
                                                                             v: periodic
                                                                         commitlog_sync_period_in_ms:
+                                                                            e: value/number
                                                                             v: 10000
                                                                         commitlog_total_space_in_mb:
+                                                                            e: value/number
                                                                             v: -1
                                                                         endpoint_snitch:
+                                                                            e: value/string
                                                                             v: SimpleSnitch
                                                                         listen_address:
+                                                                            e: value/string
                                                                             v: localhost
                                                                         murmur3_partitioner_ignore_msb_bits:
+                                                                            e: value/number
                                                                             v: 12
                                                                         native_transport_port:
+                                                                            e: value/number
                                                                             v: 9042
                                                                         num_tokens:
+                                                                            e: value/number
                                                                             v: 256
                                                                         partitioner:
+                                                                            e: value/string
                                                                             v: org.apache.cassandra.dht.Murmur3Partitioner
                                                                         read_request_timeout_in_ms:
+                                                                            e: value/number
                                                                             v: 5000
                                                                         rpc_address:
+                                                                            e: value/string
                                                                             v: localhost
                                                                         rpc_port:
+                                                                            e: value/number
                                                                             v: 9160
                                                                         seed_provider:
                                                                             c:
                                                                                 "0":
                                                                                     c:
                                                                                         class_name:
+                                                                                            e: value/string
                                                                                             v: org.apache.cassandra.locator.SimpleSeedProvider
                                                                                         parameters:
                                                                                             c:
                                                                                                 "0":
                                                                                                     c:
                                                                                                         seeds:
-                                                                                                            v: 127.0.0.1
+                                                                                                            e: value/number
+                                                                                                            v: 127
                                                                         write_request_timeout_in_ms:
+                                                                            e: value/number
                                                                             v: 2000
                                                         scylla.d:
                                                             c:
                                                                 cpuset.conf:
-                                                                    e: ini
+                                                                    e: object/ini
                                                                     c:
                                                                         CPUSET:
-                                                                            e: flag
+                                                                            e: object/flag
                                                                             c:
                                                                                 --cpuset:
-                                                                                    v: "0"
+                                                                                    e: value/number
+                                                                                    v: 0
                                                                                 --smp:
-                                                                                    v: "1"
+                                                                                    e: value/number
+                                                                                    v: 1
                                                                 io.conf:
-                                                                    e: ini
+                                                                    e: object/ini
                                                                     c:
                                                                         SEASTAR_IO:
-                                                                            e: flag
+                                                                            e: object/flag
                                                                             c:
                                                                                 --max-io-requests:
-                                                                                    v: "1"
+                                                                                    e: value/number
+                                                                                    v: 1
                                                                                 --num-io-queues:
-                                                                                    v: "1"
+                                                                                    e: value/number
+                                                                                    v: 1
                                                         sysconfig:
                                                             c:
                                                                 scylla-server:
-                                                                    e: ini
+                                                                    e: object/ini
                                                                     c:
                                                                         AMI:
+                                                                            e: value/string
                                                                             v: "no"
                                                                         BRIDGE:
+                                                                            e: value/string
                                                                             v: virbr0
                                                                         ETHDRV:
-                                                                            v: ""
+                                                                            e: value/bool
+                                                                            v: false
                                                                         ETHPCIID:
-                                                                            v: ""
+                                                                            e: value/bool
+                                                                            v: false
                                                                         GROUP:
+                                                                            e: value/string
                                                                             v: scylla
                                                                         IFNAME:
+                                                                            e: value/string
                                                                             v: eth0
                                                                         NETWORK_MODE:
+                                                                            e: value/string
                                                                             v: posix
                                                                         NR_HUGEPAGES:
-                                                                            v: "64"
+                                                                            e: value/number
+                                                                            v: 64
                                                                         SCYLLA_ARGS:
-                                                                            e: flag
+                                                                            e: object/flag
                                                                             c:
                                                                                 --default-log-level:
+                                                                                    e: value/string
                                                                                     v: info
                                                                                 --log-to-stdout:
-                                                                                    v: "1"
+                                                                                    e: value/number
+                                                                                    v: 1
                                                                                 --log-to-syslog:
-                                                                                    v: "0"
+                                                                                    e: value/number
+                                                                                    v: 0
                                                                                 --network-stack:
+                                                                                    e: value/string
                                                                                     v: posix
                                                                         SCYLLA_CONF:
+                                                                            e: value/string
                                                                             v: /etc/scylla
                                                                         SCYLLA_HOME:
+                                                                            e: value/string
                                                                             v: /var/lib/scylla
                                                                         SET_NIC_AND_DISKS:
+                                                                            e: value/string
                                                                             v: "no"
                                                                         TAP:
+                                                                            e: value/string
                                                                             v: tap0
                                                                         USER:
+                                                                            e: value/string
                                                                             v: scylla

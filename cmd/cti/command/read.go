@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"strings"
 
 	"github.com/glaucusio/confetti/cti"
+	_ "github.com/glaucusio/confetti/cti/codec"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -60,7 +60,7 @@ func (m *readCmd) run(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	if err := obj.Expand(); err != nil {
+	if err := obj.Decode(nil); err != nil {
 		return err
 	}
 
@@ -81,16 +81,12 @@ func (m *readCmd) run(_ *cobra.Command, args []string) error {
 
 	envelope := cti.Object{
 		"root": {
-			Encoding: strings.Split(m.format, "/"),
+			Encoding: m.format,
 			Children: obj,
 		},
 	}
 
-	if err := envelope.Validate(); err != nil {
-		return err
-	}
-
-	if err := envelope.Compact(); err != nil {
+	if err := envelope.Encode(nil); err != nil {
 		return err
 	}
 

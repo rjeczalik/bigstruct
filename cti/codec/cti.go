@@ -1,29 +1,46 @@
-package cti
+package codec
 
 import (
 	"encoding/json"
+	"errors"
 	"path"
+
+	"github.com/glaucusio/confetti/cti"
 )
 
-type ConfettiEncoder struct{}
+type Confetti struct{}
 
-var _ Encoder = (*ConfettiEncoder)(nil)
+var _ cti.Codec = (*Confetti)(nil)
 
-func (ce ConfettiEncoder) String() string { return "cti" }
-
-func (ce ConfettiEncoder) FileExt() []string { return []string{"cti"} }
-
-func (ce ConfettiEncoder) Encode(key string, o Object) error {
+func (cc Confetti) Encode(key string, o cti.Object) error {
 	var (
 		k = path.Base(key)
 		n = o[k]
 	)
 
+	if len(n.Children) == 0 {
+		return &cti.Error{
+			Encoding: "cti",
+			Op:       "encode",
+			Key:      key,
+			Err:      errors.New("nothing to encode"),
+		}
+	}
+
+	if n.Value != nil {
+		return &cti.Error{
+			Encoding: "cti",
+			Op:       "encode",
+			Key:      key,
+			Err:      errors.New("value in a non-leaf node"),
+		}
+	}
+
 	// fixme(rjeczalik): remove the json.Marshal hack and rewrite the tree instead
 	p, err := json.Marshal(n.Children)
 	if err != nil {
-		return &Error{
-			Encoding: ce.String(),
+		return &cti.Error{
+			Encoding: "cti",
 			Op:       "encode",
 			Key:      key,
 			Err:      err,
@@ -33,21 +50,21 @@ func (ce ConfettiEncoder) Encode(key string, o Object) error {
 	var v map[string]interface{}
 
 	if err := json.Unmarshal(p, &v); err != nil {
-		return &Error{
-			Encoding: ce.String(),
+		return &cti.Error{
+			Encoding: "cti",
 			Op:       "encode",
 			Key:      key,
 			Err:      err,
 		}
 	}
 
-	n.Children = Make(v)
+	n.Children = cti.Make(v)
 	o[k] = n
 
 	return nil
 }
 
-func (ce ConfettiEncoder) Decode(key string, o Object) error {
+func (cc Confetti) Decode(key string, o cti.Object) error {
 	var (
 		k = path.Base(key)
 		n = o[k]
@@ -55,19 +72,19 @@ func (ce ConfettiEncoder) Decode(key string, o Object) error {
 
 	p, err := json.Marshal(n.Children.Value())
 	if err != nil {
-		return &Error{
-			Encoding: ce.String(),
+		return &cti.Error{
+			Encoding: "cti",
 			Op:       "decode",
 			Key:      key,
 			Err:      err,
 		}
 	}
 
-	var obj Object
+	var obj cti.Object
 
 	if err := json.Unmarshal(p, &obj); err != nil {
-		return &Error{
-			Encoding: ce.String(),
+		return &cti.Error{
+			Encoding: "cti",
 			Op:       "decode",
 			Key:      key,
 			Err:      err,

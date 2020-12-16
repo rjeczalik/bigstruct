@@ -15,26 +15,126 @@ testdata:
                                                         scylla:
                                                             c:
                                                                 scylla.yaml:
-                                                                    e: yaml
+                                                                    c:
+                                                                        api_address:
+                                                                            e: value/number
+                                                                        api_doc_dir:
+                                                                            e: value/string
+                                                                        api_port:
+                                                                            e: value/number
+                                                                        api_ui_dir:
+                                                                            e: value/string
+                                                                        batch_size_fail_threshold_in_kb:
+                                                                            e: value/number
+                                                                        batch_size_warn_threshold_in_kb:
+                                                                            e: value/number
+                                                                        cas_contention_timeout_in_ms:
+                                                                            e: value/number
+                                                                        commitlog_segment_size_in_mb:
+                                                                            e: value/number
+                                                                        commitlog_sync:
+                                                                            e: value/string
+                                                                        commitlog_sync_period_in_ms:
+                                                                            e: value/number
+                                                                        commitlog_total_space_in_mb:
+                                                                            e: value/number
+                                                                        endpoint_snitch:
+                                                                            e: value/string
+                                                                        listen_address:
+                                                                            e: value/string
+                                                                        murmur3_partitioner_ignore_msb_bits:
+                                                                            e: value/number
+                                                                        native_transport_port:
+                                                                            e: value/number
+                                                                        num_tokens:
+                                                                            e: value/number
+                                                                        partitioner:
+                                                                            e: value/string
+                                                                        read_request_timeout_in_ms:
+                                                                            e: value/number
+                                                                        rpc_address:
+                                                                            e: value/string
+                                                                        rpc_port:
+                                                                            e: value/number
+                                                                        seed_provider:
+                                                                            c:
+                                                                                "0":
+                                                                                    c:
+                                                                                        class_name:
+                                                                                            e: value/string
+                                                                                        parameters:
+                                                                                            c:
+                                                                                                "0":
+                                                                                                    c:
+                                                                                                        seeds:
+                                                                                                            e: value/number
+                                                                        write_request_timeout_in_ms:
+                                                                            e: value/number
+                                                                    e: object/yaml
                                                         scylla.d:
                                                             c:
                                                                 cpuset.conf:
                                                                     c:
                                                                         CPUSET:
-                                                                            e: flag
-                                                                    e: ini
+                                                                            c:
+                                                                                --cpuset:
+                                                                                    e: value/number
+                                                                                --smp:
+                                                                                    e: value/number
+                                                                            e: object/flag
+                                                                    e: object/ini
                                                                 io.conf:
                                                                     c:
                                                                         SEASTAR_IO:
-                                                                            e: flag
-                                                                    e: ini
+                                                                            c:
+                                                                                --max-io-requests:
+                                                                                    e: value/number
+                                                                                --num-io-queues:
+                                                                                    e: value/number
+                                                                            e: object/flag
+                                                                    e: object/ini
                                                         sysconfig:
                                                             c:
                                                                 scylla-server:
                                                                     c:
+                                                                        AMI:
+                                                                            e: value/string
+                                                                        BRIDGE:
+                                                                            e: value/string
+                                                                        ETHDRV:
+                                                                            e: value/bool
+                                                                        ETHPCIID:
+                                                                            e: value/bool
+                                                                        GROUP:
+                                                                            e: value/string
+                                                                        IFNAME:
+                                                                            e: value/string
+                                                                        NETWORK_MODE:
+                                                                            e: value/string
+                                                                        NR_HUGEPAGES:
+                                                                            e: value/number
                                                                         SCYLLA_ARGS:
-                                                                            e: flag
-                                                                    e: ini
+                                                                            c:
+                                                                                --default-log-level:
+                                                                                    e: value/string
+                                                                                --log-to-stdout:
+                                                                                    e: value/number
+                                                                                --log-to-syslog:
+                                                                                    e: value/number
+                                                                                --network-stack:
+                                                                                    e: value/string
+                                                                            e: object/flag
+                                                                        SCYLLA_CONF:
+                                                                            e: value/string
+                                                                        SCYLLA_HOME:
+                                                                            e: value/string
+                                                                        SET_NIC_AND_DISKS:
+                                                                            e: value/string
+                                                                        TAP:
+                                                                            e: value/string
+                                                                        USER:
+                                                                            e: value/string
+                                                                    e: object/ini
                                         4.1.9:
                                             c:
                                                 etc:
@@ -42,26 +142,126 @@ testdata:
                                                         scylla:
                                                             c:
                                                                 scylla.yaml:
-                                                                    e: yaml
+                                                                    c:
+                                                                        api_address:
+                                                                            e: value/number
+                                                                        api_doc_dir:
+                                                                            e: value/string
+                                                                        api_port:
+                                                                            e: value/number
+                                                                        api_ui_dir:
+                                                                            e: value/string
+                                                                        batch_size_fail_threshold_in_kb:
+                                                                            e: value/number
+                                                                        batch_size_warn_threshold_in_kb:
+                                                                            e: value/number
+                                                                        cas_contention_timeout_in_ms:
+                                                                            e: value/number
+                                                                        commitlog_segment_size_in_mb:
+                                                                            e: value/number
+                                                                        commitlog_sync:
+                                                                            e: value/string
+                                                                        commitlog_sync_period_in_ms:
+                                                                            e: value/number
+                                                                        commitlog_total_space_in_mb:
+                                                                            e: value/number
+                                                                        endpoint_snitch:
+                                                                            e: value/string
+                                                                        listen_address:
+                                                                            e: value/string
+                                                                        murmur3_partitioner_ignore_msb_bits:
+                                                                            e: value/number
+                                                                        native_transport_port:
+                                                                            e: value/number
+                                                                        num_tokens:
+                                                                            e: value/number
+                                                                        partitioner:
+                                                                            e: value/string
+                                                                        read_request_timeout_in_ms:
+                                                                            e: value/number
+                                                                        rpc_address:
+                                                                            e: value/string
+                                                                        rpc_port:
+                                                                            e: value/number
+                                                                        seed_provider:
+                                                                            c:
+                                                                                "0":
+                                                                                    c:
+                                                                                        class_name:
+                                                                                            e: value/string
+                                                                                        parameters:
+                                                                                            c:
+                                                                                                "0":
+                                                                                                    c:
+                                                                                                        seeds:
+                                                                                                            e: value/number
+                                                                        write_request_timeout_in_ms:
+                                                                            e: value/number
+                                                                    e: object/yaml
                                                         scylla.d:
                                                             c:
                                                                 cpuset.conf:
                                                                     c:
                                                                         CPUSET:
-                                                                            e: flag
-                                                                    e: ini
+                                                                            c:
+                                                                                --cpuset:
+                                                                                    e: value/number
+                                                                                --smp:
+                                                                                    e: value/number
+                                                                            e: object/flag
+                                                                    e: object/ini
                                                                 io.conf:
                                                                     c:
                                                                         SEASTAR_IO:
-                                                                            e: flag
-                                                                    e: ini
+                                                                            c:
+                                                                                --max-io-requests:
+                                                                                    e: value/number
+                                                                                --num-io-queues:
+                                                                                    e: value/number
+                                                                            e: object/flag
+                                                                    e: object/ini
                                                         sysconfig:
                                                             c:
                                                                 scylla-server:
                                                                     c:
+                                                                        AMI:
+                                                                            e: value/string
+                                                                        BRIDGE:
+                                                                            e: value/string
+                                                                        ETHDRV:
+                                                                            e: value/bool
+                                                                        ETHPCIID:
+                                                                            e: value/bool
+                                                                        GROUP:
+                                                                            e: value/string
+                                                                        IFNAME:
+                                                                            e: value/string
+                                                                        NETWORK_MODE:
+                                                                            e: value/string
+                                                                        NR_HUGEPAGES:
+                                                                            e: value/number
                                                                         SCYLLA_ARGS:
-                                                                            e: flag
-                                                                    e: ini
+                                                                            c:
+                                                                                --default-log-level:
+                                                                                    e: value/string
+                                                                                --log-to-stdout:
+                                                                                    e: value/number
+                                                                                --log-to-syslog:
+                                                                                    e: value/number
+                                                                                --network-stack:
+                                                                                    e: value/string
+                                                                            e: object/flag
+                                                                        SCYLLA_CONF:
+                                                                            e: value/string
+                                                                        SCYLLA_HOME:
+                                                                            e: value/string
+                                                                        SET_NIC_AND_DISKS:
+                                                                            e: value/string
+                                                                        TAP:
+                                                                            e: value/string
+                                                                        USER:
+                                                                            e: value/string
+                                                                    e: object/ini
                                         4.2.1:
                                             c:
                                                 etc:
@@ -69,23 +269,123 @@ testdata:
                                                         scylla:
                                                             c:
                                                                 scylla.yaml:
-                                                                    e: yaml
+                                                                    c:
+                                                                        api_address:
+                                                                            e: value/number
+                                                                        api_doc_dir:
+                                                                            e: value/string
+                                                                        api_port:
+                                                                            e: value/number
+                                                                        api_ui_dir:
+                                                                            e: value/string
+                                                                        batch_size_fail_threshold_in_kb:
+                                                                            e: value/number
+                                                                        batch_size_warn_threshold_in_kb:
+                                                                            e: value/number
+                                                                        cas_contention_timeout_in_ms:
+                                                                            e: value/number
+                                                                        commitlog_segment_size_in_mb:
+                                                                            e: value/number
+                                                                        commitlog_sync:
+                                                                            e: value/string
+                                                                        commitlog_sync_period_in_ms:
+                                                                            e: value/number
+                                                                        commitlog_total_space_in_mb:
+                                                                            e: value/number
+                                                                        endpoint_snitch:
+                                                                            e: value/string
+                                                                        listen_address:
+                                                                            e: value/string
+                                                                        murmur3_partitioner_ignore_msb_bits:
+                                                                            e: value/number
+                                                                        native_transport_port:
+                                                                            e: value/number
+                                                                        num_tokens:
+                                                                            e: value/number
+                                                                        partitioner:
+                                                                            e: value/string
+                                                                        read_request_timeout_in_ms:
+                                                                            e: value/number
+                                                                        rpc_address:
+                                                                            e: value/string
+                                                                        rpc_port:
+                                                                            e: value/number
+                                                                        seed_provider:
+                                                                            c:
+                                                                                "0":
+                                                                                    c:
+                                                                                        class_name:
+                                                                                            e: value/string
+                                                                                        parameters:
+                                                                                            c:
+                                                                                                "0":
+                                                                                                    c:
+                                                                                                        seeds:
+                                                                                                            e: value/number
+                                                                        write_request_timeout_in_ms:
+                                                                            e: value/number
+                                                                    e: object/yaml
                                                         scylla.d:
                                                             c:
                                                                 cpuset.conf:
                                                                     c:
                                                                         CPUSET:
-                                                                            e: flag
-                                                                    e: ini
+                                                                            c:
+                                                                                --cpuset:
+                                                                                    e: value/number
+                                                                                --smp:
+                                                                                    e: value/number
+                                                                            e: object/flag
+                                                                    e: object/ini
                                                                 io.conf:
                                                                     c:
                                                                         SEASTAR_IO:
-                                                                            e: flag
-                                                                    e: ini
+                                                                            c:
+                                                                                --max-io-requests:
+                                                                                    e: value/number
+                                                                                --num-io-queues:
+                                                                                    e: value/number
+                                                                            e: object/flag
+                                                                    e: object/ini
                                                         sysconfig:
                                                             c:
                                                                 scylla-server:
                                                                     c:
+                                                                        AMI:
+                                                                            e: value/string
+                                                                        BRIDGE:
+                                                                            e: value/string
+                                                                        ETHDRV:
+                                                                            e: value/bool
+                                                                        ETHPCIID:
+                                                                            e: value/bool
+                                                                        GROUP:
+                                                                            e: value/string
+                                                                        IFNAME:
+                                                                            e: value/string
+                                                                        NETWORK_MODE:
+                                                                            e: value/string
+                                                                        NR_HUGEPAGES:
+                                                                            e: value/number
                                                                         SCYLLA_ARGS:
-                                                                            e: flag
-                                                                    e: ini
+                                                                            c:
+                                                                                --default-log-level:
+                                                                                    e: value/string
+                                                                                --log-to-stdout:
+                                                                                    e: value/number
+                                                                                --log-to-syslog:
+                                                                                    e: value/number
+                                                                                --network-stack:
+                                                                                    e: value/string
+                                                                            e: object/flag
+                                                                        SCYLLA_CONF:
+                                                                            e: value/string
+                                                                        SCYLLA_HOME:
+                                                                            e: value/string
+                                                                        SET_NIC_AND_DISKS:
+                                                                            e: value/string
+                                                                        TAP:
+                                                                            e: value/string
+                                                                        USER:
+                                                                            e: value/string
+                                                                    e: object/ini

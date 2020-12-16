@@ -2,6 +2,10 @@ package cti
 
 import (
 	"errors"
+	"fmt"
+	"io"
+
+	interr "github.com/glaucusio/confetti/internal/errors"
 )
 
 type Error struct {
@@ -10,16 +14,34 @@ type Error struct {
 	Key      string
 	Err      error
 	Next     *Error
+
+	stack *interr.Stack
 }
 
 var _ error = (*Error)(nil)
 
 func (e *Error) Error() string {
-	return e.Encoding + `: failed to ` + e.Op + `"` + e.Key + `": ` + e.Err.Error()
+	return e.Encoding + `: failed to ` + e.Op + ` "` + e.Key + `": ` + e.Err.Error()
 }
 
 func (e *Error) Unwrap() error {
 	return e.Err
+}
+
+func (e *Error) Format(s fmt.State, verb rune) {
+	switch verb {
+	case 'v':
+		if s.Flag('+') && e.stack != nil {
+			fmt.Fprintf(s, "%v", e.Unwrap())
+			e.stack.Format(s, verb)
+			return
+		}
+		fallthrough
+	case 's':
+		io.WriteString(s, e.Error())
+	case 'q':
+		fmt.Fprintf(s, "%q", e.Error())
+	}
 }
 
 func (e *Error) As(target interface{}) bool {
@@ -39,9 +61,13 @@ func (e *Error) As(target interface{}) bool {
 }
 
 func (e *Error) Chain(err error) *Error {
+	// fixme: handle e == nil
 	switch v := err.(type) {
 	case nil:
-		// skip
+		if e.stack == nil {
+			e.stack = interr.Callers()
+		}
+		return e
 	case *Error:
 		e.Next = v
 	default:
@@ -54,5 +80,5 @@ func (e *Error) Chain(err error) *Error {
 		}
 	}
 
-	return e
+	return e.Next
 }

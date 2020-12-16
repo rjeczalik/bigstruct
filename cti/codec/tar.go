@@ -1,4 +1,4 @@
-package cti
+package codec
 
 import (
 	"archive/tar"
@@ -8,21 +8,19 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/glaucusio/confetti/cti"
 )
 
-type TarEncoder struct{}
+type Tar struct{}
 
-var _ Encoder = (*TarEncoder)(nil)
+var _ cti.Codec = (*Tar)(nil)
 
-func (TarEncoder) String() string { return "tar" }
-
-func (TarEncoder) FileExt() []string { return []string{"tar"} }
-
-func (te TarEncoder) Encode(key string, o Object) error {
+func (Tar) Encode(key string, o cti.Object) error {
 	var (
 		k = path.Base(key)
 		n = o[k]
-		f Fields
+		f cti.Fields
 	)
 
 	n.Children.ForEach(f.Append)
@@ -33,8 +31,8 @@ func (te TarEncoder) Encode(key string, o Object) error {
 	for _, f := range f {
 		p, err := tobytes(f.Value)
 		if err != nil {
-			return &Error{
-				Encoding: te.String(),
+			return &cti.Error{
+				Encoding: "tar",
 				Op:       "encode",
 				Key:      f.Key,
 				Err:      err,
@@ -55,8 +53,8 @@ func (te TarEncoder) Encode(key string, o Object) error {
 		}
 
 		if err := tw.WriteHeader(hdr); err != nil {
-			return &Error{
-				Encoding: te.String(),
+			return &cti.Error{
+				Encoding: "tar",
 				Op:       "encode",
 				Key:      f.Key,
 				Err:      err,
@@ -64,8 +62,8 @@ func (te TarEncoder) Encode(key string, o Object) error {
 		}
 
 		if _, err := tw.Write(p); err != nil {
-			return &Error{
-				Encoding: te.String(),
+			return &cti.Error{
+				Encoding: "tar",
 				Op:       "encode",
 				Key:      f.Key,
 				Err:      err,
@@ -74,8 +72,8 @@ func (te TarEncoder) Encode(key string, o Object) error {
 	}
 
 	if err := tw.Close(); err != nil {
-		return &Error{
-			Encoding: te.String(),
+		return &cti.Error{
+			Encoding: "tar",
 			Op:       "encode",
 			Key:      key,
 			Err:      err,
@@ -89,30 +87,25 @@ func (te TarEncoder) Encode(key string, o Object) error {
 	return nil
 }
 
-func (te TarEncoder) Decode(key string, o Object) error {
+func (Tar) Decode(key string, o cti.Object) error {
 	var (
-		k   = path.Base(key)
-		n   = o[k]
-		enc Encoding
+		k = path.Base(key)
+		n = o[k]
 	)
 
 	p, err := tobytes(n.Value)
 	if err != nil {
-		return &Error{
-			Encoding: te.String(),
+		return &cti.Error{
+			Encoding: "tar",
 			Op:       "decode",
 			Key:      key,
 			Err:      err,
 		}
 	}
 
-	if len(enc) > 1 {
-		enc = enc[:len(enc)-1]
-	}
-
 	var (
 		tr = tar.NewReader(bytes.NewReader(p))
-		f  Fields
+		f  cti.Fields
 	)
 
 	for {
@@ -121,8 +114,8 @@ func (te TarEncoder) Decode(key string, o Object) error {
 			break
 		}
 		if err != nil {
-			return &Error{
-				Encoding: te.String(),
+			return &cti.Error{
+				Encoding: "tar",
 				Op:       "decode",
 				Key:      key,
 				Err:      err,
@@ -133,18 +126,17 @@ func (te TarEncoder) Decode(key string, o Object) error {
 
 		p, err := ioutil.ReadAll(tr)
 		if err != nil {
-			return &Error{
-				Encoding: te.String(),
+			return &cti.Error{
+				Encoding: "tar",
 				Op:       "decode",
 				Key:      key,
 				Err:      err,
 			}
 		}
 
-		f = append(f, Field{
-			Key:      key,
-			Encoding: enc.Copy(),
-			Value:    p,
+		f = append(f, cti.Field{
+			Key:   key,
+			Value: p,
 		})
 	}
 

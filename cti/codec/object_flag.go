@@ -1,16 +1,24 @@
-package cti
+package codec
 
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
-var flag encflag
+var _ = DefaultObject.
+	Register("flag", Object{
+		Type:      "flag",
+		Marshal:   flag.Marshal,
+		Unmarshal: flag.Unmarshal,
+	})
 
-type encflag struct{}
+var flag flagCodec
 
-func (encflag) Marshal(v interface{}) ([]byte, error) {
+type flagCodec struct{}
+
+func (flagCodec) Marshal(v interface{}) ([]byte, error) {
 	obj, keys, err := toobj(v)
 	if err != nil {
 		return nil, err
@@ -35,10 +43,10 @@ func (encflag) Marshal(v interface{}) ([]byte, error) {
 	return bytes.TrimSpace(buf.Bytes()), nil
 }
 
-func (encflag) Unmarshal(p []byte, v interface{}) error {
+func (flagCodec) Unmarshal(p []byte, v interface{}) error {
 	var (
 		args = split(string(p), " ") // fixme: support escaped values
-		obj  = make(map[string]interface{})
+		obj  = make(map[string]string)
 	)
 
 	for i := 0; i < len(args); {
@@ -51,9 +59,13 @@ func (encflag) Unmarshal(p []byte, v interface{}) error {
 		i = i + 1
 
 		if j := strings.IndexRune(arg, '='); j != -1 {
-			obj[arg[:j]] = arg[j+1:]
+			if s, err := strconv.Unquote(arg[j+1:]); err == nil {
+				obj[arg[:j]] = s
+			} else {
+				obj[arg[:j]] = arg[j+1:]
+			}
 		} else {
-			obj[arg] = nil
+			obj[arg] = ""
 		}
 
 		if i < len(args) && !strings.HasPrefix(args[i], "-") {

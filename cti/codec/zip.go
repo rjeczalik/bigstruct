@@ -1,4 +1,4 @@
-package cti
+package codec
 
 import (
 	"archive/zip"
@@ -7,21 +7,19 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/glaucusio/confetti/cti"
 )
 
-type ZipEncoder struct{}
+type Zip struct{}
 
-var _ Encoder = (*ZipEncoder)(nil)
+var _ cti.Codec = (*Zip)(nil)
 
-func (ZipEncoder) String() string { return "zip" }
-
-func (ZipEncoder) FileExt() []string { return []string{"zip"} }
-
-func (te ZipEncoder) Encode(key string, o Object) error {
+func (Zip) Encode(key string, o cti.Object) error {
 	var (
 		k = path.Base(key)
 		n = o[k]
-		f Fields
+		f cti.Fields
 	)
 
 	n.Children.ForEach(f.Append)
@@ -32,8 +30,8 @@ func (te ZipEncoder) Encode(key string, o Object) error {
 	for _, f := range f {
 		p, err := tobytes(f.Value)
 		if err != nil {
-			return &Error{
-				Encoding: te.String(),
+			return &cti.Error{
+				Encoding: "zip",
 				Op:       "encode",
 				Key:      f.Key,
 				Err:      err,
@@ -49,8 +47,8 @@ func (te ZipEncoder) Encode(key string, o Object) error {
 
 		zf, err := zw.Create(name)
 		if err != nil {
-			return &Error{
-				Encoding: te.String(),
+			return &cti.Error{
+				Encoding: "zip",
 				Op:       "encode",
 				Key:      f.Key,
 				Err:      err,
@@ -58,8 +56,8 @@ func (te ZipEncoder) Encode(key string, o Object) error {
 		}
 
 		if _, err := zf.Write(p); err != nil {
-			return &Error{
-				Encoding: te.String(),
+			return &cti.Error{
+				Encoding: "zip",
 				Op:       "encode",
 				Key:      f.Key,
 				Err:      err,
@@ -68,8 +66,8 @@ func (te ZipEncoder) Encode(key string, o Object) error {
 	}
 
 	if err := zw.Close(); err != nil {
-		return &Error{
-			Encoding: te.String(),
+		return &cti.Error{
+			Encoding: "zip",
 			Op:       "encode",
 			Key:      key,
 			Err:      err,
@@ -83,46 +81,41 @@ func (te ZipEncoder) Encode(key string, o Object) error {
 	return nil
 }
 
-func (te ZipEncoder) Decode(key string, o Object) error {
+func (Zip) Decode(key string, o cti.Object) error {
 	var (
-		k   = path.Base(key)
-		n   = o[k]
-		enc Encoding
+		k = path.Base(key)
+		n = o[k]
 	)
 
 	p, err := tobytes(n.Value)
 	if err != nil {
-		return &Error{
-			Encoding: te.String(),
+		return &cti.Error{
+			Encoding: "zip",
 			Op:       "decode",
 			Key:      key,
 			Err:      err,
 		}
-	}
-
-	if len(enc) > 1 {
-		enc = enc[:len(enc)-1]
 	}
 
 	zr, err := zip.NewReader(bytes.NewReader(p), int64(len(p)))
 	if err != nil {
-		return &Error{
-			Encoding: te.String(),
+		return &cti.Error{
+			Encoding: "zip",
 			Op:       "decode",
 			Key:      key,
 			Err:      err,
 		}
 	}
 
-	var f Fields
+	var f cti.Fields
 
 	for _, zf := range zr.File {
 		key := cleanpath(zf.Name)
 
 		rc, err := zf.Open()
 		if err != nil {
-			return &Error{
-				Encoding: te.String(),
+			return &cti.Error{
+				Encoding: "zip",
 				Op:       "decode",
 				Key:      key,
 				Err:      err,
@@ -132,18 +125,17 @@ func (te ZipEncoder) Decode(key string, o Object) error {
 		p, err := ioutil.ReadAll(rc)
 		_ = rc.Close()
 		if err != nil {
-			return &Error{
-				Encoding: te.String(),
+			return &cti.Error{
+				Encoding: "zip",
 				Op:       "decode",
 				Key:      key,
 				Err:      err,
 			}
 		}
 
-		f = append(f, Field{
-			Key:      key,
-			Encoding: enc.Copy(),
-			Value:    p,
+		f = append(f, cti.Field{
+			Key:   key,
+			Value: p,
 		})
 	}
 

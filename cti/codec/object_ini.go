@@ -1,4 +1,4 @@
-package cti
+package codec
 
 import (
 	"bufio"
@@ -9,6 +9,13 @@ import (
 	"strconv"
 	"strings"
 )
+
+var _ = DefaultObject.
+	Register("ini", Object{
+		Type:      "ini",
+		Marshal:   ini.Marshal,
+		Unmarshal: ini.Unmarshal,
+	})
 
 var ini = encini{
 	key: regexp.MustCompile(`^[a-zA-Z_0-9]+$`),

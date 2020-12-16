@@ -7,32 +7,34 @@ import (
 
 type Field struct {
 	Key      string
-	Encoding Encoding
+	Encoding string
 	Value    interface{}
 }
 
-var (
-	_ Func = Field{}.Set
-)
-
 func Value(v interface{}, encoding ...string) Func {
 	return Field{
-		Encoding: Encoding(encoding),
+		Encoding: path.Join(encoding...),
 		Value:    v,
-	}.Set
+	}.Put
 }
 
-func (f Field) Set(key string, o Object) bool {
+func (f Field) Put(key string, o Object) error {
 	var (
 		k = path.Base(key)
 		n = o[k]
 	)
 
-	n.Encoding = f.Encoding
-	n.Value = f.Value
+	if f.Encoding != "" {
+		n.Encoding = f.Encoding
+	}
+
+	if f.Value != nil {
+		n.Value = f.Value
+	}
+
 	o[k] = n
 
-	return true
+	return nil
 }
 
 type Fields []Field
@@ -42,7 +44,7 @@ var (
 	_ sort.Interface = (*Fields)(nil)
 )
 
-func (f *Fields) Append(key string, o Object) bool {
+func (f *Fields) Append(key string, o Object) error {
 	var (
 		k = path.Base(key)
 		n = o[k]
@@ -54,7 +56,7 @@ func (f *Fields) Append(key string, o Object) bool {
 		Value:    n.Value,
 	})
 
-	return true
+	return nil
 }
 
 func (f Fields) Keys() []string {
@@ -71,7 +73,7 @@ func (f Fields) Object() Object {
 	o := make(Object)
 
 	for _, f := range f {
-		o.Put(f.Key, f.Set)
+		o.Put(f.Key, f.Put)
 	}
 
 	return o
@@ -87,4 +89,9 @@ func (f Fields) Less(i, j int) bool {
 
 func (f Fields) Swap(i, j int) {
 	f[i], f[j] = f[j], f[i]
+}
+
+func (f Fields) Sort() Fields {
+	sort.Stable(f)
+	return f
 }

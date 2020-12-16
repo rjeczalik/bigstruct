@@ -11,19 +11,18 @@ import (
 	"github.com/glaucusio/confetti/internal/objects"
 )
 
-type Func func(key string, parent Object) (ok bool)
+type Func func(key string, parent Object) error
 
 type Object map[string]struct {
-	Encoding Encoding    `json:"e,omitempty" yaml:"e,omitempty"`
-	Children Object      `json:"c,omitempty" yaml:"c,omitempty"`
+	Encoding string      `json:"e,omitempty" yaml:"e,omitempty"`
 	Value    interface{} `json:"v,omitempty" yaml:"v,omitempty"`
+	Children Object      `json:"c,omitempty" yaml:"c,omitempty"`
 }
 
 func (o Object) Copy() Object {
 	u := make(Object, len(o))
 
 	for k, n := range o {
-		n.Encoding = n.Encoding.Copy()
 		n.Children = n.Children.Copy()
 		u[k] = n
 	}
@@ -31,17 +30,21 @@ func (o Object) Copy() Object {
 	return u
 }
 
-func (o Object) Meta() Object {
+func (o Object) Schema() Object {
 	u := make(Object, len(o))
 
 	for k, n := range o {
 		m, _ := u[k] // zero value
-		m.Encoding = n.Encoding.Copy()
-		m.Children = n.Children.Meta()
+		m.Encoding = n.Encoding
+		m.Children = n.Children.Schema()
 		u[k] = m
 	}
 
 	return u.Shake()
+}
+
+func (o Object) Merge(u Object) Object {
+	return append(o.Fields(), u.Fields()...).Object()
 }
 
 func (o Object) Fields() Fields {
@@ -54,10 +57,10 @@ func (o Object) Value() interface{} {
 	obj := make(map[string]interface{})
 
 	for name, node := range o {
-		if len(node.Children) != 0 {
-			obj[name] = node.Children.Value()
-		} else {
+		if node.Value != nil {
 			obj[name] = node.Value
+		} else {
+			obj[name] = node.Children.Value()
 		}
 	}
 
@@ -74,7 +77,7 @@ func (o Object) Value() interface{} {
 
 func (o Object) Shake() Object {
 	for k, n := range o {
-		if len(n.Children) == 0 && n.Value == nil && len(n.Encoding) == 0 {
+		if len(n.Children) == 0 && n.Value == nil && n.Encoding == "" {
 			delete(o, k)
 		} else {
 			n.Children = n.Children.Shake()
@@ -88,9 +91,9 @@ func (o Object) Shake() Object {
 	return o
 }
 
-func (o Object) Put(key string, fn Func) (ok bool) {
+func (o Object) Put(key string, fn Func) error {
 	if key == "" || key == "/" {
-		return false
+		return nil // fixme: error invalid key
 	}
 
 	var (
@@ -110,7 +113,7 @@ func (o Object) Put(key string, fn Func) (ok bool) {
 	return fn(key, parent)
 }
 
-func (o Object) At(key string, fn Func) (ok bool) {
+func (o Object) At(key string, fn Func) error {
 	var (
 		parent = o
 		dir    = path.Dir(key)
@@ -119,7 +122,7 @@ func (o Object) At(key string, fn Func) (ok bool) {
 	for _, k := range objects.Split(dir) {
 		node, ok := parent[k]
 		if !ok || len(node.Children) == 0 {
-			return false
+			return nil // fixme: error not found
 		}
 		parent = node.Children
 	}
@@ -127,7 +130,7 @@ func (o Object) At(key string, fn Func) (ok bool) {
 	return fn(key, parent)
 }
 
-func (o Object) Walk(fn Func) {
+func (o Object) Walk(fn Func) error {
 	type elm struct {
 		parent Object
 		key    string
@@ -135,7 +138,7 @@ func (o Object) Walk(fn Func) {
 	}
 
 	if len(o) == 0 {
-		return
+		return nil
 	}
 
 	var (
@@ -150,8 +153,8 @@ func (o Object) Walk(fn Func) {
 
 		key := path.Join(it.key, k)
 
-		if ok := fn(key, it.parent); !ok {
-			return
+		if err := fn(key, it.parent); err != nil {
+			return err
 		}
 
 		if len(it.left) != 0 {
@@ -162,9 +165,11 @@ func (o Object) Walk(fn Func) {
 			queue = append(queue, elm{parent: parent, key: key, left: parent.Keys()})
 		}
 	}
+
+	return nil
 }
 
-func (o Object) ReverseWalk(fn Func) {
+func (o Object) ReverseWalk(fn Func) error {
 	type elm struct {
 		parent Object
 		key    string
@@ -172,7 +177,7 @@ func (o Object) ReverseWalk(fn Func) {
 	}
 
 	if len(o) == 0 {
-		return
+		return nil
 	}
 
 	var (
@@ -202,28 +207,32 @@ func (o Object) ReverseWalk(fn Func) {
 	for len(rev) != 0 {
 		it, rev = rev[len(rev)-1], rev[:len(rev)-1]
 
-		fn(it.key, it.parent)
+		if err := fn(it.key, it.parent); err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
-func (o Object) ForEach(fn Func) {
-	_ = o.forEach("/", fn)
+func (o Object) ForEach(fn Func) error {
+	return o.forEach("/", fn)
 }
 
-func (o Object) forEach(key string, fn Func) (ok bool) {
+func (o Object) forEach(key string, fn Func) (err error) {
 	for _, k := range o.Keys() {
 		if n, p := o[k], path.Join(key, k); len(n.Children) != 0 {
-			ok = n.Children.forEach(p, fn)
+			err = n.Children.forEach(p, fn)
 		} else {
-			ok = fn(p, o)
+			err = fn(p, o)
 		}
 
-		if !ok {
-			return false
+		if err != nil {
+			return err
 		}
 	}
 
-	return true
+	return nil
 }
 
 func (o Object) Keys() []string {
@@ -239,31 +248,29 @@ func (o Object) Keys() []string {
 }
 
 func (o Object) WriteTab(w io.Writer) (n int64, err error) {
-	var m int
-
-	if m, err = fmt.Fprintln(w, "KEY\tENCODING\tVALUE"); err != nil {
+	if m, err := fmt.Fprintln(w, "KEY\tENCODING\tVALUE"); err != nil {
 		return int64(m), err
 	}
 
-	o.Walk(func(key string, o Object) bool {
+	err = o.Walk(func(key string, o Object) error {
 		var (
 			k = path.Base(key)
 			u = o[k]
 		)
 
 		if u.Value == nil && len(u.Children) != 0 && len(u.Encoding) == 0 {
-			return true
+			return nil
 		}
 
-		m, err = fmt.Fprintf(w, "%s\t%s\t%+v\n",
+		m, err := fmt.Fprintf(w, "%s\t%s\t%+v\n",
 			key,
-			nonempty(u.Encoding.String(), "-"),
+			nonempty(u.Encoding, "-"),
 			nonil(u.Value, "-"),
 		)
 
 		n += int64(m)
 
-		return err == nil
+		return err
 	})
 
 	return n, err
@@ -294,14 +301,20 @@ func (o Object) WriteTo(w io.Writer) (int64, error) {
 	return n, err
 }
 
-func (o Object) Expand() error {
-	return defaultSerializer.Expand(o)
+func (o Object) Encode(c Codec) error {
+	if c == nil {
+		c = DefaultCodec
+	}
+	return o.ReverseWalk(func(key string, o Object) error {
+		return c.Encode(key, o)
+	})
 }
 
-func (o Object) Compact() error {
-	return defaultSerializer.Compact(o)
-}
-
-func (o Object) Validate() error {
-	return defaultSerializer.Validate(o)
+func (o Object) Decode(c Codec) error {
+	if c == nil {
+		c = DefaultCodec
+	}
+	return o.Walk(func(key string, o Object) error {
+		return c.Decode(key, o)
+	})
 }

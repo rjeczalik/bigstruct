@@ -1,6 +1,7 @@
 package cti
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -8,15 +9,22 @@ import (
 	"github.com/glaucusio/confetti/internal/objects"
 )
 
-func Make(obj map[string]interface{}) Object {
+func Make(v interface{}) Object {
 	type elm struct {
 		obj   map[string]interface{}
 		nodes Object
 	}
 
-	root := make(Object)
+	var (
+		root  = make(Object)
+		obj   = objects.Object(v)
+		it    elm
+		queue = []elm{{obj, root}}
+	)
 
-	it, queue := elm{}, []elm{{obj, root}}
+	if obj == nil {
+		panic(fmt.Errorf("invalid type for v (%T); expected generic map or slice", v))
+	}
 
 	for len(queue) != 0 {
 		it, queue = queue[0], queue[1:]

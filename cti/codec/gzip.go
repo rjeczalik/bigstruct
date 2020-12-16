@@ -1,4 +1,4 @@
-package cti
+package codec
 
 import (
 	"bytes"

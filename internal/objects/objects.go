@@ -20,7 +20,9 @@ func Object(v interface{}) map[string]interface{} {
 
 	switch v := v.(type) {
 	case map[string]interface{}:
-		m = v
+		if m = v; m == nil {
+			m = make(map[string]interface{})
+		}
 	case map[interface{}]interface{}: // go-yaml/yaml#139
 		m = make(map[string]interface{}, len(v))
 

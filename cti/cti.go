@@ -1,42 +1,10 @@
 package cti
 
 import (
-	"encoding"
-	"encoding/json"
-	"errors"
-	"fmt"
 	"path"
 	"path/filepath"
 	"strings"
 )
-
-var errEmpty = errors.New("byte slice is empty")
-
-func tobytes(v interface{}) (p []byte, err error) {
-	switch v := v.(type) {
-	case nil:
-		// ignore
-	case []byte:
-		p = v
-	case string:
-		p = []byte(v)
-	case encoding.TextMarshaler:
-		p, err = v.MarshalText()
-	case encoding.BinaryMarshaler:
-		p, err = v.MarshalBinary()
-	default:
-		err = fmt.Errorf("value is neither string nor []byte: %T", v)
-	}
-
-	switch {
-	case err != nil:
-		return nil, err
-	case len(p) == 0:
-		return nil, errEmpty
-	}
-
-	return p, nil
-}
 
 func cleanpath(s string) string {
 	s = strings.TrimLeft(s, `/.\`)
@@ -46,14 +14,6 @@ func cleanpath(s string) string {
 	s = path.Join("/", s)
 
 	return s
-}
-
-func reencode(in, out interface{}) error {
-	p, err := json.Marshal(in)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(p, out)
 }
 
 func nonempty(s ...string) string {
@@ -72,4 +32,11 @@ func nonil(v ...interface{}) interface{} {
 		}
 	}
 	return nil
+}
+
+func min(i, j int) int {
+	if i < j {
+		return i
+	}
+	return j
 }

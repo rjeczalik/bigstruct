@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/glaucusio/confetti/cti"
+	_ "github.com/glaucusio/confetti/cti/codec"
 
 	"github.com/google/go-cmp/cmp"
 	"gopkg.in/yaml.v3"
@@ -27,16 +28,15 @@ func TestCti(t *testing.T) {
 	}
 
 	var (
-		s   = cti.NewSerializer()
 		exp = orig.Copy()
 	)
 
-	if err := s.Expand(exp); err != nil {
-		t.Fatalf("s.Expand()=%s", err)
+	if err := exp.Decode(nil); err != nil {
+		t.Fatalf("exp.Decode()=%s", err)
 	}
 
 	var (
-		meta = reencode(exp.Meta())
+		meta = reencode(exp.Schema())
 		vgot = reencode(exp.Value())
 	)
 
@@ -76,8 +76,8 @@ func TestCti(t *testing.T) {
 
 	cpt := exp.Copy()
 
-	if err := s.Compact(cpt); err != nil {
-		t.Fatalf("s.Compact()=%s", err)
+	if err := cpt.Encode(nil); err != nil {
+		t.Fatalf("cpt.Encode()=%s", err)
 	}
 
 	objwant, err := objReadFile("testdata/docker.cti.yaml.golden")
@@ -85,19 +85,37 @@ func TestCti(t *testing.T) {
 		t.Fatalf("objReadFile()=%s", err)
 	}
 
-	if err := s.Compact(objwant); err != nil {
-		t.Fatalf("s.Compact()=%s", err)
+	if err := objwant.Encode(nil); err != nil {
+		t.Fatalf("objwant.Encode()=%s", err)
 	}
 
 	if got, want := objwant.Value(), cpt.Value(); !cmp.Equal(got, want) {
 		t.Fatalf("got != want:\n%s", cmp.Diff(got, want))
 	}
 
-	if err := s.Expand(objwant); err != nil {
-		t.Fatalf("s.Expand()=%s", err)
+	if err := objwant.Decode(nil); err != nil {
+		t.Fatalf("objwant.Decode()=%s", err)
 	}
 
-	if got, want := objwant.Meta(), exp.Meta(); !cmp.Equal(got, want) {
+	if got, want := objwant.Schema(), exp.Schema(); !cmp.Equal(got, want) {
+		t.Fatalf("got != want:\n%s", cmp.Diff(got, want))
+	}
+
+	mgot := cti.Make(exp.Value()).Merge(exp.Schema())
+
+	if got, want := mgot.Value(), exp.Value(); !cmp.Equal(got, want) {
+		t.Fatalf("got != want:\n%s", cmp.Diff(got, want))
+	}
+
+	gdd := cpt.Copy().Merge(exp.Schema())
+
+	gdd.WriteTo(os.Stdout)
+
+	if err := gdd.Decode(nil); err != nil {
+		t.Fatalf("gdd.Decode()=%s", err)
+	}
+
+	if got, want := gdd.Value(), exp.Value(); !cmp.Equal(got, want) {
 		t.Fatalf("got != want:\n%s", cmp.Diff(got, want))
 	}
 }
