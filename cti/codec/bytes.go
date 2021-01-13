@@ -24,20 +24,20 @@ func (b Bytes) Encode(key string, o cti.Object) error {
 	p, err := tobytes(n.Value)
 	if err != nil {
 		return &cti.Error{
-			Encoding: b.Type,
-			Op:       "encode",
-			Key:      key,
-			Err:      err,
+			Type: b.Type,
+			Op:   "encode",
+			Key:  key,
+			Err:  err,
 		}
 	}
 
 	q, err := b.Marshal(p)
 	if err != nil {
 		return &cti.Error{
-			Encoding: b.Type,
-			Op:       "encode",
-			Key:      key,
-			Err:      err,
+			Type: b.Type,
+			Op:   "encode",
+			Key:  key,
+			Err:  err,
 		}
 	}
 
@@ -55,30 +55,30 @@ func (b Bytes) Decode(key string, o cti.Object) error {
 
 	if len(n.Children) != 0 {
 		return &cti.Error{
-			Encoding: b.Type,
-			Op:       "encode",
-			Key:      key,
-			Err:      errors.New("not a leaf node"),
+			Type: b.Type,
+			Op:   "encode",
+			Key:  key,
+			Err:  errors.New("not a leaf node"),
 		}
 	}
 
 	p, err := tobytes(n.Value)
 	if err != nil {
 		return &cti.Error{
-			Encoding: b.Type,
-			Op:       "decode",
-			Key:      key,
-			Err:      err,
+			Type: b.Type,
+			Op:   "decode",
+			Key:  key,
+			Err:  err,
 		}
 	}
 
 	q, err := b.Unmarshal(p)
 	if err != nil {
 		return &cti.Error{
-			Encoding: b.Type,
-			Op:       "decode",
-			Key:      key,
-			Err:      err,
+			Type: b.Type,
+			Op:   "decode",
+			Key:  key,
+			Err:  err,
 		}
 	}
 

@@ -32,10 +32,10 @@ func (Tar) Encode(key string, o cti.Object) error {
 		p, err := tobytes(f.Value)
 		if err != nil {
 			return &cti.Error{
-				Encoding: "tar",
-				Op:       "encode",
-				Key:      f.Key,
-				Err:      err,
+				Type: "tar",
+				Op:   "encode",
+				Key:  f.Key,
+				Err:  err,
 			}
 		}
 
@@ -54,29 +54,29 @@ func (Tar) Encode(key string, o cti.Object) error {
 
 		if err := tw.WriteHeader(hdr); err != nil {
 			return &cti.Error{
-				Encoding: "tar",
-				Op:       "encode",
-				Key:      f.Key,
-				Err:      err,
+				Type: "tar",
+				Op:   "encode",
+				Key:  f.Key,
+				Err:  err,
 			}
 		}
 
 		if _, err := tw.Write(p); err != nil {
 			return &cti.Error{
-				Encoding: "tar",
-				Op:       "encode",
-				Key:      f.Key,
-				Err:      err,
+				Type: "tar",
+				Op:   "encode",
+				Key:  f.Key,
+				Err:  err,
 			}
 		}
 	}
 
 	if err := tw.Close(); err != nil {
 		return &cti.Error{
-			Encoding: "tar",
-			Op:       "encode",
-			Key:      key,
-			Err:      err,
+			Type: "tar",
+			Op:   "encode",
+			Key:  key,
+			Err:  err,
 		}
 	}
 
@@ -96,10 +96,10 @@ func (Tar) Decode(key string, o cti.Object) error {
 	p, err := tobytes(n.Value)
 	if err != nil {
 		return &cti.Error{
-			Encoding: "tar",
-			Op:       "decode",
-			Key:      key,
-			Err:      err,
+			Type: "tar",
+			Op:   "decode",
+			Key:  key,
+			Err:  err,
 		}
 	}
 
@@ -115,10 +115,10 @@ func (Tar) Decode(key string, o cti.Object) error {
 		}
 		if err != nil {
 			return &cti.Error{
-				Encoding: "tar",
-				Op:       "decode",
-				Key:      key,
-				Err:      err,
+				Type: "tar",
+				Op:   "decode",
+				Key:  key,
+				Err:  err,
 			}
 		}
 
@@ -127,10 +127,10 @@ func (Tar) Decode(key string, o cti.Object) error {
 		p, err := ioutil.ReadAll(tr)
 		if err != nil {
 			return &cti.Error{
-				Encoding: "tar",
-				Op:       "decode",
-				Key:      key,
-				Err:      err,
+				Type: "tar",
+				Op:   "decode",
+				Key:  key,
+				Err:  err,
 			}
 		}
 

@@ -31,10 +31,10 @@ func (Zip) Encode(key string, o cti.Object) error {
 		p, err := tobytes(f.Value)
 		if err != nil {
 			return &cti.Error{
-				Encoding: "zip",
-				Op:       "encode",
-				Key:      f.Key,
-				Err:      err,
+				Type: "zip",
+				Op:   "encode",
+				Key:  f.Key,
+				Err:  err,
 			}
 		}
 
@@ -48,29 +48,29 @@ func (Zip) Encode(key string, o cti.Object) error {
 		zf, err := zw.Create(name)
 		if err != nil {
 			return &cti.Error{
-				Encoding: "zip",
-				Op:       "encode",
-				Key:      f.Key,
-				Err:      err,
+				Type: "zip",
+				Op:   "encode",
+				Key:  f.Key,
+				Err:  err,
 			}
 		}
 
 		if _, err := zf.Write(p); err != nil {
 			return &cti.Error{
-				Encoding: "zip",
-				Op:       "encode",
-				Key:      f.Key,
-				Err:      err,
+				Type: "zip",
+				Op:   "encode",
+				Key:  f.Key,
+				Err:  err,
 			}
 		}
 	}
 
 	if err := zw.Close(); err != nil {
 		return &cti.Error{
-			Encoding: "zip",
-			Op:       "encode",
-			Key:      key,
-			Err:      err,
+			Type: "zip",
+			Op:   "encode",
+			Key:  key,
+			Err:  err,
 		}
 	}
 
@@ -90,20 +90,20 @@ func (Zip) Decode(key string, o cti.Object) error {
 	p, err := tobytes(n.Value)
 	if err != nil {
 		return &cti.Error{
-			Encoding: "zip",
-			Op:       "decode",
-			Key:      key,
-			Err:      err,
+			Type: "zip",
+			Op:   "decode",
+			Key:  key,
+			Err:  err,
 		}
 	}
 
 	zr, err := zip.NewReader(bytes.NewReader(p), int64(len(p)))
 	if err != nil {
 		return &cti.Error{
-			Encoding: "zip",
-			Op:       "decode",
-			Key:      key,
-			Err:      err,
+			Type: "zip",
+			Op:   "decode",
+			Key:  key,
+			Err:  err,
 		}
 	}
 
@@ -115,10 +115,10 @@ func (Zip) Decode(key string, o cti.Object) error {
 		rc, err := zf.Open()
 		if err != nil {
 			return &cti.Error{
-				Encoding: "zip",
-				Op:       "decode",
-				Key:      key,
-				Err:      err,
+				Type: "zip",
+				Op:   "decode",
+				Key:  key,
+				Err:  err,
 			}
 		}
 
@@ -126,10 +126,10 @@ func (Zip) Decode(key string, o cti.Object) error {
 		_ = rc.Close()
 		if err != nil {
 			return &cti.Error{
-				Encoding: "zip",
-				Op:       "decode",
-				Key:      key,
-				Err:      err,
+				Type: "zip",
+				Op:   "decode",
+				Key:  key,
+				Err:  err,
 			}
 		}
 

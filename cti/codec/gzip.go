@@ -6,11 +6,11 @@ import (
 	"io"
 )
 
-var gzip encgzip
+var gzip gzipCodec
 
-type encgzip struct{}
+type gzipCodec struct{}
 
-func (encgzip) Marshal(p []byte) ([]byte, error) {
+func (gzipCodec) Marshal(p []byte) ([]byte, error) {
 	var (
 		buf bytes.Buffer
 		w   = stdgzip.NewWriter(&buf)
@@ -27,7 +27,7 @@ func (encgzip) Marshal(p []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (encgzip) Unmarshal(p []byte) ([]byte, error) {
+func (gzipCodec) Unmarshal(p []byte) ([]byte, error) {
 	r, err := stdgzip.NewReader(bytes.NewReader(p))
 	if err != nil {
 		return nil, err

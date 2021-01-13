@@ -28,29 +28,29 @@ func (obj Object) Encode(key string, o cti.Object) error {
 
 	if len(n.Children) == 0 {
 		return &cti.Error{
-			Encoding: obj.Type,
-			Op:       "encode",
-			Key:      key,
-			Err:      errors.New("nothing to encode"),
+			Type: obj.Type,
+			Op:   "encode",
+			Key:  key,
+			Err:  errors.New("nothing to encode"),
 		}
 	}
 
 	if n.Value != nil {
 		return &cti.Error{
-			Encoding: obj.Type,
-			Op:       "encode",
-			Key:      key,
-			Err:      errors.New("value in a non-leaf node"),
+			Type: obj.Type,
+			Op:   "encode",
+			Key:  key,
+			Err:  errors.New("value in a non-leaf node"),
 		}
 	}
 
 	p, err := obj.Marshal(n.Children.Value())
 	if err != nil {
 		return &cti.Error{
-			Encoding: obj.Type,
-			Op:       "encode",
-			Key:      key,
-			Err:      err,
+			Type: obj.Type,
+			Op:   "encode",
+			Key:  key,
+			Err:  err,
 		}
 	}
 
@@ -70,10 +70,10 @@ func (obj Object) Decode(key string, o cti.Object) error {
 	p, err := tobytes(n.Value)
 	if err != nil {
 		return &cti.Error{
-			Encoding: obj.Type,
-			Op:       "decode",
-			Key:      key,
-			Err:      err,
+			Type: obj.Type,
+			Op:   "decode",
+			Key:  key,
+			Err:  err,
 		}
 	}
 
@@ -81,27 +81,27 @@ func (obj Object) Decode(key string, o cti.Object) error {
 
 	if err := obj.Unmarshal(p, &v); err != nil {
 		return &cti.Error{
-			Encoding: obj.Type,
-			Op:       "decode",
-			Key:      key,
-			Err:      err,
+			Type: obj.Type,
+			Op:   "decode",
+			Key:  key,
+			Err:  err,
 		}
 	}
 
 	ubj := objects.Object(v)
 	if len(ubj) == 0 {
 		return &cti.Error{
-			Encoding: obj.Type,
-			Op:       "decode",
-			Key:      key,
-			Err:      errors.New("not a struct or non-empty map"),
+			Type: obj.Type,
+			Op:   "decode",
+			Key:  key,
+			Err:  errors.New("not a struct or non-empty map"),
 		}
 	}
 
 	n.Value = nil
 	n.Children = n.Children.Schema().Merge(cti.Make(ubj))
-	if n.Encoding == "" {
-		n.Encoding = obj.Type
+	if n.Type == "" {
+		n.Type = obj.Type
 	}
 	o[k] = n
 

@@ -34,17 +34,17 @@ func TestObject(t *testing.T) {
 	}, {
 		Key: "/foo",
 	}, {
-		Key:      "/foo/bar",
-		Encoding: "object/json",
-		Value:    "[\"qux\",\"baz\"]",
+		Key:   "/foo/bar",
+		Type:  "object/json",
+		Value: "[\"qux\",\"baz\"]",
 	}, {
 		Key:   "/yaml",
 		Value: "json: '{\"ini\":\"k=\\\"v\\\"\\nkey=\\\"value\\\"\\n\"}'\n",
 	}, {
 		Key: "/yaml/json",
 	}, {
-		Key:      "/yaml/json/ini",
-		Encoding: "object/ini",
+		Key:  "/yaml/json/ini",
+		Type: "object/ini",
 	}}
 
 	if !cmp.Equal(want, got) {
@@ -59,47 +59,47 @@ func TestObject(t *testing.T) {
 	ewant := cti.Fields{{
 		Key: "/ascii",
 	}, {
-		Key:      "/ascii/48",
-		Encoding: "value/number",
-		Value:    int('a'),
+		Key:   "/ascii/48",
+		Type:  "value/number",
+		Value: int('a'),
 	}, {
-		Key:      "/ascii/49",
-		Encoding: "value/number",
-		Value:    int('b'),
+		Key:   "/ascii/49",
+		Type:  "value/number",
+		Value: int('b'),
 	}, {
-		Key:      "/ascii/50",
-		Encoding: "value/number",
-		Value:    int('c'),
+		Key:   "/ascii/50",
+		Type:  "value/number",
+		Value: int('c'),
 	}, {
 		Key: "/foo",
 	}, {
-		Key:      "/foo/bar",
-		Encoding: "object/json",
+		Key:  "/foo/bar",
+		Type: "object/json",
 	}, {
-		Key:      "/foo/bar/0",
-		Encoding: "value/string",
-		Value:    "qux",
+		Key:   "/foo/bar/0",
+		Type:  "value/string",
+		Value: "qux",
 	}, {
-		Key:      "/foo/bar/1",
-		Encoding: "value/string",
-		Value:    "baz",
+		Key:   "/foo/bar/1",
+		Type:  "value/string",
+		Value: "baz",
 	}, {
-		Key:      "/yaml",
-		Encoding: "object/yaml",
+		Key:  "/yaml",
+		Type: "object/yaml",
 	}, {
-		Key:      "/yaml/json",
-		Encoding: "object/json",
+		Key:  "/yaml/json",
+		Type: "object/json",
 	}, {
-		Key:      "/yaml/json/ini",
-		Encoding: "object/ini",
+		Key:  "/yaml/json/ini",
+		Type: "object/ini",
 	}, {
-		Key:      "/yaml/json/ini/k",
-		Encoding: "value/string",
-		Value:    "v",
+		Key:   "/yaml/json/ini/k",
+		Type:  "value/string",
+		Value: "v",
 	}, {
-		Key:      "/yaml/json/ini/key",
-		Encoding: "value/string",
-		Value:    "value",
+		Key:   "/yaml/json/ini/key",
+		Type:  "value/string",
+		Value: "value",
 	}}
 
 	if !cmp.Equal(ewant, egot) {
@@ -147,7 +147,7 @@ func TestObject(t *testing.T) {
 	}
 
 	var cgot cti.Fields
-	want[6].Encoding = "object/yaml"
+	want[6].Type = "object/yaml"
 
 	if err := o.Encode(nil); err != nil {
 		t.Fatalf("o.Encode()=%+v", err)
@@ -158,45 +158,45 @@ func TestObject(t *testing.T) {
 	cwant := cti.Fields{{
 		Key: "/ascii",
 	}, {
-		Key:      "/ascii/48",
-		Encoding: "value/number",
-		Value:    int('a'),
+		Key:   "/ascii/48",
+		Type:  "value/number",
+		Value: int('a'),
 	}, {
-		Key:      "/ascii/49",
-		Encoding: "value/number",
-		Value:    int('b'),
+		Key:   "/ascii/49",
+		Type:  "value/number",
+		Value: int('b'),
 	}, {
-		Key:      "/ascii/50",
-		Encoding: "value/number",
-		Value:    int('c'),
+		Key:   "/ascii/50",
+		Type:  "value/number",
+		Value: int('c'),
 	}, {
 		Key: "/foo",
 	}, {
-		Key:      "/foo/bar",
-		Encoding: "object/json",
-		Value:    "[\"qux\",\"baz\"]",
+		Key:   "/foo/bar",
+		Type:  "object/json",
+		Value: "[\"qux\",\"baz\"]",
 	}, {
-		Key:      "/foo/bar/0",
-		Encoding: "value/string",
+		Key:  "/foo/bar/0",
+		Type: "value/string",
 	}, {
-		Key:      "/foo/bar/1",
-		Encoding: "value/string",
+		Key:  "/foo/bar/1",
+		Type: "value/string",
 	}, {
-		Key:      "/yaml",
-		Encoding: "object/yaml",
-		Value:    "json: '{\"ini\":\"k=\\\"v\\\"\\nkey=\\\"value\\\"\\n\"}'\n",
+		Key:   "/yaml",
+		Type:  "object/yaml",
+		Value: "json: '{\"ini\":\"k=\\\"v\\\"\\nkey=\\\"value\\\"\\n\"}'\n",
 	}, {
-		Key:      "/yaml/json",
-		Encoding: "object/json",
+		Key:  "/yaml/json",
+		Type: "object/json",
 	}, {
-		Key:      "/yaml/json/ini",
-		Encoding: "object/ini",
+		Key:  "/yaml/json/ini",
+		Type: "object/ini",
 	}, {
-		Key:      "/yaml/json/ini/k",
-		Encoding: "value/string",
+		Key:  "/yaml/json/ini/k",
+		Type: "value/string",
 	}, {
-		Key:      "/yaml/json/ini/key",
-		Encoding: "value/string",
+		Key:  "/yaml/json/ini/key",
+		Type: "value/string",
 	}}
 
 	if !cmp.Equal(cwant, cgot) {

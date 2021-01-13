@@ -33,26 +33,26 @@ func (v Value) convert(op, key string, o cti.Object) error {
 
 	if len(n.Children) != 0 && n.Value == nil {
 		return &cti.Error{
-			Encoding: v.Type,
-			Op:       op,
-			Key:      key,
-			Err:      errors.New("unable to convert value in non-leaf node"),
+			Type: v.Type,
+			Op:   op,
+			Key:  key,
+			Err:  errors.New("unable to convert value in non-leaf node"),
 		}
 	}
 
 	w, err := v.Convert(n.Value)
 	if err != nil {
 		return &cti.Error{
-			Encoding: v.Type,
-			Op:       op,
-			Key:      key,
-			Err:      err,
+			Type: v.Type,
+			Op:   op,
+			Key:  key,
+			Err:  err,
 		}
 	}
 
 	n.Value = w
-	if n.Encoding == "" {
-		n.Encoding = v.Type
+	if n.Type == "" {
+		n.Type = v.Type
 	}
 	o[k] = n
 

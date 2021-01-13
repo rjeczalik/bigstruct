@@ -6,15 +6,15 @@ import (
 )
 
 type Field struct {
-	Key      string
-	Encoding string
-	Value    interface{}
+	Key   string
+	Type  string
+	Value interface{}
 }
 
-func Value(v interface{}, encoding ...string) Func {
+func Value(v interface{}, typ ...string) Func {
 	return Field{
-		Encoding: path.Join(encoding...),
-		Value:    v,
+		Type:  path.Join(typ...),
+		Value: v,
 	}.Put
 }
 
@@ -24,8 +24,8 @@ func (f Field) Put(key string, o Object) error {
 		n = o[k]
 	)
 
-	if f.Encoding != "" {
-		n.Encoding = f.Encoding
+	if f.Type != "" {
+		n.Type = f.Type
 	}
 
 	if f.Value != nil {
@@ -51,9 +51,9 @@ func (f *Fields) Append(key string, o Object) error {
 	)
 
 	*f = append(*f, Field{
-		Key:      key,
-		Encoding: n.Encoding,
-		Value:    n.Value,
+		Key:   key,
+		Type:  n.Type,
+		Value: n.Value,
 	})
 
 	return nil

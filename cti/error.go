@@ -9,11 +9,11 @@ import (
 )
 
 type Error struct {
-	Encoding string
-	Op       string
-	Key      string
-	Err      error
-	Next     *Error
+	Type string
+	Op   string
+	Key  string
+	Err  error
+	Next *Error
 
 	stack *interr.Stack
 }
@@ -21,7 +21,7 @@ type Error struct {
 var _ error = (*Error)(nil)
 
 func (e *Error) Error() string {
-	return e.Encoding + `: failed to ` + e.Op + ` "` + e.Key + `": ` + e.Err.Error()
+	return e.Type + `: failed to ` + e.Op + ` "` + e.Key + `": ` + e.Err.Error()
 }
 
 func (e *Error) Unwrap() error {
@@ -72,11 +72,11 @@ func (e *Error) Chain(err error) *Error {
 		e.Next = v
 	default:
 		e.Next = &Error{
-			Encoding: e.Encoding,
-			Op:       e.Op,
-			Key:      e.Key,
-			Err:      v,
-			Next:     nil,
+			Type: e.Type,
+			Op:   e.Op,
+			Key:  e.Key,
+			Err:  v,
+			Next: nil,
 		}
 	}
 

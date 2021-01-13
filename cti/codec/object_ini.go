@@ -17,15 +17,15 @@ var _ = DefaultObject.
 		Unmarshal: ini.Unmarshal,
 	})
 
-var ini = encini{
+var ini = iniCodec{
 	key: regexp.MustCompile(`^[a-zA-Z_0-9]+$`),
 }
 
-type encini struct {
+type iniCodec struct {
 	key *regexp.Regexp
 }
 
-func (encini) Marshal(v interface{}) ([]byte, error) {
+func (iniCodec) Marshal(v interface{}) ([]byte, error) {
 	obj, keys, err := toobj(v)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (encini) Marshal(v interface{}) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (e encini) Unmarshal(p []byte, v interface{}) error {
+func (e iniCodec) Unmarshal(p []byte, v interface{}) error {
 	s := bufio.NewScanner(bytes.NewReader(p))
 
 	obj := make(map[string]string)

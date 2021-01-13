@@ -13,7 +13,7 @@ import (
 	"github.com/glaucusio/confetti/internal/objects"
 )
 
-type Func func(encoding string, m Map) error
+type Func func(typ string, m Map) error
 
 type Map map[string]struct {
 	Codec    cti.Codec
@@ -39,11 +39,11 @@ func (m Map) RegisterMap(name string, cm Map) Map {
 	return cm
 }
 
-func (m Map) Codec(encoding string) cti.Codec {
+func (m Map) Codec(typ string) cti.Codec {
 	var (
 		parent = m
-		dir    = path.Dir(encoding)
-		key    = path.Base(encoding)
+		dir    = path.Dir(typ)
+		key    = path.Base(typ)
 	)
 
 	for _, k := range objects.Split(dir) {
@@ -69,18 +69,18 @@ func (m Map) Encode(key string, o cti.Object) error {
 		err error
 	)
 
-	for i := len(n.Encoding); i != -1; i = strings.LastIndexByte(n.Encoding[:i], '/') {
+	for i := len(n.Type); i != -1; i = strings.LastIndexByte(n.Type[:i], '/') {
 		var (
-			encoding = n.Encoding[:i]
+			typ = n.Type[:i]
 		)
 
-		if c := m.Codec(encoding); c != nil {
+		if c := m.Codec(typ); c != nil {
 			if e := c.Encode(key, o); e != nil {
 				err = (&cti.Error{
-					Encoding: encoding,
-					Op:       "encode",
-					Key:      key,
-					Err:      e,
+					Type: typ,
+					Op:   "encode",
+					Key:  key,
+					Err:  e,
 				}).Chain(err)
 
 				continue
@@ -90,12 +90,12 @@ func (m Map) Encode(key string, o cti.Object) error {
 		}
 	}
 
-	if n.Encoding != "" {
+	if n.Type != "" {
 		err = (&cti.Error{
-			Encoding: n.Encoding,
-			Op:       "encode",
-			Key:      key,
-			Err:      errors.New("no suitable codec found"),
+			Type: n.Type,
+			Op:   "encode",
+			Key:  key,
+			Err:  errors.New("no suitable codec found"),
 		}).Chain(err)
 	}
 
@@ -113,18 +113,18 @@ func (m Map) Decode(key string, o cti.Object) error {
 		return nil // early skip
 	}
 
-	for i := len(n.Encoding); i > 0; i = strings.LastIndexByte(n.Encoding[:i], '/') {
+	for i := len(n.Type); i > 0; i = strings.LastIndexByte(n.Type[:i], '/') {
 		var (
-			encoding = n.Encoding[:i]
+			typ = n.Type[:i]
 		)
 
-		if c := m.Codec(encoding); c != nil {
+		if c := m.Codec(typ); c != nil {
 			if e := c.Decode(key, o); e != nil {
 				err = (&cti.Error{
-					Encoding: encoding,
-					Op:       "decode",
-					Key:      key,
-					Err:      e,
+					Type: typ,
+					Op:   "decode",
+					Key:  key,
+					Err:  e,
 				}).Chain(err)
 
 				continue
@@ -134,40 +134,40 @@ func (m Map) Decode(key string, o cti.Object) error {
 		}
 	}
 
-	if n.Encoding != "" {
+	if n.Type != "" {
 		err = (&cti.Error{
-			Encoding: n.Encoding,
-			Op:       "decode",
-			Key:      key,
-			Err:      errors.New("no suitable codec found"),
+			Type: n.Type,
+			Op:   "decode",
+			Key:  key,
+			Err:  errors.New("no suitable codec found"),
 		}).Chain(err)
 
 		return err
 	}
 
-	// Try to guess content type (n.Encoding) during Decode. It is useful for
+	// Try to guess content type (n.Type) during Decode. It is useful for
 	// generating schema from raw data. While this part is pretty accurate,
 	// proper design would be to decouple schema building into a separate routine.
 	// This part may require refactoring when more complex schema building
 	// would be required - e.g. guessing content type using http
 
-	for _, encoding := range m.Keys() {
-		if e := m[encoding].Codec.Decode(key, o); e != nil {
+	for _, typ := range m.Keys() {
+		if e := m[typ].Codec.Decode(key, o); e != nil {
 			err = (&cti.Error{
-				Encoding: encoding,
-				Op:       "decode",
-				Key:      key,
-				Err:      e,
+				Type: typ,
+				Op:   "decode",
+				Key:  key,
+				Err:  e,
 			}).Chain(err)
 
 			continue
 		}
 
 		// fixme: more complex codecs may require more accurate
-		// feedback about encoding result than quessing here
-		// (it currently assumes the encoding have been set on success)
-		if n = o[k]; n.Encoding != "" && n.Encoding != encoding {
-			n.Encoding = path.Join(encoding, n.Encoding)
+		// feedback about dencoding result than quessing here
+		// (it currently assumes the type has been set on success)
+		if n = o[k]; n.Type != "" && n.Type != typ {
+			n.Type = path.Join(typ, n.Type)
 			o[k] = n
 		}
 
@@ -217,18 +217,18 @@ func (m Map) Walk(fn Func) error {
 }
 
 func (m Map) WriteTab(w io.Writer) (n int64, err error) {
-	if m, err := fmt.Fprintln(w, "KEY\tCODEC"); err != nil {
+	if m, err := fmt.Fprintln(w, "TYPE\tCODEC"); err != nil {
 		return int64(m), err
 	}
 
-	err = m.Walk(func(encoding string, m Map) error {
+	err = m.Walk(func(typ string, m Map) error {
 		var (
-			k = path.Base(encoding)
+			k = path.Base(typ)
 			u = m[k]
 		)
 
 		i, err := fmt.Fprintf(w, "%s\t%#v\n",
-			encoding,
+			typ,
 			nonil(u.Codec, "-"),
 		)
 

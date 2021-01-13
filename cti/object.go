@@ -14,9 +14,9 @@ import (
 type Func func(key string, parent Object) error
 
 type Object map[string]struct {
-	Encoding string      `json:"e,omitempty" yaml:"e,omitempty"`
-	Value    interface{} `json:"v,omitempty" yaml:"v,omitempty"`
-	Children Object      `json:"c,omitempty" yaml:"c,omitempty"`
+	Type     string      `json:"type,omitempty" yaml:"type,omitempty"`
+	Value    interface{} `json:"value,omitempty" yaml:"value,omitempty"`
+	Children Object      `json:"children,omitempty" yaml:"children,omitempty"`
 }
 
 func (o Object) Copy() Object {
@@ -35,7 +35,7 @@ func (o Object) Schema() Object {
 
 	for k, n := range o {
 		m, _ := u[k] // zero value
-		m.Encoding = n.Encoding
+		m.Type = n.Type
 		m.Children = n.Children.Schema()
 		u[k] = m
 	}
@@ -77,7 +77,7 @@ func (o Object) Value() interface{} {
 
 func (o Object) Shake() Object {
 	for k, n := range o {
-		if len(n.Children) == 0 && n.Value == nil && n.Encoding == "" {
+		if len(n.Children) == 0 && n.Value == nil && n.Type == "" {
 			delete(o, k)
 		} else {
 			n.Children = n.Children.Shake()
@@ -248,7 +248,7 @@ func (o Object) Keys() []string {
 }
 
 func (o Object) WriteTab(w io.Writer) (n int64, err error) {
-	if m, err := fmt.Fprintln(w, "KEY\tENCODING\tVALUE"); err != nil {
+	if m, err := fmt.Fprintln(w, "KEY\tTYPE\tVALUE"); err != nil {
 		return int64(m), err
 	}
 
@@ -258,13 +258,13 @@ func (o Object) WriteTab(w io.Writer) (n int64, err error) {
 			u = o[k]
 		)
 
-		if u.Value == nil && len(u.Children) != 0 && len(u.Encoding) == 0 {
+		if u.Value == nil && len(u.Children) != 0 && len(u.Type) == 0 {
 			return nil
 		}
 
 		m, err := fmt.Fprintf(w, "%s\t%s\t%+v\n",
 			key,
-			nonempty(u.Encoding, "-"),
+			nonempty(u.Type, "-"),
 			nonil(u.Value, "-"),
 		)
 

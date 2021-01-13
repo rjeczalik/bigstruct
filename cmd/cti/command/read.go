@@ -81,7 +81,7 @@ func (m *readCmd) run(_ *cobra.Command, args []string) error {
 
 	envelope := cti.Object{
 		"root": {
-			Encoding: m.format,
+			Type:     m.format,
 			Children: obj,
 		},
 	}

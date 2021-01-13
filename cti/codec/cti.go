@@ -20,19 +20,19 @@ func (cc Confetti) Encode(key string, o cti.Object) error {
 
 	if len(n.Children) == 0 {
 		return &cti.Error{
-			Encoding: "cti",
-			Op:       "encode",
-			Key:      key,
-			Err:      errors.New("nothing to encode"),
+			Type: "cti",
+			Op:   "encode",
+			Key:  key,
+			Err:  errors.New("nothing to encode"),
 		}
 	}
 
 	if n.Value != nil {
 		return &cti.Error{
-			Encoding: "cti",
-			Op:       "encode",
-			Key:      key,
-			Err:      errors.New("value in a non-leaf node"),
+			Type: "cti",
+			Op:   "encode",
+			Key:  key,
+			Err:  errors.New("value in a non-leaf node"),
 		}
 	}
 
@@ -40,10 +40,10 @@ func (cc Confetti) Encode(key string, o cti.Object) error {
 	p, err := json.Marshal(n.Children)
 	if err != nil {
 		return &cti.Error{
-			Encoding: "cti",
-			Op:       "encode",
-			Key:      key,
-			Err:      err,
+			Type: "cti",
+			Op:   "encode",
+			Key:  key,
+			Err:  err,
 		}
 	}
 
@@ -51,10 +51,10 @@ func (cc Confetti) Encode(key string, o cti.Object) error {
 
 	if err := json.Unmarshal(p, &v); err != nil {
 		return &cti.Error{
-			Encoding: "cti",
-			Op:       "encode",
-			Key:      key,
-			Err:      err,
+			Type: "cti",
+			Op:   "encode",
+			Key:  key,
+			Err:  err,
 		}
 	}
 
@@ -73,10 +73,10 @@ func (cc Confetti) Decode(key string, o cti.Object) error {
 	p, err := json.Marshal(n.Children.Value())
 	if err != nil {
 		return &cti.Error{
-			Encoding: "cti",
-			Op:       "decode",
-			Key:      key,
-			Err:      err,
+			Type: "cti",
+			Op:   "decode",
+			Key:  key,
+			Err:  err,
 		}
 	}
 
@@ -84,10 +84,10 @@ func (cc Confetti) Decode(key string, o cti.Object) error {
 
 	if err := json.Unmarshal(p, &obj); err != nil {
 		return &cti.Error{
-			Encoding: "cti",
-			Op:       "decode",
-			Key:      key,
-			Err:      err,
+			Type: "cti",
+			Op:   "decode",
+			Key:  key,
+			Err:  err,
 		}
 	}
 
