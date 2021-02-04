@@ -349,16 +349,12 @@ func (o Object) Encode(c Codec) error {
 	if c == nil {
 		panic("codec is nil")
 	}
-	return o.ReverseWalk(func(key string, o Object) error {
-		return c.Encode(key, o)
-	})
+	return o.ReverseWalk(c.Encode)
 }
 
 func (o Object) Decode(c Codec) error {
 	if c == nil {
 		panic("codec is nil")
 	}
-	return o.Walk(func(key string, o Object) error {
-		return c.Decode(key, o)
-	})
+	return o.Walk(c.Decode)
 }
