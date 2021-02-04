@@ -1,6 +1,7 @@
 package command
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -107,6 +108,9 @@ func (app *App) Render(v interface{}) (err error) {
 	type textRenderer interface {
 		RenderText(io.Writer)
 	}
+	type tabWriter interface {
+		WriteTab(io.Writer) (int64, error)
+	}
 
 	switch app.Format {
 	case "json":
@@ -119,6 +123,10 @@ func (app *App) Render(v interface{}) (err error) {
 			tw := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
 			v.RenderText(tw)
 			err = tw.Flush()
+		case tabWriter:
+			_, err = v.WriteTab(os.Stdout)
+		case []byte:
+			fmt.Fprintf(os.Stdout, "%s\n", bytes.TrimSpace(v))
 		default:
 			fmt.Fprintln(os.Stdout, v)
 		}

@@ -1,9 +1,6 @@
 package command
 
 import (
-	"fmt"
-	"path"
-
 	"github.com/rjeczalik/bigstruct/isr"
 	"github.com/rjeczalik/bigstruct/isr/codec"
 
@@ -19,16 +16,15 @@ type Printer struct {
 	Decode     bool
 	SchemaOnly bool
 	Raw        bool
-	Value      bool
 }
 
 func (p *Printer) Register(cmd *cobra.Command) {
 	f := cmd.Flags()
 
-	f.BoolVarP(&p.Encode, "encode", "e", false, "")
-	f.BoolVarP(&p.Decode, "decode", "d", false, "")
-	f.BoolVarP(&p.Raw, "raw", "r", false, "")
-	f.BoolVarP(&p.SchemaOnly, "schema-only", "x", false, "")
+	f.BoolVarP(&p.Encode, "encode", "e", p.Encode, "")
+	f.BoolVarP(&p.Decode, "decode", "d", p.Decode, "")
+	f.BoolVarP(&p.Raw, "raw", "r", p.Raw, "")
+	f.BoolVarP(&p.SchemaOnly, "schema-only", "x", p.SchemaOnly, "")
 }
 
 func (p *Printer) Print(app *App, cmd *cobra.Command, f Fielder, prefix string) error {
@@ -57,14 +53,6 @@ func (p *Printer) Print(app *App, cmd *cobra.Command, f Fielder, prefix string) 
 		app.DefaultFormat(cmd, "yaml")
 		return app.Render(obj.At(prefix).Value())
 	default:
-		var (
-			dir  = path.Dir(prefix)
-			base = path.Base(prefix)
-		)
-
-		fmt.Println("DIR:", obj.At(dir))
-		_ = base
-
-		return app.Render(fmt.Sprintf("%s", obj.At(path.Dir(prefix))[path.Base(prefix)].Value))
+		return app.Render(obj.ValueAt(prefix))
 	}
 }

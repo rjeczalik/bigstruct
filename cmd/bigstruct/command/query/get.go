@@ -8,8 +8,10 @@ import (
 
 func NewGetCommand(app *command.App) *cobra.Command {
 	m := &getCmd{
-		App:     app,
-		Printer: new(command.Printer),
+		App: app,
+		Printer: &command.Printer{
+			Encode: true,
+		},
 	}
 
 	cmd := &cobra.Command{
@@ -48,7 +50,7 @@ func (m *getCmd) run(cmd *cobra.Command, args []string) error {
 	}
 
 	var (
-		obj = append(v.Fields(), s.Fields()...).Merge()
+		obj = append(v.Fields(), s.Fields()...).Object()
 		key = args[0]
 	)
 

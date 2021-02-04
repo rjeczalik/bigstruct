@@ -171,6 +171,15 @@ func (o Object) At(key string) Object {
 	return parent
 }
 
+func (o Object) ValueAt(key string) interface{} {
+	var (
+		dir  = path.Dir(key)
+		base = path.Base(key)
+	)
+
+	return o.At(dir)[base].Value
+}
+
 func (o Object) Walk(fn Func) error {
 	type elm struct {
 		parent Object

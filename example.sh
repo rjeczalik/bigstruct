@@ -5,6 +5,7 @@ set -euo pipefail
 rm -vf ~/.config/bigstruct/storage.db
 
 alias cti=bigstruct
+alias bs=bigstruct
 
 bigstruct namespace set --name global  --property false --priority 0
 bigstruct namespace set --name version --property true  --priority 10
