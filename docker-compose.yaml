@@ -1,0 +1,20 @@
+version: "3.9"
+services:
+  db_check:
+    entrypoint: echo
+    image: alpine:latest
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: mysql:5.6.51
+    container_name: bigstruct_mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "bigstruct"
+      MYSQL_DATABASE: "bigstruct"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "-pbigstruct", "ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 10

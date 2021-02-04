@@ -14,7 +14,7 @@ import (
 
 type Namespace struct {
 	Model    `yaml:",inline"`
-	Name     string   `gorm:"column:name;type:tinytext;not null;index" yaml:"name,omitempty" json:"name,omitempty"`
+	Name     string   `gorm:"column:name;type:tinytext;not null" yaml:"name,omitempty" json:"name,omitempty"`
 	Priority int      `gorm:"column:priority;type:smallint;not null" yaml:"priority,omitempty" json:"priority,omitempty"`
 	Property Property `gorm:"column:property;type:tinytext;not null" yaml:"property,omitempty" json:"property,omitempty"`
 }

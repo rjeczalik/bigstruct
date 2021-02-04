@@ -8,18 +8,18 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/rjeczalik/bigstruct/isr"
 	"github.com/rjeczalik/bigstruct/internal/types"
+	"github.com/rjeczalik/bigstruct/isr"
 )
 
 type Schema struct {
 	Model       `yaml:",inline"`
-	Key         string     `gorm:"column:key;type:text;not null;index:idx_schema_key_namespace_id" yaml:"key,omitempty" json:"key,omitempty"`
+	Namespace   *Namespace `yaml:"-" json:"-"`
+	NamespaceID uint64     `gorm:"column:namespace_id;type:bigint;not null;index" yaml:"namespace_id,omitempty" json:"namespace_id,omitempty"`
+	Key         string     `gorm:"column:key;type:text;not null" yaml:"key,omitempty" json:"key,omitempty"`
 	Type        string     `gorm:"column:type;type:tinytext;not null" yaml:"type,omitempty" json:"type,omitempty"`
 	Encoding    string     `gorm:"column:encoding;type:tinytext;not null" yaml:"encoding,omitempty" json:"encoding,omitempty"`
 	RawSchema   string     `gorm:"column:schema;type:text" yaml:"schema,omitempty" json:"schema,omitempty"`
-	Namespace   *Namespace `yaml:"-" json:"-"`
-	NamespaceID uint64     `gorm:"column:namespace_id;type:bigint;not null;index:idx_schema_key_namespace_id" yaml:"namespace_id,omitempty" json:"namespace_id,omitempty"`
 }
 
 func (*Schema) TableName() string {

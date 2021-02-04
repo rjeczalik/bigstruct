@@ -6,16 +6,16 @@ import (
 	"io"
 	"text/tabwriter"
 
-	"github.com/rjeczalik/bigstruct/isr"
 	"github.com/rjeczalik/bigstruct/internal/types"
+	"github.com/rjeczalik/bigstruct/isr"
 )
 
 type Value struct {
 	Model       `yaml:",inline"`
-	Key         string     `gorm:"column:key;type:text;not null;index:idx_value_key_namespace_id" yaml:"key,omitempty" json:"key,omitempty"`
-	RawValue    string     `gorm:"column:value;type:text" yaml:"value,omitempty" json:"value,omitempty"`
 	Namespace   *Namespace `gorm:"" yaml:"-" json:"-"`
-	NamespaceID uint64     `gorm:"column:namespace_id;type:bigint;not null;index:idx_value_key_namespace_id" yaml:"namespace_id,omitempty" json:"namespace_id,omitempty"`
+	NamespaceID uint64     `gorm:"column:namespace_id;type:bigint;not null;index" yaml:"namespace_id,omitempty" json:"namespace_id,omitempty"`
+	Key         string     `gorm:"column:key;type:text;not null" yaml:"key,omitempty" json:"key,omitempty"`
+	RawValue    string     `gorm:"column:value;type:text" yaml:"value,omitempty" json:"value,omitempty"`
 }
 
 func (*Value) TableName() string {

@@ -4,12 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
-	"text/tabwriter"
 
 	"github.com/rjeczalik/bigstruct/internal/types"
 	"github.com/rjeczalik/bigstruct/query"
@@ -105,13 +103,6 @@ func (app *App) DefaultConfig() Config {
 }
 
 func (app *App) Render(v interface{}) (err error) {
-	type textRenderer interface {
-		RenderText(io.Writer)
-	}
-	type tabWriter interface {
-		WriteTab(io.Writer) (int64, error)
-	}
-
 	switch app.Format {
 	case "json":
 		fmt.Println(types.MakePrettyJSON(v))
@@ -119,12 +110,6 @@ func (app *App) Render(v interface{}) (err error) {
 		fmt.Println(types.MakeYAML(v))
 	case "text":
 		switch v := v.(type) {
-		case textRenderer:
-			tw := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
-			v.RenderText(tw)
-			err = tw.Flush()
-		case tabWriter:
-			_, err = v.WriteTab(os.Stdout)
 		case []byte:
 			fmt.Fprintf(os.Stdout, "%s\n", bytes.TrimSpace(v))
 		default:

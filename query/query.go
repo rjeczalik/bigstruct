@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/rjeczalik/bigstruct/internal/types"
 	"github.com/rjeczalik/bigstruct/isr"
 	"github.com/rjeczalik/bigstruct/isr/codec"
-	"github.com/rjeczalik/bigstruct/internal/types"
 	"github.com/rjeczalik/bigstruct/storage"
 	"github.com/rjeczalik/bigstruct/storage/model"
 
@@ -22,31 +22,43 @@ type Query struct {
 
 func (q *Query) Get(ctx context.Context, index, key string) (model.Values, model.Schemas, error) {
 	var (
-		g   = q.Storage.With(q.Storage.DB.Begin())
-		idx = &model.Index{Name: index}
+		v model.Values
+		s model.Schemas
 	)
 
-	if i := strings.IndexRune(index, '/'); i != -1 {
-		idx.Name = index[:i]
-		idx.Property = index[i+1:]
-	}
+	return v, s, q.Storage.Transaction(q.txGet(ctx, index, key, &v, &s))
+}
 
-	ns, err := q.buildNamespaces(ctx, g, idx)
-	if err != nil {
-		return nil, nil, err
-	}
+func (q *Query) txGet(ctx context.Context, index, key string, pv *model.Values, ps *model.Schemas) storage.Func {
+	return func(tx storage.Gorm) error {
+		var (
+			idx = &model.Index{Name: index}
+		)
 
-	v, err := q.buildValues(ctx, g, ns, key)
-	if err != nil {
-		return nil, nil, err
-	}
+		if i := strings.IndexRune(index, '/'); i != -1 {
+			idx.Name = index[:i]
+			idx.Property = index[i+1:]
+		}
 
-	s, err := q.buildSchemas(ctx, g, ns, key)
-	if err != nil {
-		return nil, nil, err
-	}
+		ns, err := q.buildNamespaces(ctx, tx, idx)
+		if err != nil {
+			return err
+		}
 
-	return v, s, nil
+		v, err := q.buildValues(ctx, tx, ns, key)
+		if err != nil {
+			return err
+		}
+
+		s, err := q.buildSchemas(ctx, tx, ns, key)
+		if err != nil {
+			return err
+		}
+
+		*pv, *ps = v, s
+
+		return nil
+	}
 }
 
 func (q *Query) buildNamespaces(ctx context.Context, g storage.Gorm, idx *model.Index) (model.Namespaces, error) {

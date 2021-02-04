@@ -6,18 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/rjeczalik/bigstruct/storage/model"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
-
-var tables = []interface{}{
-	new(model.Namespace),
-	new(model.Index),
-	new(model.Value),
-	new(model.Schema),
-	new(model.Meta),
-}
 
 func sqliteFile(uri *url.URL) string {
 	return strings.TrimPrefix(uri.Opaque, "file:")
@@ -39,8 +30,8 @@ func sqliteOpenOrCreate(uri *url.URL) (*gorm.DB, error) {
 
 func sqliteOpen(uri *url.URL) (*gorm.DB, error) {
 	var (
-		dialect = sqlite.Open(sqliteURI(uri))
 		config  = newConfig(uri.Query())
+		dialect = sqlite.Open(uristring(uri))
 	)
 
 	return gorm.Open(dialect, config)

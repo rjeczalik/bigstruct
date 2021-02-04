@@ -27,6 +27,18 @@ docker-build:
 		-v ${PWD}:/app \
 		gruebel/upx --best --lzma /app/bin/bigstruct
 
+# db-up Starts MySQL database for development
+.PHONY: db-up
+db-up:
+	@docker-compose up -d
+
+# db-down Stops MySQL database
+.PHONY: db-down
+db-down:
+	@docker-compose down --remove-orphans
+	@docker kill bigstruct_mysql 2>/dev/null || true
+	@docker-compose rm -v --stop --force
+
 # help Shows targets list
 .PHONY: help
 help:

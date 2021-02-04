@@ -2,6 +2,7 @@ package schema
 
 import (
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command"
+	"github.com/rjeczalik/bigstruct/storage"
 	"github.com/rjeczalik/bigstruct/storage/model"
 
 	"github.com/spf13/cobra"
@@ -44,19 +45,23 @@ func (m *setCmd) register(cmd *cobra.Command) {
 }
 
 func (m *setCmd) run(cmd *cobra.Command, args []string) error {
+	return m.Storage.Transaction(m.txRun)
+}
+
+func (m *setCmd) txRun(g storage.Gorm) error {
 	f, err := m.Builder.Build()
 	if err != nil {
 		return err
 	}
 
-	ns, err := m.Storage.Namespace(m.namespace)
+	ns, err := g.Namespace(m.namespace)
 	if err != nil {
 		return err
 	}
 
 	s := model.MakeSchemas(ns, f)
 
-	if err := m.Storage.UpsertSchemas(s); err != nil {
+	if err := g.UpsertSchemas(s); err != nil {
 		return err
 	}
 

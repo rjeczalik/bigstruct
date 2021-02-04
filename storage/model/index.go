@@ -13,8 +13,8 @@ import (
 
 type Index struct {
 	Model       `yaml:",inline"`
-	Name        string         `gorm:"column:name;type:tinytext;not null;index:idx_name_property" yaml:"name,omitempty" json:"name,omitempty"`
-	Property    string         `gorm:"column:property;type:tinytext;index:idx_name_property" yaml:"property,omitempty" json:"property,omitempty"`
+	Name        string         `gorm:"column:name;type:tinytext;not null" yaml:"name,omitempty" json:"name,omitempty"`
+	Property    string         `gorm:"column:property;type:tinytext" yaml:"property,omitempty" json:"property,omitempty"`
 	ValueIndex  NamespaceIndex `gorm:"column:value_index;type:text;not null" yaml:"value_index,omitempty" json:"value_index,omitempty"`
 	SchemaIndex NamespaceIndex `gorm:"column:schema_index;type:text;not null" yaml:"schema_index,omitempty" json:"schema_index,omitempty"`
 }
@@ -86,7 +86,11 @@ func (i Indexes) String() string {
 type NamespaceIndex string
 
 func (ni *NamespaceIndex) Set(m map[string]string) NamespaceIndex {
-	*ni = NamespaceIndex(types.MakeJSON(m).String())
+	if len(m) != 0 {
+		*ni = NamespaceIndex(types.MakeJSON(m).String())
+	} else {
+		*ni = ""
+	}
 	return *ni
 }
 

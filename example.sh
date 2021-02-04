@@ -41,6 +41,9 @@ bigstruct value set --namespace version/1 \
 	--value /etc/scylla/scylla.yaml/rpc_address=127.0.0.1    \
 	--value /etc/scylla/scylla.yaml/api_doc_dir
 
+bigstruct value set --namespace version/1 \
+	--value /etc/scylla/scylla.yaml/listen_address=localhost
+
 bigstruct index set --name cluster --property 3 \
 	-v version=1 -v account=2 -v cluster=3 -v dc=4 -v server=5 \
 	-x global

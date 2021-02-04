@@ -2,6 +2,7 @@ package value
 
 import (
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command"
+	"github.com/rjeczalik/bigstruct/storage"
 	"github.com/rjeczalik/bigstruct/storage/model"
 
 	"github.com/spf13/cobra"
@@ -45,36 +46,32 @@ func (m *setCmd) register(cmd *cobra.Command) {
 	cmd.MarkFlagRequired("namespace")
 }
 
-func (m *setCmd) run(cmd *cobra.Command, args []string) error {
+func (m *setCmd) run(*cobra.Command, []string) error {
+	return m.Storage.Transaction(m.txRun)
+}
+
+func (m *setCmd) txRun(g storage.Gorm) error {
 	f, err := m.Builder.Build()
 	if err != nil {
 		return err
 	}
 
-	ns, err := m.Storage.Namespace(m.namespace)
+	ns, err := g.Namespace(m.namespace)
 	if err != nil {
 		return err
 	}
 
-	tx := m.Storage.DB.Begin()
-
 	if m.schema {
 		s := model.MakeSchemas(ns, f)
 
-		if err := m.Storage.With(tx).UpsertSchemas(s); err != nil {
-			_ = tx.Rollback()
+		if err := g.UpsertSchemas(s); err != nil {
 			return err
 		}
 	}
 
 	v := model.MakeValues(ns, f)
 
-	if err := m.Storage.With(tx).UpsertValues(v); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-
-	if err := tx.Commit().Error; err != nil {
+	if err := g.UpsertValues(v); err != nil {
 		return err
 	}
 
