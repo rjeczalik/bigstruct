@@ -7,7 +7,7 @@ import (
 )
 
 func Split(dir string) (v []string) {
-	for _, s := range strings.Split(strings.Trim(dir, "/"), "/") {
+	for _, s := range strings.Split(strings.Trim(dir, "/."), "/") {
 		if s != "" {
 			v = append(v, s)
 		}
