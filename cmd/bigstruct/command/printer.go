@@ -1,6 +1,10 @@
 package command
 
 import (
+	"fmt"
+	"os"
+	"path"
+
 	"github.com/rjeczalik/bigstruct/isr"
 	"github.com/rjeczalik/bigstruct/isr/codec"
 
@@ -53,6 +57,17 @@ func (p *Printer) Print(app *App, cmd *cobra.Command, f Fielder, prefix string) 
 		app.DefaultFormat(cmd, "yaml")
 		return app.Render(obj.At(prefix).Value())
 	default:
-		return app.Render(obj.ValueAt(prefix))
+		return obj.Walk(func(key string, o isr.Object) error {
+			var (
+				k = path.Base(key)
+				n = o[k]
+			)
+
+			if n.Value != nil {
+				fmt.Fprintf(os.Stderr, "# %s\n", key)
+			}
+
+			return app.Render(n.Value)
+		})
 	}
 }

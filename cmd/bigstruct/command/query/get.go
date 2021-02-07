@@ -1,6 +1,8 @@
 package query
 
 import (
+	"fmt"
+
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command"
 
 	"github.com/spf13/cobra"
@@ -47,6 +49,10 @@ func (m *getCmd) run(cmd *cobra.Command, args []string) error {
 	v, s, err := m.Query.Get(m.Context, m.index, args[0])
 	if err != nil {
 		return err
+	}
+
+	if len(v) == 0 {
+		return fmt.Errorf("no values found for %q", args[0])
 	}
 
 	var (

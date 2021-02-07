@@ -105,15 +105,17 @@ func (app *App) DefaultConfig() Config {
 func (app *App) Render(v interface{}) (err error) {
 	switch app.Format {
 	case "json":
-		fmt.Println(types.MakePrettyJSON(v))
+		fmt.Print(types.MakePrettyJSON(v))
 	case "yaml":
-		fmt.Println(types.MakeYAML(v))
+		fmt.Print(types.MakeYAML(v))
 	case "text":
 		switch v := v.(type) {
 		case []byte:
 			fmt.Fprintf(os.Stdout, "%s\n", bytes.TrimSpace(v))
+		case nil:
+			// skip
 		default:
-			fmt.Fprintln(os.Stdout, v)
+			fmt.Fprint(os.Stdout, v)
 		}
 	default:
 		err = fmt.Errorf("unsupported format type: %q", app.Format)
