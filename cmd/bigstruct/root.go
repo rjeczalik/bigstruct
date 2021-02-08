@@ -16,7 +16,7 @@ import (
 
 func NewCommand(app *command.App) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "cti",
+		Use:   "bigstruct",
 		Short: "(wip)",
 		Args:  cobra.NoArgs,
 		RunE:  command.PrintHelp(os.Stderr),

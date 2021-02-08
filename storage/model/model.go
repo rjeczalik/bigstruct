@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/rjeczalik/bigstruct/internal/random"
+	"github.com/rjeczalik/bigstruct/internal/types"
 
 	"gorm.io/gorm"
 )
@@ -20,6 +21,20 @@ func RandomID(m *Model, db *gorm.DB) error {
 	}
 
 	return nil
+}
+
+type Metadata string
+
+func (m *Metadata) Set(v interface{}) {
+	*m = Metadata(types.MakeJSON(v))
+}
+
+func (m Metadata) Unmarshal(v interface{}) error {
+	return types.JSON(m).Unmarshal(v)
+}
+
+func (m Metadata) String() string {
+	return string(m)
 }
 
 type Model struct {

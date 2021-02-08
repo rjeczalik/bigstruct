@@ -52,7 +52,7 @@ func (m *listCmd) run(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("error loading %q namespace: %w", m.namespace, err)
 	}
 
-	v, err := m.Storage.ListValues(ns.ID, m.prefix)
+	v, err := m.Storage.ListValues(ns, m.prefix)
 	if err != nil {
 		return fmt.Errorf("error listing %q values for %q namespace: %w", m.prefix, ns.Namespace(), err)
 	}

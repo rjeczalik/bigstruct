@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"path"
 	"reflect"
 	"text/tabwriter"
 
@@ -24,7 +23,10 @@ func (*Index) TableName() string {
 }
 
 func (i *Index) Prefix() string {
-	return path.Join("/", i.Name, i.Property)
+	if i.Property != "" {
+		return i.Name + "=" + i.Property
+	}
+	return i.Name
 }
 
 type Indexes []*Index

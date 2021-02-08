@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+const Prefix = "/"
+
 func cleanpath(s string) string {
 	s = strings.TrimLeft(s, `/.\`)
 	s = filepath.FromSlash(s)

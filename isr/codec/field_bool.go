@@ -15,7 +15,7 @@ var _ = DefaultField.
 var boolType = reflect.TypeOf((*bool)(nil)).Elem()
 
 func boolConvert(v interface{}) (interface{}, error) {
-	if v == nil {
+	if isNull(v) {
 		return false, nil
 	}
 

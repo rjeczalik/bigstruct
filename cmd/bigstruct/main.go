@@ -13,11 +13,7 @@ import (
 )
 
 func die(err error) {
-	if _, ok := err.(fmt.Formatter); ok {
-		fmt.Fprintf(os.Stderr, "%+v\n", err)
-	} else {
-		fmt.Fprintln(os.Stderr, err)
-	}
+	fmt.Fprintln(os.Stderr, err)
 	os.Exit(1)
 }
 

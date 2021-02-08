@@ -14,7 +14,7 @@ var _ = DefaultField.
 var stringType = reflect.TypeOf((*string)(nil)).Elem()
 
 func stringConvert(v interface{}) (interface{}, error) {
-	if v == nil {
+	if isNull(v) {
 		return "", nil
 	}
 

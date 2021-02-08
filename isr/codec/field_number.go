@@ -14,7 +14,7 @@ var _ = DefaultField.
 var numberType = reflect.TypeOf((*int)(nil)).Elem()
 
 func numberConvert(v interface{}) (interface{}, error) {
-	if v == nil {
+	if isNull(v) {
 		return 0, nil
 	}
 

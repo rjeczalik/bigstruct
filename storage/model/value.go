@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"path"
 	"text/tabwriter"
 
 	"github.com/rjeczalik/bigstruct/internal/types"
@@ -11,11 +12,13 @@ import (
 )
 
 type Value struct {
-	Model       `yaml:",inline"`
-	Namespace   *Namespace `gorm:"" yaml:"-" json:"-"`
-	NamespaceID uint64     `gorm:"column:namespace_id;type:bigint;not null;index" yaml:"namespace_id,omitempty" json:"namespace_id,omitempty"`
-	Key         string     `gorm:"column:key;type:text;not null" yaml:"key,omitempty" json:"key,omitempty"`
-	RawValue    string     `gorm:"column:value;type:text" yaml:"value,omitempty" json:"value,omitempty"`
+	Model             `yaml:",inline"`
+	Namespace         *Namespace `gorm:"" yaml:"-" json:"-"`
+	NamespaceID       uint64     `gorm:"column:namespace_id;type:bigint;not null;index" yaml:"namespace_id,omitempty" json:"namespace_id,omitempty"`
+	NamespaceProperty Property   `gorm:"column:namespace_property;type:tinytext" yaml:"namespace_property,omitempty" json:"namespace_property,omitempty"`
+	Key               string     `gorm:"column:key;type:text;not null" yaml:"key,omitempty" json:"key,omitempty"`
+	RawValue          string     `gorm:"column:value;type:text" yaml:"value,omitempty" json:"value,omitempty"`
+	Metadata          Metadata   `gorm:"column:metadata;type:text" yaml:"metadata,omityempty" json:"metadata,omitempty"`
 }
 
 func (*Value) TableName() string {
@@ -41,9 +44,10 @@ func MakeValues(ns *Namespace, f isr.Fields) Values {
 		}
 
 		v := &Value{
-			Key:         f.Key,
-			Namespace:   ns,
-			NamespaceID: ns.ID,
+			Key:               f.Key,
+			Namespace:         ns,
+			NamespaceID:       ns.ID,
+			NamespaceProperty: ns.Property,
 		}
 
 		if f.Value != isr.NoValue {
@@ -72,7 +76,7 @@ func (v Values) Fields() isr.Fields {
 func (v Values) WriteTab(w io.Writer) (int64, error) {
 	var n int64
 
-	m, err := fmt.Fprint(w, "ID\tNAMESPACE\tKEY\tVALUE\n")
+	m, err := fmt.Fprint(w, "ID\tNAMESPACE\tKEY\tVALUE\tMETADATA\n")
 	if err != nil {
 		return int64(m), err
 	}
@@ -80,11 +84,12 @@ func (v Values) WriteTab(w io.Writer) (int64, error) {
 	n += int64(m)
 
 	for _, v := range v {
-		m, err = fmt.Fprintf(w, "%d\t%s\t%s\t%s\n",
+		m, err = fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n",
 			v.ID,
-			v.Namespace.Namespace(),
+			path.Join(v.Namespace.Name, v.NamespaceProperty.String()),
 			v.Key,
 			nonempty(v.RawValue, "-"),
+			nonempty(v.Metadata.String(), "-"),
 		)
 
 		n += int64(m)

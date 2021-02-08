@@ -15,6 +15,7 @@ func NewCommand(app *command.App) *cobra.Command {
 		Short:   "(wip)",
 		Args:    cobra.NoArgs,
 		RunE:    command.PrintHelp(os.Stderr),
+		Hidden:  true,
 	}
 
 	cmd.AddCommand(

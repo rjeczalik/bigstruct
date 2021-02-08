@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"io"
 	"path"
+	"strings"
 	"text/tabwriter"
 
-	"github.com/rjeczalik/bigstruct/internal/objects"
 	"github.com/rjeczalik/bigstruct/internal/types"
 )
 
@@ -20,7 +20,7 @@ type Namespace struct {
 }
 
 func ParseNamespace(namespace string) (name string, property interface{}, err error) {
-	switch parts := objects.Split(namespace); len(parts) {
+	switch parts := strings.Split(namespace, "="); len(parts) {
 	case 0:
 		return "", nil, errors.New("name is empty or missing")
 	case 1:
@@ -106,6 +106,10 @@ func (ns Namespaces) String() string {
 }
 
 type Property string
+
+func (p Property) String() string {
+	return string(p)
+}
 
 func (p Property) Get() interface{} {
 	return types.YAML(p).Value()

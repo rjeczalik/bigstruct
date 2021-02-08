@@ -57,7 +57,7 @@ func (o Object) Schema() Object {
 	return u.Shake()
 }
 
-func (o Object) Strip() Object {
+func (o Object) Raw() Object {
 	o.Walk(func(key string, o Object) error {
 		var (
 			k = path.Base(key)
@@ -178,6 +178,15 @@ func (o Object) ValueAt(key string) interface{} {
 	)
 
 	return o.At(dir)[base].Value
+}
+
+func (o Object) TypeAt(key string) string {
+	var (
+		dir  = path.Dir(key)
+		base = path.Base(key)
+	)
+
+	return o.At(dir)[base].Type
 }
 
 func (o Object) Walk(fn Func) error {

@@ -19,7 +19,6 @@ var tables = []interface{}{
 	new(model.Index),
 	new(model.Value),
 	new(model.Schema),
-	new(model.Meta),
 }
 
 func newConfig(v url.Values) *gorm.Config {
@@ -126,6 +125,9 @@ func (g Gorm) txUpsertIndex(i *model.Index) Func {
 }
 
 func (g Gorm) UpsertValues(v model.Values) error {
+	if len(v) == 0 {
+		return nil
+	}
 	return g.Transaction(g.txUpsertValues(v))
 }
 
@@ -162,6 +164,9 @@ func (g Gorm) txUpsertValues(v model.Values) Func {
 }
 
 func (g Gorm) UpsertSchemas(s model.Schemas) error {
+	if len(s) == 0 {
+		return nil
+	}
 	return g.Transaction(g.txUpsertSchemas(s))
 }
 
@@ -184,7 +189,7 @@ func (g Gorm) txUpsertSchemas(s model.Schemas) Func {
 
 		return tx.DB.Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "id"}},
-			DoUpdates: clause.AssignmentColumns([]string{"schema", "updated_at"}),
+			DoUpdates: clause.AssignmentColumns([]string{"updated_at"}),
 		}).Create(s).Error
 	}
 }
@@ -207,19 +212,21 @@ func (g Gorm) ListIndexes() (model.Indexes, error) {
 		Error
 }
 
-func (g Gorm) ListSchemas(namespaceID uint64, key string) (model.Schemas, error) {
+func (g Gorm) ListSchemas(ns *model.Namespace, key string) (model.Schemas, error) {
 	var (
 		s  model.Schemas
 		db = g.DB
 	)
 
-	if namespaceID != 0 {
-		db = db.Where("`namespace_id` = ?", namespaceID)
+	if ns != nil {
+		db = db.Where("`namespace_id` = ? AND `namespace_property` = ?", ns.ID, ns.Property)
 	}
 
 	if key != "" {
 		db = db.Where("`key` LIKE ?", key+"%")
 	}
+
+	// todo: s.Namespace.Property.Set(s.NamespaceProperty.Value())
 
 	return s, db.
 		Preload("Namespace").
@@ -228,19 +235,21 @@ func (g Gorm) ListSchemas(namespaceID uint64, key string) (model.Schemas, error)
 		Error
 }
 
-func (g Gorm) ListValues(namespaceID uint64, key string) (model.Values, error) {
+func (g Gorm) ListValues(ns *model.Namespace, key string) (model.Values, error) {
 	var (
 		v  model.Values
 		db = g.DB
 	)
 
-	if namespaceID != 0 {
-		db = db.Where("`namespace_id` = ?", namespaceID)
+	if ns != nil {
+		db = db.Where("`namespace_id` = ? AND `namespace_property` = ?", ns.ID, ns.Property)
 	}
 
 	if key != "" {
 		db = db.Where("`key` LIKE ?", key+"%")
 	}
+
+	// todo: v.Namespace.Property.Set(v.NamespaceProperty.Value())
 
 	return v, db.
 		Preload("Namespace").

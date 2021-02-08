@@ -63,3 +63,7 @@ func (v Field) convert(op, key string, o isr.Object) error {
 func (v Field) GoString() string {
 	return fmt.Sprintf("codec.Field{Type: %q}", v.Type)
 }
+
+func isNull(v interface{}) bool {
+	return v == nil || v == isr.NoValue
+}
