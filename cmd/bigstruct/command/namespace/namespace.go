@@ -12,7 +12,7 @@ func NewCommand(app *command.App) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "namespace",
 		Aliases: []string{"ns"},
-		Short:   "(wip)",
+		Short:   "Manages namespaces",
 		Args:    cobra.NoArgs,
 		RunE:    command.PrintHelp(os.Stderr),
 	}

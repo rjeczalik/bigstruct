@@ -17,7 +17,7 @@ func NewListCommand(app *command.App) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "list",
 		Aliases:      []string{"ls"},
-		Short:        "(wip)",
+		Short:        "Describes a schema",
 		Args:         cobra.NoArgs,
 		RunE:         m.run,
 		SilenceUsage: true,

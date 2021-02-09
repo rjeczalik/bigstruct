@@ -12,7 +12,7 @@ func NewListCommand(app *command.App) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "list",
 		Aliases:      []string{"ls"},
-		Short:        "(wip)",
+		Short:        "Lists static indexes",
 		Args:         cobra.NoArgs,
 		RunE:         m.run,
 		SilenceUsage: true,

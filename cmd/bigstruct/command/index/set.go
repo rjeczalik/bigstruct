@@ -16,7 +16,7 @@ func NewSetCommand(app *command.App) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:          "set",
-		Short:        "(wip)",
+		Short:        "Creates or updates static indexes",
 		Args:         cobra.NoArgs,
 		RunE:         m.run,
 		SilenceUsage: true,

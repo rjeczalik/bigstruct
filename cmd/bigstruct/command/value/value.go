@@ -12,7 +12,7 @@ func NewCommand(app *command.App) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "value",
 		Aliases: []string{"v"},
-		Short:   "(wip)",
+		Short:   "Manages values",
 		Args:    cobra.NoArgs,
 		RunE:    command.PrintHelp(os.Stderr),
 		Hidden:  true,

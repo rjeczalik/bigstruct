@@ -13,7 +13,7 @@ func NewCommand(app *command.App) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "schema",
 		Aliases: []string{"x"},
-		Short:   "(wip)",
+		Short:   "Manages the schema for structs",
 		Args:    cobra.NoArgs,
 		RunE:    command.PrintHelp(os.Stderr),
 	}

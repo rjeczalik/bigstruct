@@ -18,7 +18,7 @@ func NewGetCommand(app *command.App) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:          "get",
-		Short:        "(wip)",
+		Short:        "Reads a struct",
 		Args:         cobra.ExactArgs(1),
 		RunE:         m.run,
 		SilenceUsage: true,

@@ -18,7 +18,7 @@ func NewDeleteCommand(app *command.App) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "delete",
 		Aliases:      []string{"del"},
-		Short:        "(wip)",
+		Short:        "Deletes a static index",
 		Args:         cobra.NoArgs,
 		RunE:         m.run,
 		SilenceUsage: true,

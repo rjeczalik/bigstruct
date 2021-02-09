@@ -17,7 +17,7 @@ import (
 func NewCommand(app *command.App) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "bigstruct",
-		Short: "(wip)",
+		Short: "Command-line interface to bigstruct storage",
 		Args:  cobra.NoArgs,
 		RunE:  command.PrintHelp(os.Stderr),
 	}

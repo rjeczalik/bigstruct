@@ -12,7 +12,7 @@ func NewCommand(app *command.App) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "index",
 		Aliases: []string{"idx"},
-		Short:   "(wip)",
+		Short:   "Manages static indexes",
 		Args:    cobra.NoArgs,
 		RunE:    command.PrintHelp(os.Stderr),
 	}
