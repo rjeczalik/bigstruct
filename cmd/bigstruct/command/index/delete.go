@@ -39,7 +39,7 @@ func (m *deleteCmd) register(cmd *cobra.Command) {
 
 	f.Uint64Var(&m.Index.ID, "id", 0, "")
 	f.StringVarP(&m.Index.Name, "name", "n", "", "")
-	f.StringVarP(&m.Index.Property, "property", "p", "", "")
+	f.StringVarP((*string)(&m.Index.Property), "property", "p", "", "")
 }
 
 func (m *deleteCmd) run(_ *cobra.Command, args []string) error {

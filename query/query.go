@@ -45,7 +45,7 @@ func (q *Query) txSet(ctx context.Context, index, namespace string, o isr.Object
 
 		if i := strings.IndexRune(index, '='); i != -1 {
 			idx.Name = index[:i]
-			idx.Property = index[i+1:]
+			idx.Property = model.Property(index[i+1:])
 		}
 
 		n, err := tx.Namespace(namespace)
@@ -153,7 +153,7 @@ func (q *Query) txGet(ctx context.Context, index, key string, pv *model.Values, 
 
 		if i := strings.IndexRune(index, '='); i != -1 {
 			idx.Name = index[:i]
-			idx.Property = index[i+1:]
+			idx.Property = model.Property(index[i+1:])
 		}
 
 		ns, err := q.buildNamespaces(ctx, tx, idx, nil)

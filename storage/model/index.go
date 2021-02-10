@@ -13,7 +13,7 @@ import (
 type Index struct {
 	Model       `yaml:",inline"`
 	Name        string         `gorm:"column:name;type:tinytext;not null" yaml:"name,omitempty" json:"name,omitempty"`
-	Property    string         `gorm:"column:property;type:tinytext" yaml:"property,omitempty" json:"property,omitempty"`
+	Property    Property       `gorm:"column:property;type:tinytext" yaml:"property,omitempty" json:"property,omitempty"`
 	ValueIndex  NamespaceIndex `gorm:"column:value_index;type:text;not null" yaml:"value_index,omitempty" json:"value_index,omitempty"`
 	SchemaIndex NamespaceIndex `gorm:"column:schema_index;type:text;not null" yaml:"schema_index,omitempty" json:"schema_index,omitempty"`
 }
@@ -24,7 +24,7 @@ func (*Index) TableName() string {
 
 func (i *Index) Prefix() string {
 	if i.Property != "" {
-		return i.Name + "=" + i.Property
+		return i.Name + "=" + i.Property.String()
 	}
 	return i.Name
 }
@@ -87,13 +87,30 @@ func (i Indexes) String() string {
 
 type NamespaceIndex string
 
-func (ni *NamespaceIndex) Set(m map[string]string) NamespaceIndex {
+func (ni *NamespaceIndex) SetMap(m map[string]string) NamespaceIndex {
 	if len(m) != 0 {
 		*ni = NamespaceIndex(types.MakeJSON(m).String())
 	} else {
 		*ni = ""
 	}
 	return *ni
+}
+
+func (ni *NamespaceIndex) Set(kv ...interface{}) NamespaceIndex {
+	if len(kv)%2 != 0 {
+		panic("odd number of arguments")
+	}
+
+	m := make(map[string]string, len(kv)/2)
+
+	for i := 0; i < len(kv); i += 2 {
+		k := fmt.Sprint(kv[i])
+		v := types.MakeYAML(kv[i+1]).String()
+
+		m[k] = v
+	}
+
+	return ni.SetMap(m)
 }
 
 func (ni NamespaceIndex) Get() (m map[string]string) {
@@ -108,7 +125,7 @@ func (ni NamespaceIndex) Equal(mi NamespaceIndex) bool {
 }
 
 func (ni *NamespaceIndex) Merge(m map[string]string) NamespaceIndex {
-	return ni.Set(types.KV(ni.Get()).Merge(types.KV(m)).Map())
+	return ni.SetMap(types.KV(ni.Get()).Merge(types.KV(m)).Map())
 }
 
 func (ni NamespaceIndex) String() string {

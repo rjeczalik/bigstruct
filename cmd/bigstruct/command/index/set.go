@@ -38,7 +38,7 @@ func (m *setCmd) register(cmd *cobra.Command) {
 	f := cmd.Flags()
 
 	f.StringVarP(&m.Index.Name, "name", "n", "", "")
-	f.StringVarP(&m.Index.Property, "property", "p", "", "")
+	f.StringVarP((*string)(&m.Index.Property), "property", "p", "", "")
 	f.StringSliceVarP(&m.values, "value", "v", nil, "")
 	f.StringSliceVarP(&m.schemas, "schema", "x", nil, "")
 
@@ -48,11 +48,11 @@ func (m *setCmd) register(cmd *cobra.Command) {
 
 func (m *setCmd) run(*cobra.Command, []string) error {
 	if kv := types.MakeKV(m.values...); len(kv) != 0 {
-		m.Index.ValueIndex.Set(kv)
+		m.Index.ValueIndex.SetMap(kv)
 	}
 
 	if kv := types.MakeKV(m.schemas...); len(kv) != 0 {
-		m.Index.SchemaIndex.Set(kv)
+		m.Index.SchemaIndex.SetMap(kv)
 	}
 
 	if err := m.Storage.UpsertIndex(m.Index); err != nil {

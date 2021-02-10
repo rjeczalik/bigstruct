@@ -8,6 +8,7 @@ import (
 
 	"github.com/rjeczalik/bigstruct/isr"
 	"github.com/rjeczalik/bigstruct/isr/codec"
+	"github.com/rjeczalik/bigstruct/isr/isrutil"
 
 	"github.com/google/go-cmp/cmp"
 	"gopkg.in/yaml.v3"
@@ -22,7 +23,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestCti(t *testing.T) {
-	orig, err := isr.MakeFile("testdata/docker")
+	orig, err := isrutil.MakeFile("testdata/docker")
 	if err != nil {
 		t.Fatalf("FileTree()=%s", err)
 	}

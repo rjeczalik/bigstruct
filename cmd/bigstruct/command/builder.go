@@ -7,6 +7,7 @@ import (
 	"github.com/rjeczalik/bigstruct/internal/types"
 	"github.com/rjeczalik/bigstruct/isr"
 	"github.com/rjeczalik/bigstruct/isr/codec"
+	"github.com/rjeczalik/bigstruct/isr/isrutil"
 	"github.com/spf13/cobra"
 )
 
@@ -53,7 +54,7 @@ func (b *Builder) buildFromImport() (isr.Fields, error) {
 		return nil, nil
 	}
 
-	obj, err := isr.MakeFile(b.Import)
+	obj, err := isrutil.MakeFile(b.Import)
 	if err != nil {
 		return nil, err
 	}

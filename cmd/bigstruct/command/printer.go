@@ -28,7 +28,7 @@ func (p *Printer) Register(cmd *cobra.Command) {
 	f.BoolVarP(&p.Encode, "encode", "e", p.Encode, "")
 	f.BoolVarP(&p.Decode, "decode", "d", p.Decode, "")
 	f.BoolVarP(&p.Raw, "raw", "r", p.Raw, "")
-	f.BoolVarP(&p.SchemaOnly, "schema-only", "x", p.SchemaOnly, "")
+	f.BoolVarP(&p.SchemaOnly, "schema-only", "s", p.SchemaOnly, "")
 }
 
 func (p *Printer) Print(app *App, cmd *cobra.Command, f Fielder, prefix string) error {
