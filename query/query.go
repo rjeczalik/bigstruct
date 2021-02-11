@@ -24,13 +24,9 @@ type Query struct {
 	IndexFunc IndexFunc
 }
 
-func (q *Query) Get(ctx context.Context, index, key string) (model.Values, model.Schemas, error) {
-	var (
-		v model.Values
-		s model.Schemas
-	)
-
-	return v, s, q.Storage.Transaction(q.txGet(ctx, index, key, &v, &s))
+func (q *Query) Get(ctx context.Context, index, namespace, key string) (isr.Object, error) {
+	var obj isr.Object
+	return obj, q.Storage.Transaction(q.txGet(ctx, index, namespace, key, &obj))
 }
 
 func (q *Query) Set(ctx context.Context, index, namespace string, o isr.Object) error {
@@ -145,10 +141,11 @@ func (q *Query) txSet(ctx context.Context, index, namespace string, o isr.Object
 	}
 }
 
-func (q *Query) txGet(ctx context.Context, index, key string, pv *model.Values, ps *model.Schemas) storage.Func {
-	return func(tx storage.Gorm) error {
+func (q *Query) txGet(ctx context.Context, index, namespace, key string, obj *isr.Object) storage.Func {
+	return func(tx storage.Gorm) (err error) {
 		var (
 			idx = &model.Index{Name: index}
+			n   *model.Namespace
 		)
 
 		if i := strings.IndexRune(index, '='); i != -1 {
@@ -156,7 +153,13 @@ func (q *Query) txGet(ctx context.Context, index, key string, pv *model.Values, 
 			idx.Property = model.Property(index[i+1:])
 		}
 
-		ns, err := q.buildNamespaces(ctx, tx, idx, nil)
+		if namespace != "" {
+			if n, err = tx.Namespace(namespace); err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+		}
+
+		ns, err := q.buildNamespaces(ctx, tx, idx, n)
 		if err != nil {
 			return err
 		}
@@ -171,7 +174,7 @@ func (q *Query) txGet(ctx context.Context, index, key string, pv *model.Values, 
 			return err
 		}
 
-		*pv, *ps = v, s
+		*obj = append(v.Fields(), s.Fields()...).Object().ShakeTypes()
 
 		return nil
 	}

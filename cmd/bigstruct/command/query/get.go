@@ -32,7 +32,8 @@ func NewGetCommand(app *command.App) *cobra.Command {
 type getCmd struct {
 	*command.App
 	*command.Printer
-	index string
+	index     string
+	namespace string
 }
 
 func (m *getCmd) register(cmd *cobra.Command) {
@@ -45,20 +46,23 @@ func (m *getCmd) register(cmd *cobra.Command) {
 	cmd.MarkFlagRequired("index")
 }
 
+func (m *getCmd) setDefaults(cmd *cobra.Command) {
+	if !cmd.Flags().Changed("namespace") {
+		m.namespace = m.index
+	}
+}
+
 func (m *getCmd) run(cmd *cobra.Command, args []string) error {
-	v, s, err := m.Query.Get(m.Context, m.index, args[0])
+	m.setDefaults(cmd)
+
+	obj, err := m.Query.Get(m.Context, m.index, m.namespace, args[0])
 	if err != nil {
 		return err
 	}
 
-	if len(v) == 0 {
+	if len(obj) == 0 {
 		return fmt.Errorf("no values found for %q", args[0])
 	}
 
-	var (
-		obj = append(v.Fields(), s.Fields()...).Object()
-		key = args[0]
-	)
-
-	return m.Printer.Print(m.App, cmd, obj, key)
+	return m.Printer.Print(m.App, cmd, obj, args[0])
 }

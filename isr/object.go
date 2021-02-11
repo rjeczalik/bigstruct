@@ -121,6 +121,22 @@ func (o Object) Shake() Object {
 	return o
 }
 
+func (o Object) ShakeTypes() Object {
+	for k, n := range o {
+		if len(n.Children) == 0 && n.Value == nil {
+			delete(o, k)
+		} else {
+			n.Children = n.Children.ShakeTypes()
+		}
+	}
+
+	if len(o) == 0 {
+		return nil
+	}
+
+	return o
+}
+
 func (o Object) Move(key string, u Object) error {
 	var (
 		k = path.Base(key)
