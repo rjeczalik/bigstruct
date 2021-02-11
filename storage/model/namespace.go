@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"path"
 	"strings"
 	"text/tabwriter"
 
@@ -43,9 +42,9 @@ func (n *Namespace) Namespace() string {
 	case nil:
 		return n.Name
 	case string:
-		return path.Join(n.Name, prop)
+		return n.Name + "=" + prop
 	default:
-		return path.Join(n.Name, fmt.Sprint(prop))
+		return n.Name + "=" + fmt.Sprint(prop)
 	}
 }
 
