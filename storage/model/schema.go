@@ -55,6 +55,12 @@ func MakeSchemas(ns *Namespace, f isr.Fields) Schemas {
 	return values
 }
 
+func (s Schemas) SetNamespace(ns *Namespace) {
+	for _, s := range s {
+		s.Namespace = ns
+	}
+}
+
 func (s Schemas) Fields() isr.Fields {
 	f := make(isr.Fields, 0, len(s))
 
@@ -81,7 +87,7 @@ func (s Schemas) WriteTab(w io.Writer) (int64, error) {
 	for _, s := range s {
 		m, err = fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\n",
 			s.ID,
-			path.Join(s.Namespace.Name, s.NamespaceProperty.String()),
+			s.Namespace.Namespace(),
 			s.Key,
 			s.Type,
 			s.Encoding,

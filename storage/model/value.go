@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"path"
 	"text/tabwriter"
 
 	"github.com/rjeczalik/bigstruct/internal/types"
@@ -60,6 +59,12 @@ func MakeValues(ns *Namespace, f isr.Fields) Values {
 	return values
 }
 
+func (v Values) SetNamespace(ns *Namespace) {
+	for _, v := range v {
+		v.Namespace = ns
+	}
+}
+
 func (v Values) Fields() isr.Fields {
 	f := make(isr.Fields, 0, len(v))
 
@@ -86,7 +91,7 @@ func (v Values) WriteTab(w io.Writer) (int64, error) {
 	for _, v := range v {
 		m, err = fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n",
 			v.ID,
-			path.Join(v.Namespace.Name, v.NamespaceProperty.String()),
+			v.Namespace.Namespace(),
 			v.Key,
 			nonempty(v.RawValue, "-"),
 			nonempty(v.Metadata.String(), "-"),

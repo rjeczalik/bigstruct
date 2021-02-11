@@ -230,11 +230,13 @@ func (g Gorm) ListSchemas(ns *model.Namespace, key string) (model.Schemas, error
 
 	// todo: s.Namespace.Property.Set(s.NamespaceProperty.Value())
 
-	return s, db.
-		Preload("Namespace").
-		Order("`key` ASC").
-		Find(&s).
-		Error
+	if err := db.Order("`key` ASC").Find(&s).Error; err != nil {
+		return nil, err
+	}
+
+	s.SetNamespace(ns)
+
+	return s, nil
 }
 
 func (g Gorm) ListValues(ns *model.Namespace, key string) (model.Values, error) {
@@ -251,13 +253,13 @@ func (g Gorm) ListValues(ns *model.Namespace, key string) (model.Values, error) 
 		db = db.Where("`key` LIKE ?", key+"%")
 	}
 
-	// todo: v.Namespace.Property.Set(v.NamespaceProperty.Value())
+	if err := db.Order("`key` ASC").Find(&v).Error; err != nil {
+		return nil, err
+	}
 
-	return v, db.
-		Preload("Namespace").
-		Order("`key` ASC").
-		Find(&v).
-		Error
+	v.SetNamespace(ns)
+
+	return v, nil
 }
 
 func (g Gorm) DeleteNamespace(n *model.Namespace) error {
