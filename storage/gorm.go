@@ -135,8 +135,9 @@ func (g Gorm) txUpsertValues(v model.Values) Func {
 	return func(tx Gorm) error {
 		for _, v := range v {
 			q := &model.Value{
-				Key:         v.Key,
-				NamespaceID: v.NamespaceID,
+				Key:               v.Key,
+				NamespaceID:       v.NamespaceID,
+				NamespaceProperty: v.NamespaceProperty,
 			}
 
 			err := tx.DB.Model(q).Where(q).Select("id", "value").Take(q).Error
@@ -174,8 +175,9 @@ func (g Gorm) txUpsertSchemas(s model.Schemas) Func {
 	return func(tx Gorm) error {
 		for _, s := range s {
 			q := &model.Schema{
-				Key:         s.Key,
-				NamespaceID: s.NamespaceID,
+				Key:               s.Key,
+				NamespaceID:       s.NamespaceID,
+				NamespaceProperty: s.NamespaceProperty,
 			}
 
 			err := tx.DB.Model(q).Where(q).Select("id").Take(&s.ID).Error
