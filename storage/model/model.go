@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 	"time"
 
@@ -29,12 +30,60 @@ func RandomID(m *Model, db *gorm.DB) error {
 
 type Metadata string
 
-func (m *Metadata) Set(v interface{}) {
-	*m = Metadata(types.MakeJSON(v))
+func (m *Metadata) Set(v interface{}) Metadata {
+	var o types.Object
+
+	switch v := v.(type) {
+	case types.Object:
+		o = v
+	case map[string]interface{}:
+		o = v
+	default:
+		if err := reencode(v, &o); err != nil {
+			panic("unexpected error: " + err.Error())
+		}
+	}
+
+	if len(o) != 0 {
+		*m = Metadata(o.JSON())
+	} else {
+		*m = ""
+	}
+
+	return *m
+}
+
+func (m *Metadata) SetValues(kv ...interface{}) Metadata {
+	if len(kv)%2 != 0 {
+		panic("odd number of arguments")
+	}
+
+	o := make(types.Object, len(kv)/2)
+
+	for i := 0; i < len(kv); i += 2 {
+		k := fmt.Sprint(kv[i])
+		v := kv[i+1]
+
+		o[k] = v
+	}
+
+	return m.Set(o)
+}
+
+func (m *Metadata) Merge(v map[string]interface{}) Metadata {
+	return m.Set(types.Object(m.Get()).Merge(types.Object(v)).Map())
+}
+
+func (m Metadata) Get() map[string]interface{} {
+	return types.JSON(m).Object().Map()
 }
 
 func (m Metadata) Unmarshal(v interface{}) error {
 	return types.JSON(m).Unmarshal(v)
+}
+
+func (m Metadata) Equal(w Metadata) bool {
+	return reflect.DeepEqual(m.Get(), w.Get())
 }
 
 func (m Metadata) String() string {

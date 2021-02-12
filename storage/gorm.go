@@ -83,11 +83,36 @@ func (g Gorm) Namespace(namespace string) (*model.Namespace, error) {
 }
 
 func (g Gorm) UpsertNamespace(n *model.Namespace) error {
-	return g.DB.
-		Where("`name` = ? and `property` = ?", n.Name, n.Property).
-		Assign(n).
-		FirstOrCreate(n).
-		Error
+	return g.Transaction(g.txUpsertNamespace(n))
+}
+
+func (g Gorm) txUpsertNamespace(n *model.Namespace) Func {
+	return func(tx Gorm) error {
+		var (
+			cur model.Namespace
+		)
+
+		switch err := tx.DB.Where("`name` = ?", n.Name, n.Property).First(&cur).Error; {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return tx.DB.Create(n).Error
+		case err != nil:
+			return err
+		}
+
+		var (
+			db     = tx.DB.Model(new(model.Index)).Where("`id` = ?", cur.ID)
+			update = &model.Namespace{
+				Priority: n.Priority,
+				Property: n.Property,
+			}
+		)
+
+		if old := cur.Metadata; !cur.Metadata.Merge(n.Metadata.Get()).Equal(old) {
+			update.Metadata = cur.Metadata
+		}
+
+		return db.Updates(update).Error
+	}
 }
 
 func (g Gorm) UpsertIndex(i *model.Index) error {

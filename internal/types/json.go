@@ -47,6 +47,20 @@ func (s JSON) Value() interface{} {
 	return v
 }
 
+func (s JSON) Object() Object {
+	if s == "" {
+		return nil
+	}
+
+	var o Object
+
+	if err := s.Unmarshal(&o); err != nil {
+		panic("unexpected error: " + err.Error())
+	}
+
+	return o
+}
+
 func (s JSON) String() string {
 	return string(s)
 }

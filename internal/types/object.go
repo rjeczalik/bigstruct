@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 )
@@ -9,27 +8,41 @@ import (
 type Object map[string]interface{}
 
 func MakeObject(kv ...string) Object {
-	o := make(Object, len(kv))
+	root := make(Object, len(kv))
 
 	for _, kv := range kv {
 		var (
-			k string
-			v interface{}
+			key = kv
+			val interface{}
 		)
 
 		if i := strings.IndexRune(kv, '='); i != -1 {
-			k = kv[:i]
-			v = YAML(kv[i+1:]).Value()
-		} else {
-			k = kv
+			key = kv[:i]
+			val = YAML(kv[i+1:]).Value()
+		}
+
+		var (
+			o  = root
+			it = o
+			ok bool
+			k  string
+		)
+
+		for _, k = range stringsSplit(key, ".") {
+			o = it
+
+			if it, ok = o[k].(Object); !ok {
+				it = make(Object)
+				o[k] = it
+			}
 		}
 
 		if k != "" {
-			o[k] = v
+			o[k] = val
 		}
 	}
 
-	return o
+	return root
 }
 
 func (o Object) JSON() JSON {
@@ -50,53 +63,53 @@ func (o Object) Copy() Object {
 	return n
 }
 
-func (o Object) Merge(n Object) Object {
-	for k, v := range n {
-		if v == nil {
-			delete(o, k)
-		} else {
-			o[k] = v
+func (o Object) Merge(u Object) Object {
+	return MakeObject(append(o.Slice(), u.Slice()...)...)
+}
+
+func (o Object) Slice() []string {
+	type elm struct {
+		key []string
+		o   Object
+	}
+
+	var (
+		it    elm
+		queue = []elm{{o: o}}
+		slice []string
+	)
+
+	for len(queue) != 0 {
+		it, queue = queue[0], queue[1:]
+
+		for k, v := range it.o {
+			switch v := v.(type) {
+			case Object:
+				queue = append(queue, elm{o: v, key: append(it.key, k)})
+			default:
+				if v != nil {
+					slice = append(slice, strings.Join(append(it.key, k), ".")+"="+MakeYAML(v).String())
+				} else {
+					slice = append(slice, strings.Join(append(it.key, k), "."))
+				}
+			}
 		}
 	}
 
-	return o
-}
+	sort.Strings(slice)
 
-func (o Object) Keys() []string {
-	keys := make([]string, 0, len(o))
-
-	for k := range o {
-		keys = append(keys, k)
-	}
-
-	sort.Strings(keys)
-
-	return keys
-}
-
-func (o Object) ReverseKeys() []string {
-	keys := make([]string, 0, len(o))
-
-	for k := range o {
-		keys = append(keys, k)
-	}
-
-	sort.Sort(sort.Reverse(sort.StringSlice(keys)))
-
-	return keys
-
+	return slice
 }
 
 func (o Object) Map() map[string]interface{} {
 	return o
 }
 
-func (o Object) Slice() []string {
-	kv := o.Keys()
-
-	for i, k := range kv {
-		kv[i] = k + "=" + fmt.Sprint(o[k])
+func stringsSplit(s, sep string) (slice []string) {
+	for _, s := range strings.Split(s, sep) {
+		if s = strings.TrimSpace(s); s != "" {
+			slice = append(slice, s)
+		}
 	}
-
-	return kv
+	return slice
 }

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strings"
 	"text/tabwriter"
 
 	"github.com/rjeczalik/bigstruct/internal/types"
@@ -16,19 +15,7 @@ type Namespace struct {
 	Name     string   `gorm:"column:name;type:tinytext;not null" yaml:"name,omitempty" json:"name,omitempty"`
 	Priority int      `gorm:"column:priority;type:smallint;not null" yaml:"priority,omitempty" json:"priority,omitempty"`
 	Property Property `gorm:"column:property;type:tinytext;not null" yaml:"property,omitempty" json:"property,omitempty"`
-}
-
-func ParseNamespace(namespace string) (name string, property interface{}, err error) {
-	switch parts := strings.Split(namespace, "="); len(parts) {
-	case 0:
-		return "", nil, errors.New("name is empty or missing")
-	case 1:
-		return parts[0], nil, nil
-	case 2:
-		return parts[0], types.YAML(parts[1]).Value(), nil
-	default:
-		return "", nil, fmt.Errorf("invalid name: %q", name)
-	}
+	Metadata Metadata `gorm:"column:metadata;type:text" yaml:"metadata,omityempty" json:"metadata,omitempty"`
 }
 
 func (*Namespace) TableName() string {
@@ -44,7 +31,7 @@ type Namespaces []*Namespace
 func (ns Namespaces) WriteTab(w io.Writer) (int64, error) {
 	var n int64
 
-	m, err := fmt.Fprint(w, "ID\tNAME\tPROPERTY\tPRIORITY\n")
+	m, err := fmt.Fprint(w, "ID\tNAME\tPROPERTY\tPRIORITY\tMETADATA\n")
 	if err != nil {
 		return int64(m), err
 	}
@@ -52,11 +39,12 @@ func (ns Namespaces) WriteTab(w io.Writer) (int64, error) {
 	n += int64(m)
 
 	for _, ns := range ns {
-		m, err = fmt.Fprintf(w, "%d\t%s\t%s\t%d\n",
+		m, err = fmt.Fprintf(w, "%d\t%s\t%s\t%d\t%s\n",
 			ns.ID,
 			ns.Name,
 			ns.Property,
 			ns.Priority,
+			nonempty(ns.Metadata.String(), "-"),
 		)
 
 		n += int64(m)
