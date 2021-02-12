@@ -32,20 +32,11 @@ func ParseNamespace(namespace string) (name string, property interface{}, err er
 }
 
 func (*Namespace) TableName() string {
-	return Prefix + "_namespace"
+	return TablePrefix + "_namespace"
 }
 
-func (n *Namespace) Namespace() string {
-	switch prop := n.Property.Get().(type) {
-	case bool:
-		return n.Name
-	case nil:
-		return n.Name
-	case string:
-		return n.Name + "=" + prop
-	default:
-		return n.Name + "=" + fmt.Sprint(prop)
-	}
+func (n *Namespace) Ref() string {
+	return Ref(n.Name, n.Property.Get())
 }
 
 type Namespaces []*Namespace
@@ -140,8 +131,10 @@ func (p *Property) Set(v interface{}) error {
 		}
 	case nil:
 		if v == nil {
-
+			return errors.New("property required")
 		}
+
+		*p = Property(types.MakeYAML(v))
 	default:
 		if prop == nil && v == nil {
 			return errors.New("property required")

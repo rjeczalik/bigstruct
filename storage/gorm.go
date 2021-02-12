@@ -64,7 +64,7 @@ func (g Gorm) Transaction(fn Func) error {
 }
 
 func (g Gorm) Namespace(namespace string) (*model.Namespace, error) {
-	name, prop, err := model.ParseNamespace(namespace)
+	name, prop, err := model.ParseRef(namespace)
 	if err != nil {
 		return nil, err
 	}

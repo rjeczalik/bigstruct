@@ -54,7 +54,7 @@ func (m *listCmd) run(cmd *cobra.Command, args []string) error {
 
 	s, err := m.Storage.ListSchemas(ns, m.prefix)
 	if err != nil {
-		return fmt.Errorf("error listing %q values for %q namespace: %w", m.prefix, ns.Namespace(), err)
+		return fmt.Errorf("error listing %q values for %q namespace: %w", m.prefix, ns.Ref(), err)
 	}
 
 	return m.Printer.Print(m.App, cmd, s, m.prefix)

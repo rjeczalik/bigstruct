@@ -47,12 +47,12 @@ func (m *setCmd) register(cmd *cobra.Command) {
 }
 
 func (m *setCmd) run(*cobra.Command, []string) error {
-	if kv := types.MakeKV(m.values...); len(kv) != 0 {
-		m.Index.ValueIndex.SetMap(kv)
+	if o := types.MakeObject(m.values...); len(o) != 0 {
+		m.Index.ValueIndex.SetValue(o)
 	}
 
-	if kv := types.MakeKV(m.schemas...); len(kv) != 0 {
-		m.Index.SchemaIndex.SetMap(kv)
+	if o := types.MakeKV(m.schemas...); len(o) != 0 {
+		m.Index.SchemaIndex.SetValue(o)
 	}
 
 	if err := m.Storage.UpsertIndex(m.Index); err != nil {

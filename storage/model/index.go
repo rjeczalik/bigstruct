@@ -19,14 +19,22 @@ type Index struct {
 }
 
 func (*Index) TableName() string {
-	return Prefix + "_index"
+	return TablePrefix + "_index"
 }
 
-func (i *Index) Prefix() string {
-	if i.Property != "" {
-		return i.Name + "=" + i.Property.String()
+func (i *Index) SetRef(ref string) error {
+	name, prop, err := ParseRef(ref)
+	if err != nil {
+		return err
 	}
-	return i.Name
+
+	i.Name = name
+
+	return i.Property.Set(prop)
+}
+
+func (i *Index) Ref() string {
+	return Ref(i.Name, i.Property.Get())
 }
 
 type Indexes []*Index
@@ -87,12 +95,26 @@ func (i Indexes) String() string {
 
 type NamespaceIndex string
 
-func (ni *NamespaceIndex) SetMap(m map[string]string) NamespaceIndex {
-	if len(m) != 0 {
-		*ni = NamespaceIndex(types.MakeJSON(m).String())
+func (ni *NamespaceIndex) SetValue(v interface{}) NamespaceIndex {
+	var o types.Object
+
+	switch v := v.(type) {
+	case types.Object:
+		o = v
+	case map[string]interface{}:
+		o = v
+	default:
+		if err := reencode(v, &o); err != nil {
+			panic("unexpected error: " + err.Error())
+		}
+	}
+
+	if len(o) != 0 {
+		*ni = NamespaceIndex(o.JSON().String())
 	} else {
 		*ni = ""
 	}
+
 	return *ni
 }
 
@@ -101,31 +123,31 @@ func (ni *NamespaceIndex) Set(kv ...interface{}) NamespaceIndex {
 		panic("odd number of arguments")
 	}
 
-	m := make(map[string]string, len(kv)/2)
+	o := make(types.Object, len(kv)/2)
 
 	for i := 0; i < len(kv); i += 2 {
 		k := fmt.Sprint(kv[i])
-		v := types.MakeYAML(kv[i+1]).String()
+		v := kv[i+1]
 
-		m[k] = v
+		o[k] = v
 	}
 
-	return ni.SetMap(m)
+	return ni.SetValue(o)
 }
 
-func (ni NamespaceIndex) Get() (m map[string]string) {
-	if err := types.JSON(ni).Unmarshal(&m); err != nil {
+func (ni NamespaceIndex) Get() (v map[string]interface{}) {
+	if err := types.JSON(ni).Unmarshal(&v); err != nil {
 		panic("unexpected error: " + err.Error())
 	}
-	return m
+	return v
 }
 
 func (ni NamespaceIndex) Equal(mi NamespaceIndex) bool {
 	return reflect.DeepEqual(ni.Get(), mi.Get())
 }
 
-func (ni *NamespaceIndex) Merge(m map[string]string) NamespaceIndex {
-	return ni.SetMap(types.KV(ni.Get()).Merge(types.KV(m)).Map())
+func (ni *NamespaceIndex) Merge(v map[string]interface{}) NamespaceIndex {
+	return ni.SetValue(types.Object(ni.Get()).Merge(types.Object(v)).Map())
 }
 
 func (ni NamespaceIndex) String() string {

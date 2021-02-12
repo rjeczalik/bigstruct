@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"path"
-	"strings"
 
 	"github.com/rjeczalik/bigstruct/internal/types"
 	"github.com/rjeczalik/bigstruct/isr"
@@ -36,12 +35,11 @@ func (q *Query) Set(ctx context.Context, index, namespace string, o isr.Object) 
 func (q *Query) txSet(ctx context.Context, index, namespace string, o isr.Object) storage.Func {
 	return func(tx storage.Gorm) error {
 		var (
-			idx = &model.Index{Name: index}
+			idx = new(model.Index)
 		)
 
-		if i := strings.IndexRune(index, '='); i != -1 {
-			idx.Name = index[:i]
-			idx.Property = model.Property(index[i+1:])
+		if err := idx.SetRef(index); err != nil {
+			return err
 		}
 
 		n, err := tx.Namespace(namespace)
@@ -144,13 +142,12 @@ func (q *Query) txSet(ctx context.Context, index, namespace string, o isr.Object
 func (q *Query) txGet(ctx context.Context, index, namespace, key string, obj *isr.Object) storage.Func {
 	return func(tx storage.Gorm) (err error) {
 		var (
-			idx = &model.Index{Name: index}
+			idx = new(model.Index)
 			n   *model.Namespace
 		)
 
-		if i := strings.IndexRune(index, '='); i != -1 {
-			idx.Name = index[:i]
-			idx.Property = model.Property(index[i+1:])
+		if err := idx.SetRef(index); err != nil {
+			return err
 		}
 
 		if namespace != "" {
@@ -214,7 +211,7 @@ func (q *Query) indexNamespaces(ctx context.Context, g storage.Gorm, ns model.Na
 		if err := ns.Property.Set(prop); err != nil {
 			return 0, fmt.Errorf(
 				"unable to set property %v for namespace %q indexed via %q: %w",
-				prop, ns.Name, idx.Prefix(), err,
+				prop, ns.Name, idx.Ref(), err,
 			)
 		}
 

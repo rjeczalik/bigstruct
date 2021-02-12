@@ -23,7 +23,7 @@ type Schema struct {
 }
 
 func (*Schema) TableName() string {
-	return Prefix + "_schema"
+	return TablePrefix + "_schema"
 }
 
 type Schemas []*Schema
@@ -58,6 +58,7 @@ func MakeSchemas(ns *Namespace, f isr.Fields) Schemas {
 func (s Schemas) SetNamespace(ns *Namespace) {
 	for _, s := range s {
 		s.Namespace = ns
+		s.NamespaceProperty = ns.Property
 	}
 }
 
@@ -87,7 +88,7 @@ func (s Schemas) WriteTab(w io.Writer) (int64, error) {
 	for _, s := range s {
 		m, err = fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\n",
 			s.ID,
-			s.Namespace.Namespace(),
+			s.Namespace.Ref(),
 			s.Key,
 			s.Type,
 			s.Encoding,

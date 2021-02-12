@@ -1,6 +1,10 @@
 package model
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/rjeczalik/bigstruct/internal/random"
@@ -10,9 +14,9 @@ import (
 )
 
 var (
-	Prefix = "bigstruct"
-
-	ModelBeforeCreate func(*Model, *gorm.DB) error = RandomID
+	TablePrefix       = "bigstruct"
+	RefSeparator      = '='
+	ModelBeforeCreate = RandomID
 )
 
 func RandomID(m *Model, db *gorm.DB) error {
@@ -54,6 +58,32 @@ func (*Model) Options() []string {
 	}
 }
 
+func Ref(name string, prop interface{}) string {
+	switch v := prop.(type) {
+	case bool:
+		return name
+	case nil:
+		return name
+	case string:
+		return name + string(RefSeparator) + v
+	default:
+		return name + string(RefSeparator) + fmt.Sprint(v)
+	}
+}
+
+func ParseRef(ref string) (name string, prop interface{}, err error) {
+	switch parts := strings.Split(ref, string(RefSeparator)); len(parts) {
+	case 0:
+		return "", nil, errors.New("ref is empty or missing")
+	case 1:
+		return parts[0], nil, nil
+	case 2:
+		return parts[0], types.YAML(parts[1]).Value(), nil
+	default:
+		return "", nil, fmt.Errorf("invalid ref: %q", name)
+	}
+}
+
 func nonempty(s ...string) string {
 	for _, s := range s {
 		if s != "" {
@@ -61,4 +91,12 @@ func nonempty(s ...string) string {
 		}
 	}
 	return ""
+}
+
+func reencode(in, out interface{}) error {
+	p, err := json.Marshal(in)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(p, out)
 }

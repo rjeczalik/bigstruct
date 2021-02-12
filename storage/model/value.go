@@ -21,7 +21,7 @@ type Value struct {
 }
 
 func (*Value) TableName() string {
-	return Prefix + "_value"
+	return TablePrefix + "_value"
 }
 
 func (v *Value) SetValue(w interface{}) {
@@ -91,7 +91,7 @@ func (v Values) WriteTab(w io.Writer) (int64, error) {
 	for _, v := range v {
 		m, err = fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n",
 			v.ID,
-			v.Namespace.Namespace(),
+			v.Namespace.Ref(),
 			v.Key,
 			nonempty(v.RawValue, "-"),
 			nonempty(v.Metadata.String(), "-"),
