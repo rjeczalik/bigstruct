@@ -8,15 +8,22 @@ import (
 )
 
 type Index struct {
-	Model       `yaml:",inline"`
-	Name        string   `gorm:"column:name;type:tinytext;not null" yaml:"name,omitempty" json:"name,omitempty"`
-	Property    Property `gorm:"column:property;type:tinytext" yaml:"property,omitempty" json:"property,omitempty"`
-	ValueIndex  Metadata `gorm:"column:value_index;type:text;not null" yaml:"value_index,omitempty" json:"value_index,omitempty"`
-	SchemaIndex Metadata `gorm:"column:schema_index;type:text;not null" yaml:"schema_index,omitempty" json:"schema_index,omitempty"`
+	Model    `yaml:",inline"`
+	Name     string `gorm:"column:name;type:tinytext;not null" yaml:"name,omitempty" json:"name,omitempty"`
+	Property string `gorm:"column:property;type:tinytext;not null" yaml:"property,omitempty" json:"property,omitempty"`
+	Index    Object `gorm:"column:index;type:text;not null" yaml:"index,omitempty" json:"index,omitempty"`
+	Metadata Object `gorm:"column:metadata;type:text" yaml:"metadata,omitempty" json:"metadata,omitempty"`
 }
 
 func (*Index) TableName() string {
 	return TablePrefix + "_index"
+}
+
+func (i *Index) Ref() string {
+	if i.Property != "" {
+		return i.Name + "=" + i.Property
+	}
+	return i.Name
 }
 
 func (i *Index) SetRef(ref string) error {
@@ -26,12 +33,9 @@ func (i *Index) SetRef(ref string) error {
 	}
 
 	i.Name = name
+	i.Property = prop
 
-	return i.Property.Set(prop)
-}
-
-func (i *Index) Ref() string {
-	return Ref(i.Name, i.Property.Get())
+	return nil
 }
 
 type Indexes []*Index
@@ -39,7 +43,7 @@ type Indexes []*Index
 func (i Indexes) WriteTab(w io.Writer) (int64, error) {
 	var n int64
 
-	m, err := fmt.Fprint(w, "ID\tNAME\tPROPERTY\tVALUE NAMESPACE\tSCHEMA NAMESPACE\n")
+	m, err := fmt.Fprint(w, "ID\tNAME\tPROPERTY\tINDEX\tMETADATA\n")
 	if err != nil {
 		return int64(m), err
 	}
@@ -51,8 +55,8 @@ func (i Indexes) WriteTab(w io.Writer) (int64, error) {
 			i.ID,
 			i.Name,
 			i.Property,
-			i.ValueIndex,
-			nonempty(i.SchemaIndex.String(), "-"),
+			i.Index,
+			nonempty(i.Metadata.String(), "-"),
 		)
 
 		n += int64(m)

@@ -38,7 +38,11 @@ func MakeObject(kv ...string) Object {
 		}
 
 		if k != "" {
-			o[k] = val
+			if val != nil {
+				o[k] = val
+			} else {
+				delete(o, k)
+			}
 		}
 	}
 

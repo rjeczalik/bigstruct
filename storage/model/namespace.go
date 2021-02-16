@@ -2,7 +2,6 @@ package model
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"text/tabwriter"
@@ -12,10 +11,10 @@ import (
 
 type Namespace struct {
 	Model    `yaml:",inline"`
-	Name     string   `gorm:"column:name;type:tinytext;not null" yaml:"name,omitempty" json:"name,omitempty"`
-	Priority int      `gorm:"column:priority;type:smallint;not null" yaml:"priority,omitempty" json:"priority,omitempty"`
-	Property Property `gorm:"column:property;type:tinytext;not null" yaml:"property,omitempty" json:"property,omitempty"`
-	Metadata Metadata `gorm:"column:metadata;type:text" yaml:"metadata,omityempty" json:"metadata,omitempty"`
+	Name     string `gorm:"column:name;type:tinytext;not null" yaml:"name,omitempty" json:"name,omitempty"`
+	Property string `gorm:"-" yaml:"property,omitempty" json:"property,omitempty"`
+	Priority int    `gorm:"column:priority;type:smallint;not null" yaml:"priority,omitempty" json:"priority,omitempty"`
+	Metadata Object `gorm:"column:metadata;type:text" yaml:"metadata,omityempty" json:"metadata,omitempty"`
 }
 
 func (*Namespace) TableName() string {
@@ -23,7 +22,37 @@ func (*Namespace) TableName() string {
 }
 
 func (n *Namespace) Ref() string {
-	return Ref(n.Name, n.Property.Get())
+	if n.Property != "" {
+		return n.Name + "=" + n.Property
+	}
+	return n.Name
+}
+
+func (n *Namespace) Meta() *NamespaceMeta {
+	var nm NamespaceMeta
+
+	if err := n.Metadata.Unmarshal(&nm); err != nil {
+		panic("unexpected error: " + err.Error())
+	}
+
+	return &nm
+}
+
+func (n *Namespace) SetProperty(prop string) error {
+	switch p := n.Meta().Property; {
+	case !p && prop != "":
+		return fmt.Errorf("property %q not supported for %q namespace", prop, n.Name)
+	case p && prop == "":
+		return fmt.Errorf("property required for %q namespace", n.Name)
+	default:
+		n.Property = prop
+	}
+
+	return nil
+}
+
+func (n *Namespace) UpdateMeta(nm *NamespaceMeta) {
+	n.Metadata = n.Meta().Update(nm).Metadata()
 }
 
 type Namespaces []*Namespace
@@ -31,7 +60,7 @@ type Namespaces []*Namespace
 func (ns Namespaces) WriteTab(w io.Writer) (int64, error) {
 	var n int64
 
-	m, err := fmt.Fprint(w, "ID\tNAME\tPROPERTY\tPRIORITY\tMETADATA\n")
+	m, err := fmt.Fprint(w, "ID\tNAME\tPRIORITY\tMETADATA\n")
 	if err != nil {
 		return int64(m), err
 	}
@@ -39,10 +68,9 @@ func (ns Namespaces) WriteTab(w io.Writer) (int64, error) {
 	n += int64(m)
 
 	for _, ns := range ns {
-		m, err = fmt.Fprintf(w, "%d\t%s\t%s\t%d\t%s\n",
+		m, err = fmt.Fprintf(w, "%d\t%s\t%d\t%s\n",
 			ns.ID,
 			ns.Name,
-			ns.Property,
 			ns.Priority,
 			nonempty(ns.Metadata.String(), "-"),
 		)
@@ -83,55 +111,27 @@ func (ns Namespaces) String() string {
 	return buf.String()
 }
 
-type Property string
-
-func (p Property) String() string {
-	return string(p)
+type NamespaceMeta struct {
+	Property    bool   `json:"property"`
+	CustomCodec string `json:"custom_codec,omitempty"`
 }
 
-func (p Property) Get() interface{} {
-	return types.YAML(p).Value()
-}
-
-func (p *Property) Set(v interface{}) error {
-	switch prop := p.Get().(type) {
-	case bool:
-		if !prop && v != nil {
-			return errors.New("property not supported")
-		}
-
-		if prop && v == nil {
-			return errors.New("property required")
-		}
-
-		if v != nil {
-			*p = Property(types.MakeYAML(v))
-		} else {
-			*p = ""
-		}
-	case string:
-		if prop == "" && v == nil {
-			return errors.New("property required")
-		}
-
-		if v != nil {
-			*p = Property(types.MakeYAML(v))
-		}
-	case nil:
-		if v == nil {
-			return errors.New("property required")
-		}
-
-		*p = Property(types.MakeYAML(v))
-	default:
-		if prop == nil && v == nil {
-			return errors.New("property required")
-		}
-
-		if v != nil {
-			*p = Property(types.MakeYAML(v))
-		}
+func (nm *NamespaceMeta) Update(um *NamespaceMeta) *NamespaceMeta {
+	if um == nil {
+		return nm
 	}
 
-	return nil
+	if um.CustomCodec != "" {
+		nm.CustomCodec = um.CustomCodec
+	}
+
+	return nm
+}
+
+func (nm *NamespaceMeta) JSON() types.JSON {
+	return types.MakeJSON(nm)
+}
+
+func (nm *NamespaceMeta) Metadata() Object {
+	return Object(nm.JSON())
 }

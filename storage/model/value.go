@@ -14,10 +14,10 @@ type Value struct {
 	Model             `yaml:",inline"`
 	Namespace         *Namespace `gorm:"" yaml:"-" json:"-"`
 	NamespaceID       uint64     `gorm:"column:namespace_id;type:bigint;not null;index" yaml:"namespace_id,omitempty" json:"namespace_id,omitempty"`
-	NamespaceProperty Property   `gorm:"column:namespace_property;type:tinytext" yaml:"namespace_property,omitempty" json:"namespace_property,omitempty"`
+	NamespaceProperty string     `gorm:"column:namespace_property;type:tinytext;not null" yaml:"namespace_property,omitempty" json:"namespace_property,omitempty"`
 	Key               string     `gorm:"column:key;type:text;not null" yaml:"key,omitempty" json:"key,omitempty"`
 	RawValue          string     `gorm:"column:value;type:text" yaml:"value,omitempty" json:"value,omitempty"`
-	Metadata          Metadata   `gorm:"column:metadata;type:text" yaml:"metadata,omityempty" json:"metadata,omitempty"`
+	Metadata          Object     `gorm:"column:metadata;type:text" yaml:"metadata,omityempty" json:"metadata,omitempty"`
 }
 
 func (*Value) TableName() string {
@@ -62,6 +62,13 @@ func MakeValues(ns *Namespace, f isr.Fields) Values {
 func (v Values) SetNamespace(ns *Namespace) {
 	for _, v := range v {
 		v.Namespace = ns
+		v.NamespaceProperty = ns.Property
+	}
+}
+
+func (v Values) SetMeta(meta Object) {
+	for _, v := range v {
+		v.Metadata = meta
 	}
 }
 

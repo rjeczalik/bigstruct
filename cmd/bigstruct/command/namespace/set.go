@@ -10,6 +10,7 @@ import (
 func NewSetCommand(app *command.App) *cobra.Command {
 	m := &setCmd{
 		App:       app,
+		Meta:      new(command.Meta),
 		Namespace: new(model.Namespace),
 	}
 
@@ -28,25 +29,23 @@ func NewSetCommand(app *command.App) *cobra.Command {
 
 type setCmd struct {
 	*command.App
+	*command.Meta
 	*model.Namespace
-
-	meta command.Meta
 }
 
 func (m *setCmd) register(cmd *cobra.Command) {
-	f := cmd.Flags()
+	m.Meta.Register(cmd)
 
-	m.meta.Register(f)
+	f := cmd.Flags()
 
 	f.StringVarP(&m.Namespace.Name, "name", "n", "", "")
 	f.IntVarP(&m.Namespace.Priority, "priority", "p", 0, "")
-	f.StringVarP((*string)(&m.Namespace.Property), "property", "P", "true", "")
 
 	cmd.MarkFlagRequired("name")
 }
 
 func (m *setCmd) run(*cobra.Command, []string) error {
-	m.Namespace.Metadata = m.meta.Metadata()
+	m.Namespace.Metadata = m.Meta.Object()
 
 	if err := m.Storage.UpsertNamespace(m.Namespace); err != nil {
 		return err

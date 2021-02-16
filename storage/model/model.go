@@ -4,12 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"reflect"
 	"strings"
 	"time"
 
 	"github.com/rjeczalik/bigstruct/internal/random"
-	"github.com/rjeczalik/bigstruct/internal/types"
 
 	"gorm.io/gorm"
 )
@@ -26,68 +24,6 @@ func RandomID(m *Model, db *gorm.DB) error {
 	}
 
 	return nil
-}
-
-type Metadata string
-
-func (m *Metadata) Set(v interface{}) Metadata {
-	var o types.Object
-
-	switch v := v.(type) {
-	case types.Object:
-		o = v
-	case map[string]interface{}:
-		o = v
-	default:
-		if err := reencode(v, &o); err != nil {
-			panic("unexpected error: " + err.Error())
-		}
-	}
-
-	if len(o) != 0 {
-		*m = Metadata(o.JSON())
-	} else {
-		*m = ""
-	}
-
-	return *m
-}
-
-func (m *Metadata) SetValues(kv ...interface{}) Metadata {
-	if len(kv)%2 != 0 {
-		panic("odd number of arguments")
-	}
-
-	o := make(types.Object, len(kv)/2)
-
-	for i := 0; i < len(kv); i += 2 {
-		k := fmt.Sprint(kv[i])
-		v := kv[i+1]
-
-		o[k] = v
-	}
-
-	return m.Set(o)
-}
-
-func (m *Metadata) Merge(v map[string]interface{}) Metadata {
-	return m.Set(types.Object(m.Get()).Merge(types.Object(v)).Map())
-}
-
-func (m Metadata) Get() map[string]interface{} {
-	return types.JSON(m).Object().Map()
-}
-
-func (m Metadata) Unmarshal(v interface{}) error {
-	return types.JSON(m).Unmarshal(v)
-}
-
-func (m Metadata) Equal(w Metadata) bool {
-	return reflect.DeepEqual(m.Get(), w.Get())
-}
-
-func (m Metadata) String() string {
-	return string(m)
 }
 
 type Model struct {
@@ -107,29 +43,23 @@ func (*Model) Options() []string {
 	}
 }
 
-func Ref(name string, prop interface{}) string {
-	switch v := prop.(type) {
-	case bool:
-		return name
-	case nil:
-		return name
-	case string:
-		return name + string(RefSeparator) + v
-	default:
-		return name + string(RefSeparator) + fmt.Sprint(v)
+func Ref(name, prop string) string {
+	if prop != "" {
+		return name + string(RefSeparator) + prop
 	}
+	return name
 }
 
-func ParseRef(ref string) (name string, prop interface{}, err error) {
+func ParseRef(ref string) (name, prop string, err error) {
 	switch parts := strings.Split(ref, string(RefSeparator)); len(parts) {
 	case 0:
-		return "", nil, errors.New("ref is empty or missing")
+		return "", "", errors.New("ref is empty or missing")
 	case 1:
-		return parts[0], nil, nil
+		return parts[0], "", nil
 	case 2:
-		return parts[0], types.YAML(parts[1]).Value(), nil
+		return parts[0], parts[1], nil
 	default:
-		return "", nil, fmt.Errorf("invalid ref: %q", name)
+		return "", "", fmt.Errorf("invalid ref: %q", name)
 	}
 }
 

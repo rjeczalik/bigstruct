@@ -18,15 +18,15 @@ type Field struct {
 
 var _ isr.Codec = (*Field)(nil)
 
-func (v Field) Encode(key string, o isr.Object) error {
-	return v.convert("encode", key, o)
+func (f Field) Encode(key string, o isr.Object) error {
+	return f.convert("encode", key, o)
 }
 
-func (v Field) Decode(key string, o isr.Object) error {
-	return v.convert("decode", key, o)
+func (f Field) Decode(key string, o isr.Object) error {
+	return f.convert("decode", key, o)
 }
 
-func (v Field) convert(op, key string, o isr.Object) error {
+func (f Field) convert(op, key string, o isr.Object) error {
 	var (
 		k = path.Base(key)
 		n = o[k]
@@ -34,17 +34,17 @@ func (v Field) convert(op, key string, o isr.Object) error {
 
 	if len(n.Children) != 0 && n.Value == nil {
 		return &isr.Error{
-			Type: v.Type,
+			Type: f.Type,
 			Op:   op,
 			Key:  key,
 			Err:  errors.New("unable to convert value in non-leaf node"),
 		}
 	}
 
-	w, err := v.Convert(n.Value)
+	w, err := f.Convert(n.Value)
 	if err != nil {
 		return &isr.Error{
-			Type: v.Type,
+			Type: f.Type,
 			Op:   op,
 			Key:  key,
 			Err:  err,
@@ -53,15 +53,15 @@ func (v Field) convert(op, key string, o isr.Object) error {
 
 	n.Value = w
 	if n.Type == "" {
-		n.Type = v.Type
+		n.Type = f.Type
 	}
 	o[k] = n
 
 	return nil
 }
 
-func (v Field) GoString() string {
-	return fmt.Sprintf("codec.Field{Type: %q}", v.Type)
+func (f Field) GoString() string {
+	return fmt.Sprintf("codec.Field{Type: %q}", f.Type)
 }
 
 func isNull(v interface{}) bool {

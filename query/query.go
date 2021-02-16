@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/rjeczalik/bigstruct/internal/types"
 	"github.com/rjeczalik/bigstruct/isr"
 	"github.com/rjeczalik/bigstruct/isr/codec"
 	"github.com/rjeczalik/bigstruct/storage"
@@ -15,12 +14,57 @@ import (
 	"gorm.io/gorm"
 )
 
-type IndexFunc func(context.Context, *model.Index) error
+type (
+	IndexFunc func(context.Context, *model.Index) error
+	CodecFunc func(context.Context, string, *model.Index) (isr.Codec, error)
+)
 
 type Query struct {
-	Storage   *storage.Gorm
-	Codec     isr.Codec
-	IndexFunc IndexFunc
+	Storage *storage.Gorm
+	Codec   isr.Codec
+
+	DynamicIndex IndexFunc // StaticIndex by default
+	CustomCodec  CodecFunc // no custom codec support by default
+}
+
+func (q *Query) Object(ctx context.Context, index, namespace string) (*Object, error) {
+	var obj Object
+
+	return &obj, q.Storage.Transaction(q.txObject(ctx, index, namespace, &obj))
+}
+
+func (q *Query) txObject(ctx context.Context, index, namespace string, out *Object) storage.Func {
+	return func(tx storage.Gorm) (err error) {
+		obj := Object{
+			Index: new(model.Index),
+		}
+
+		if err = obj.Index.SetRef(index); err != nil {
+			return err
+		}
+
+		if namespace != "" {
+			obj.Namespace, err = tx.Namespace(namespace)
+			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+		}
+
+		ns, err := q.buildNamespaces(ctx, tx, obj.Index, obj.Namespace)
+		if err != nil {
+			return err
+		}
+
+		for _, n := range ns {
+			obj.Scopes = append(obj.Scopes, Scope{
+				Namespace: n,
+			})
+		}
+
+		*out = obj
+
+		return nil
+	}
 }
 
 func (q *Query) Get(ctx context.Context, index, namespace, key string) (isr.Object, error) {
@@ -33,32 +77,19 @@ func (q *Query) Set(ctx context.Context, index, namespace string, o isr.Object) 
 }
 
 func (q *Query) txSet(ctx context.Context, index, namespace string, o isr.Object) storage.Func {
-	return func(tx storage.Gorm) error {
-		var (
-			idx = new(model.Index)
-		)
+	return func(tx storage.Gorm) (err error) {
+		var obj Object
 
-		if err := idx.SetRef(index); err != nil {
+		if err = q.txObject(ctx, index, namespace, &obj)(tx); err != nil {
 			return err
 		}
 
-		n, err := tx.Namespace(namespace)
-		if err != nil {
-			return err
-		}
-
-		ns, err := q.buildNamespaces(ctx, tx, idx, n)
-		if err != nil {
-			return err
-		}
-
-		sbase, err := q.buildSchemas(ctx, tx, ns, isr.Prefix)
-		if err != nil {
+		if err = obj.LoadSchema(tx, isr.Prefix); err != nil {
 			return err
 		}
 
 		var (
-			schema = sbase.Fields().Object()
+			schema = obj.Schemas().Fields().Object()
 		)
 
 		// validate schema
@@ -105,7 +136,7 @@ func (q *Query) txSet(ctx context.Context, index, namespace string, o isr.Object
 			}
 
 			if _, ok := schema.At(d)[k]; !ok {
-				return fmt.Errorf("the key %q (%#v) does not exist in schema", key, n.Value)
+				return fmt.Errorf("the key %q (%T) does not exist in schema", key, n.Value)
 			}
 
 			return nil
@@ -123,8 +154,8 @@ func (q *Query) txSet(ctx context.Context, index, namespace string, o isr.Object
 
 		var (
 			f = o.Fields()
-			v = model.MakeValues(n, f)
-			s = model.MakeSchemas(n, f)
+			v = model.MakeValues(obj.Namespace, f)
+			s = model.MakeSchemas(obj.Namespace, f)
 		)
 
 		if err := tx.UpsertSchemas(s); err != nil {
@@ -139,42 +170,60 @@ func (q *Query) txSet(ctx context.Context, index, namespace string, o isr.Object
 	}
 }
 
-func (q *Query) txGet(ctx context.Context, index, namespace, key string, obj *isr.Object) storage.Func {
+func (q *Query) txGet(ctx context.Context, index, namespace, key string, out *isr.Object) storage.Func {
 	return func(tx storage.Gorm) (err error) {
-		var (
-			idx = new(model.Index)
-			n   *model.Namespace
-		)
+		var obj Object
 
-		if err := idx.SetRef(index); err != nil {
+		if err = q.txObject(ctx, index, namespace, &obj)(tx); err != nil {
 			return err
 		}
 
-		if namespace != "" {
-			if n, err = tx.Namespace(namespace); err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-				return err
-			}
-		}
-
-		ns, err := q.buildNamespaces(ctx, tx, idx, n)
-		if err != nil {
+		if err = obj.LoadSchema(tx, key); err != nil {
 			return err
 		}
 
-		v, err := q.buildValues(ctx, tx, ns, key)
-		if err != nil {
+		if err = obj.LoadValue(tx, key); err != nil {
 			return err
 		}
 
-		s, err := q.buildSchemas(ctx, tx, ns, key)
-		if err != nil {
+		if *out, err = q.buildObject(ctx, &obj); err != nil {
 			return err
 		}
-
-		*obj = append(v.Fields(), s.Fields()...).Object().ShakeTypes()
 
 		return nil
 	}
+}
+
+func (q *Query) buildObject(ctx context.Context, obj *Object) (isr.Object, error) {
+	var fields isr.Fields
+
+	for _, s := range obj.Scopes {
+		var (
+			m = s.Namespace.Meta()
+			o = s.Object()
+		)
+
+		if m.CustomCodec != "" {
+			codec, err := q.customCodec(ctx, m.CustomCodec, obj.Index)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"failed loading %q codec for %q namespace: %w",
+					m.CustomCodec, s.Namespace.Ref(), err,
+				)
+			}
+
+			if err := o.Encode(codec); err != nil {
+				return nil, fmt.Errorf(
+					"failed encoding %q namespace values with %q codec: %w",
+					s.Namespace.Ref(), m.CustomCodec, err,
+				)
+			}
+		}
+
+		fields = append(fields, o.Fields()...)
+	}
+
+	return fields.Object().ShakeTypes(), nil
 }
 
 func (q *Query) buildNamespaces(ctx context.Context, g storage.Gorm, idx *model.Index, last *model.Namespace) (model.Namespaces, error) {
@@ -192,23 +241,23 @@ func (q *Query) buildNamespaces(ctx context.Context, g storage.Gorm, idx *model.
 }
 
 func (q *Query) indexNamespaces(ctx context.Context, g storage.Gorm, ns model.Namespaces, idx *model.Index, last *model.Namespace) (int, error) {
-	if err := q.indexFunc(ctx, g, idx); err != nil {
+	if err := q.index(ctx, g, idx); err != nil {
 		return 0, err
 	}
 
 	var (
-		m = idx.ValueIndex.Get()
+		m = idx.Index.Map()
 		n = len(ns)
 	)
 
 	for i, ns := range ns {
-		var prop interface{}
+		var prop string
 
 		if v, ok := m[ns.Name]; ok && v != "" {
-			prop = types.MakeYAML(v).Value()
+			prop = fmt.Sprint(v)
 		}
 
-		if err := ns.Property.Set(prop); err != nil {
+		if err := ns.SetProperty(prop); err != nil {
 			return 0, fmt.Errorf(
 				"unable to set property %v for namespace %q indexed via %q: %w",
 				prop, ns.Name, idx.Ref(), err,
@@ -224,53 +273,28 @@ func (q *Query) indexNamespaces(ctx context.Context, g storage.Gorm, ns model.Na
 	return n, nil
 }
 
+func (q *Query) index(ctx context.Context, tx storage.Gorm, idx *model.Index) error {
+	if q.DynamicIndex != nil {
+		return q.DynamicIndex(ctx, idx)
+	}
+
+	return q.StaticIndex(ctx, tx, idx)
+}
+
+func (q *Query) StaticIndex(ctx context.Context, tx storage.Gorm, idx *model.Index) error {
+	return tx.DB.Where("`name` = ? AND `property` = ?", idx.Name, idx.Property).First(&idx).Error
+}
+
+func (q *Query) customCodec(ctx context.Context, typ string, idx *model.Index) (isr.Codec, error) {
+	if q.CustomCodec != nil {
+		return q.CustomCodec(ctx, typ, idx)
+	}
+	return nil, fmt.Errorf("custom codec %q not supported", typ)
+}
+
 func (q *Query) codec() isr.Codec {
 	if q.Codec != nil {
 		return q.Codec
 	}
 	return codec.Default
-}
-
-func (q *Query) buildValues(ctx context.Context, g storage.Gorm, ns model.Namespaces, key string) (model.Values, error) {
-	var all model.Values
-
-	for _, ns := range ns {
-		v, err := g.ListValues(ns, key)
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			continue
-		}
-		if err != nil {
-			return nil, err
-		}
-
-		all = append(all, v...)
-	}
-
-	return all, nil
-}
-
-func (q *Query) buildSchemas(ctx context.Context, g storage.Gorm, ns model.Namespaces, key string) (model.Schemas, error) {
-	var all model.Schemas
-
-	for _, ns := range ns {
-		s, err := g.ListSchemas(ns, key)
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			continue
-		}
-		if err != nil {
-			return nil, err
-		}
-
-		all = append(all, s...)
-	}
-
-	return all, nil
-}
-
-func (q *Query) indexFunc(ctx context.Context, g storage.Gorm, idx *model.Index) error {
-	if q.IndexFunc != nil {
-		return q.IndexFunc(ctx, idx)
-	}
-
-	return g.DB.Where("`name` = ? AND `property` = ?", idx.Name, idx.Property).First(&idx).Error
 }

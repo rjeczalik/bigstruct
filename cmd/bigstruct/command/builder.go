@@ -114,16 +114,6 @@ func (b *Builder) buildFromValues() (isr.Fields, error) {
 	}
 
 	return f, nil
-
-	var (
-		obj = f.Object()
-	)
-
-	if err := obj.Decode(b.codec()); err != nil {
-		return nil, err
-	}
-
-	return obj.Fields(), nil
 }
 
 func (b *Builder) codec() isr.Codec {

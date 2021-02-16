@@ -75,8 +75,8 @@ func (g Gorm) Namespace(namespace string) (*model.Namespace, error) {
 		return nil, err
 	}
 
-	if err := ns.Property.Set(prop); err != nil {
-		return nil, fmt.Errorf("unable to set property %v for namespace %q: %w", prop, name, err)
+	if err := ns.SetProperty(prop); err != nil {
+		return nil, fmt.Errorf("unable to set property %q for namespace %q: %w", prop, name, err)
 	}
 
 	return &ns, nil
@@ -92,7 +92,7 @@ func (g Gorm) txUpsertNamespace(n *model.Namespace) Func {
 			cur model.Namespace
 		)
 
-		switch err := tx.DB.Where("`name` = ?", n.Name, n.Property).First(&cur).Error; {
+		switch err := tx.DB.Where("`name` = ?", n.Name).First(&cur).Error; {
 		case errors.Is(err, gorm.ErrRecordNotFound):
 			return tx.DB.Create(n).Error
 		case err != nil:
@@ -100,14 +100,13 @@ func (g Gorm) txUpsertNamespace(n *model.Namespace) Func {
 		}
 
 		var (
-			db     = tx.DB.Model(new(model.Index)).Where("`id` = ?", cur.ID)
+			db     = tx.DB.Model(&cur).Where("`id` = ?", cur.ID)
 			update = &model.Namespace{
 				Priority: n.Priority,
-				Property: n.Property,
 			}
 		)
 
-		if old := cur.Metadata; !cur.Metadata.Merge(n.Metadata.Get()).Equal(old) {
+		if cur.Metadata.Update(n.Metadata) {
 			update.Metadata = cur.Metadata
 		}
 
@@ -137,12 +136,12 @@ func (g Gorm) txUpsertIndex(i *model.Index) Func {
 			update = new(model.Index)
 		)
 
-		if old := cur.ValueIndex; !cur.ValueIndex.Merge(i.ValueIndex.Get()).Equal(old) {
-			update.ValueIndex = cur.ValueIndex
+		if cur.Index.Update(i.Index) {
+			update.Index = cur.Index
 		}
 
-		if old := cur.SchemaIndex; !cur.SchemaIndex.Merge(i.SchemaIndex.Get()).Equal(old) {
-			update.SchemaIndex = cur.SchemaIndex
+		if cur.Metadata.Update(i.Metadata) {
+			update.Metadata = cur.Metadata
 		}
 
 		return db.Updates(update).Error
@@ -165,13 +164,18 @@ func (g Gorm) txUpsertValues(v model.Values) Func {
 				NamespaceProperty: v.NamespaceProperty,
 			}
 
-			err := tx.DB.Model(q).Where(q).Select("id", "value").Take(q).Error
+			err := tx.DB.Model(q).Where(q).Select("id", "value", "metadata").Take(q).Error
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				continue
 			}
 			if err != nil {
 				return err
 			}
+
+			if q.Metadata.Update(v.Metadata) {
+				v.Metadata = q.Metadata
+			}
+
 			if v.RawValue == q.RawValue {
 				v.ID = q.ID
 				continue
@@ -184,7 +188,7 @@ func (g Gorm) txUpsertValues(v model.Values) Func {
 
 		return tx.DB.Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "id"}},
-			DoUpdates: clause.AssignmentColumns([]string{"updated_at"}),
+			DoUpdates: clause.AssignmentColumns([]string{"metadata", "updated_at"}),
 		}).Create(v).Error
 	}
 }
@@ -205,18 +209,31 @@ func (g Gorm) txUpsertSchemas(s model.Schemas) Func {
 				NamespaceProperty: s.NamespaceProperty,
 			}
 
-			err := tx.DB.Model(q).Where(q).Select("id").Take(&s.ID).Error
+			err := tx.DB.Model(q).Where(q).Select("id", "type", "encoding", "metadata").Take(q).Error
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				continue
 			}
 			if err != nil {
 				return err
 			}
+
+			if q.Metadata.Update(s.Metadata) {
+				s.Metadata = q.Metadata
+			}
+
+			if s.Codec() == q.Codec() {
+				s.ID = q.ID
+				continue
+			}
+
+			if err := tx.DB.Model(q).Where("`id` = ?", q.ID).Delete(q).Error; err != nil {
+				return err
+			}
 		}
 
 		return tx.DB.Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "id"}},
-			DoUpdates: clause.AssignmentColumns([]string{"updated_at"}),
+			DoUpdates: clause.AssignmentColumns([]string{"metadata", "updated_at"}),
 		}).Create(s).Error
 	}
 }
@@ -252,8 +269,6 @@ func (g Gorm) ListSchemas(ns *model.Namespace, key string) (model.Schemas, error
 	if key != "" {
 		db = db.Where("`key` LIKE ?", key+"%")
 	}
-
-	// todo: s.Namespace.Property.Set(s.NamespaceProperty.Value())
 
 	if err := db.Order("`key` ASC").Find(&s).Error; err != nil {
 		return nil, err

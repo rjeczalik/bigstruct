@@ -12,6 +12,7 @@ func NewSetCommand(app *command.App) *cobra.Command {
 	m := &setCmd{
 		App:     app,
 		Builder: new(command.Builder),
+		Meta:    new(command.Meta),
 	}
 
 	cmd := &cobra.Command{
@@ -30,11 +31,13 @@ func NewSetCommand(app *command.App) *cobra.Command {
 type setCmd struct {
 	*command.App
 	*command.Builder
+	*command.Meta
 	namespace string
 }
 
 func (m *setCmd) register(cmd *cobra.Command) {
 	m.Builder.Register(cmd)
+	m.Meta.Register(cmd)
 
 	f := cmd.Flags()
 
@@ -59,6 +62,7 @@ func (m *setCmd) txRun(g storage.Gorm) error {
 	}
 
 	s := model.MakeSchemas(ns, f)
+	s.SetMeta(m.Meta.Object())
 
 	if err := g.UpsertSchemas(s); err != nil {
 		return err

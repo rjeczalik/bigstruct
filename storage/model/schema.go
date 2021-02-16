@@ -15,15 +15,22 @@ type Schema struct {
 	Model             `yaml:",inline"`
 	Namespace         *Namespace `yaml:"-" json:"-"`
 	NamespaceID       uint64     `gorm:"column:namespace_id;type:bigint;not null;index" yaml:"namespace_id,omitempty" json:"namespace_id,omitempty"`
-	NamespaceProperty Property   `gorm:"column:namespace_property;type:tinytext" yaml:"namespace_property,omitempty" json:"namespace_property,omitempty"`
+	NamespaceProperty string     `gorm:"column:namespace_property;type:tinytext;not null" yaml:"namespace_property,omitempty" json:"namespace_property,omitempty"`
 	Key               string     `gorm:"column:key;type:text;not null" yaml:"key,omitempty" json:"key,omitempty"`
 	Type              string     `gorm:"column:type;type:tinytext;not null" yaml:"type,omitempty" json:"type,omitempty"`
 	Encoding          string     `gorm:"column:encoding;type:tinytext;not null" yaml:"encoding,omitempty" json:"encoding,omitempty"`
-	Metadata          Metadata   `gorm:"column:metadata;type:text" yaml:"metadata,omityempty" json:"metadata,omitempty"`
+	Metadata          Object     `gorm:"column:metadata;type:text" yaml:"metadata,omityempty" json:"metadata,omitempty"`
 }
 
 func (*Schema) TableName() string {
 	return TablePrefix + "_schema"
+}
+
+func (s *Schema) Codec() string {
+	if s.Encoding != "" {
+		return path.Join(s.Type, s.Encoding)
+	}
+	return s.Type
 }
 
 type Schemas []*Schema
@@ -59,6 +66,12 @@ func (s Schemas) SetNamespace(ns *Namespace) {
 	for _, s := range s {
 		s.Namespace = ns
 		s.NamespaceProperty = ns.Property
+	}
+}
+
+func (s Schemas) SetMeta(meta Object) {
+	for _, s := range s {
+		s.Metadata = meta
 	}
 }
 
