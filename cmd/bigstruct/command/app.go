@@ -9,8 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/rjeczalik/bigstruct"
 	"github.com/rjeczalik/bigstruct/internal/types"
-	"github.com/rjeczalik/bigstruct/query"
 	"github.com/rjeczalik/bigstruct/storage"
 
 	"github.com/spf13/cobra"
@@ -25,7 +25,7 @@ type App struct {
 
 	Config  Config
 	Storage *storage.Gorm
-	Query   *query.Query
+	Query   *bigstruct.Query
 }
 
 func (app *App) Register(f *pflag.FlagSet) {
@@ -72,7 +72,7 @@ func (app *App) Init(*cobra.Command, []string) error {
 		return err
 	}
 
-	app.Query = &query.Query{Storage: app.Storage}
+	app.Query = &bigstruct.Query{Storage: app.Storage}
 
 	return nil
 }

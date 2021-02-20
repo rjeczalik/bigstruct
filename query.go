@@ -1,4 +1,4 @@
-package query
+package bigstruct
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/rjeczalik/bigstruct/big"
 	"github.com/rjeczalik/bigstruct/big/codec"
+	"github.com/rjeczalik/bigstruct/internal/bigstruct"
 	"github.com/rjeczalik/bigstruct/storage"
 	"github.com/rjeczalik/bigstruct/storage/model"
 
@@ -27,15 +28,15 @@ type Query struct {
 	CustomCodec  CodecFunc // no custom codec support by default
 }
 
-func (q *Query) Object(ctx context.Context, index, namespace string) (*Object, error) {
-	var obj Object
+func (q *Query) object(ctx context.Context, index, namespace string) (*bigstruct.Object, error) {
+	var obj bigstruct.Object
 
 	return &obj, q.Storage.Transaction(q.txObject(ctx, index, namespace, &obj))
 }
 
-func (q *Query) txObject(ctx context.Context, index, namespace string, out *Object) storage.Func {
+func (q *Query) txObject(ctx context.Context, index, namespace string, out *bigstruct.Object) storage.Func {
 	return func(tx storage.Gorm) (err error) {
-		obj := Object{
+		obj := bigstruct.Object{
 			Index: new(model.Index),
 		}
 
@@ -56,7 +57,7 @@ func (q *Query) txObject(ctx context.Context, index, namespace string, out *Obje
 		}
 
 		for _, n := range ns {
-			obj.Scopes = append(obj.Scopes, Scope{
+			obj.Scopes = append(obj.Scopes, bigstruct.Scope{
 				Namespace: n,
 			})
 		}
@@ -78,7 +79,7 @@ func (q *Query) Set(ctx context.Context, index, namespace string, o big.Struct) 
 
 func (q *Query) txSet(ctx context.Context, index, namespace string, o big.Struct) storage.Func {
 	return func(tx storage.Gorm) (err error) {
-		var obj Object
+		var obj bigstruct.Object
 
 		if err = q.txObject(ctx, index, namespace, &obj)(tx); err != nil {
 			return err
@@ -172,7 +173,7 @@ func (q *Query) txSet(ctx context.Context, index, namespace string, o big.Struct
 
 func (q *Query) txGet(ctx context.Context, index, namespace, key string, out *big.Struct) storage.Func {
 	return func(tx storage.Gorm) (err error) {
-		var obj Object
+		var obj bigstruct.Object
 
 		if err = q.txObject(ctx, index, namespace, &obj)(tx); err != nil {
 			return err
@@ -194,7 +195,7 @@ func (q *Query) txGet(ctx context.Context, index, namespace, key string, out *bi
 	}
 }
 
-func (q *Query) buildObject(ctx context.Context, obj *Object) (big.Struct, error) {
+func (q *Query) buildObject(ctx context.Context, obj *bigstruct.Object) (big.Struct, error) {
 	var fields big.Fields
 
 	for _, s := range obj.Scopes {
