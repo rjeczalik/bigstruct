@@ -19,7 +19,7 @@ type Schema struct {
 	Key               string     `gorm:"column:key;type:text;not null" yaml:"key,omitempty" json:"key,omitempty"`
 	Type              string     `gorm:"column:type;type:tinytext;not null" yaml:"type,omitempty" json:"type,omitempty"`
 	Encoding          string     `gorm:"column:encoding;type:tinytext;not null" yaml:"encoding,omitempty" json:"encoding,omitempty"`
-	Metadata          Object     `gorm:"column:metadata;type:text" yaml:"metadata,omityempty" json:"metadata,omitempty"`
+	Metadata          Object     `gorm:"column:metadata;type:text" yaml:"metadata,omitempty" json:"metadata,omitempty"`
 }
 
 func (*Schema) TableName() string {

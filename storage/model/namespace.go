@@ -14,7 +14,7 @@ type Namespace struct {
 	Name     string `gorm:"column:name;type:tinytext;not null" yaml:"name,omitempty" json:"name,omitempty"`
 	Property string `gorm:"-" yaml:"property,omitempty" json:"property,omitempty"`
 	Priority int    `gorm:"column:priority;type:smallint;not null" yaml:"priority,omitempty" json:"priority,omitempty"`
-	Metadata Object `gorm:"column:metadata;type:text" yaml:"metadata,omityempty" json:"metadata,omitempty"`
+	Metadata Object `gorm:"column:metadata;type:text" yaml:"metadata,omitempty" json:"metadata,omitempty"`
 }
 
 func (*Namespace) TableName() string {
@@ -26,6 +26,14 @@ func (n *Namespace) Ref() string {
 		return n.Name + "=" + n.Property
 	}
 	return n.Name
+}
+
+func (n *Namespace) Copy() *Namespace {
+	if n == nil {
+		return nil
+	}
+	nCopy := *n
+	return &nCopy
 }
 
 func (n *Namespace) Meta() *NamespaceMeta {

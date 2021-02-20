@@ -11,12 +11,19 @@ import (
 )
 
 func sqliteFile(uri *url.URL) string {
-	return strings.TrimPrefix(uri.Opaque, "file:")
+	if uri.Opaque != "" {
+		return strings.TrimPrefix(uri.Opaque, "file:")
+	}
+	return strings.TrimPrefix(uri.Host, "file:")
 }
 
 func sqliteURI(uri *url.URL) string {
 	u := *uri
 	u.Scheme = ""
+	if u.Opaque == "" {
+		u.Opaque = u.Host
+		u.Host = ""
+	}
 	return u.String()
 }
 
@@ -44,12 +51,14 @@ func sqliteCreate(uri *url.URL) (*gorm.DB, error) {
 		config  = newConfig(uri.Query())
 	)
 
-	f, err := os.Create(path)
-	if err != nil {
-		return nil, err
-	}
-	if err := f.Close(); err != nil {
-		return nil, err
+	if path != ":memory:" {
+		f, err := os.Create(path)
+		if err != nil {
+			return nil, err
+		}
+		if err := f.Close(); err != nil {
+			return nil, err
+		}
 	}
 
 	gdb, err := gorm.Open(dialect, config)

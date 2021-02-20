@@ -17,7 +17,7 @@ type Value struct {
 	NamespaceProperty string     `gorm:"column:namespace_property;type:tinytext;not null" yaml:"namespace_property,omitempty" json:"namespace_property,omitempty"`
 	Key               string     `gorm:"column:key;type:text;not null" yaml:"key,omitempty" json:"key,omitempty"`
 	RawValue          string     `gorm:"column:value;type:text" yaml:"value,omitempty" json:"value,omitempty"`
-	Metadata          Object     `gorm:"column:metadata;type:text" yaml:"metadata,omityempty" json:"metadata,omitempty"`
+	Metadata          Object     `gorm:"column:metadata;type:text" yaml:"metadata,omitempty" json:"metadata,omitempty"`
 }
 
 func (*Value) TableName() string {
