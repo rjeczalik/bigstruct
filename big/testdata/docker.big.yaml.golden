@@ -11,126 +11,170 @@ scylladb:
                                         scylla:
                                             children:
                                                 scylla.yaml:
+                                                    type: struct/yaml
                                                     children:
                                                         api_address:
                                                             type: field/string
+                                                            value: 127.0.0.1
                                                         api_doc_dir:
                                                             type: field/string
+                                                            value: /opt/scylladb/api/api-doc/
                                                         api_port:
                                                             type: field/number
+                                                            value: 10000
                                                         api_ui_dir:
                                                             type: field/string
+                                                            value: /opt/scylladb/swagger-ui/dist/
                                                         batch_size_fail_threshold_in_kb:
                                                             type: field/number
+                                                            value: 50
                                                         batch_size_warn_threshold_in_kb:
                                                             type: field/number
+                                                            value: 5
                                                         cas_contention_timeout_in_ms:
                                                             type: field/number
+                                                            value: 1000
                                                         commitlog_segment_size_in_mb:
                                                             type: field/number
+                                                            value: 32
                                                         commitlog_sync:
                                                             type: field/string
+                                                            value: periodic
                                                         commitlog_sync_period_in_ms:
                                                             type: field/number
+                                                            value: 10000
                                                         commitlog_total_space_in_mb:
                                                             type: field/number
+                                                            value: -1
                                                         endpoint_snitch:
                                                             type: field/string
+                                                            value: SimpleSnitch
                                                         listen_address:
                                                             type: field/string
+                                                            value: localhost
                                                         murmur3_partitioner_ignore_msb_bits:
                                                             type: field/number
+                                                            value: 12
                                                         native_transport_port:
                                                             type: field/number
+                                                            value: 9042
                                                         num_tokens:
                                                             type: field/number
+                                                            value: 256
                                                         partitioner:
                                                             type: field/string
+                                                            value: org.apache.cassandra.dht.Murmur3Partitioner
                                                         read_request_timeout_in_ms:
                                                             type: field/number
+                                                            value: 5000
                                                         rpc_address:
                                                             type: field/string
+                                                            value: localhost
                                                         rpc_port:
                                                             type: field/number
+                                                            value: 9160
                                                         seed_provider:
                                                             children:
                                                                 "0":
                                                                     children:
                                                                         class_name:
                                                                             type: field/string
+                                                                            value: org.apache.cassandra.locator.SimpleSeedProvider
                                                                         parameters:
                                                                             children:
                                                                                 "0":
                                                                                     children:
                                                                                         seeds:
                                                                                             type: field/string
+                                                                                            value: 127.0.0.1
                                                         write_request_timeout_in_ms:
                                                             type: field/number
-                                                    type: object/yaml
+                                                            value: 2000
                                         scylla.d:
                                             children:
                                                 cpuset.conf:
+                                                    type: struct/ini
                                                     children:
                                                         CPUSET:
+                                                            type: struct/flag
                                                             children:
                                                                 --cpuset:
                                                                     type: field/number
+                                                                    value: 0
                                                                 --smp:
                                                                     type: field/number
-                                                            type: object/flag
-                                                    type: object/ini
+                                                                    value: 1
                                                 io.conf:
+                                                    type: struct/ini
                                                     children:
                                                         SEASTAR_IO:
+                                                            type: struct/flag
                                                             children:
                                                                 --max-io-requests:
                                                                     type: field/number
+                                                                    value: 1
                                                                 --num-io-queues:
                                                                     type: field/number
-                                                            type: object/flag
-                                                    type: object/ini
+                                                                    value: 1
                                         sysconfig:
                                             children:
                                                 scylla-server:
+                                                    type: struct/ini
                                                     children:
                                                         AMI:
                                                             type: field/string
+                                                            value: "no"
                                                         BRIDGE:
                                                             type: field/string
+                                                            value: virbr0
                                                         ETHDRV:
                                                             type: field/bool
+                                                            value: false
                                                         ETHPCIID:
                                                             type: field/bool
+                                                            value: false
                                                         GROUP:
                                                             type: field/string
+                                                            value: scylla
                                                         IFNAME:
                                                             type: field/string
+                                                            value: eth0
                                                         NETWORK_MODE:
                                                             type: field/string
+                                                            value: posix
                                                         NR_HUGEPAGES:
                                                             type: field/number
+                                                            value: 64
                                                         SCYLLA_ARGS:
+                                                            type: struct/flag
                                                             children:
                                                                 --default-log-level:
                                                                     type: field/string
+                                                                    value: info
                                                                 --log-to-stdout:
                                                                     type: field/number
+                                                                    value: 1
                                                                 --log-to-syslog:
                                                                     type: field/number
+                                                                    value: 0
                                                                 --network-stack:
                                                                     type: field/string
-                                                            type: object/flag
+                                                                    value: posix
                                                         SCYLLA_CONF:
                                                             type: field/string
+                                                            value: /etc/scylla
                                                         SCYLLA_HOME:
                                                             type: field/string
+                                                            value: /var/lib/scylla
                                                         SET_NIC_AND_DISKS:
                                                             type: field/string
+                                                            value: "no"
                                                         TAP:
                                                             type: field/string
+                                                            value: tap0
                                                         USER:
                                                             type: field/string
-                                                    type: object/ini
+                                                            value: scylla
                         4.1.9:
                             children:
                                 etc:
@@ -138,126 +182,170 @@ scylladb:
                                         scylla:
                                             children:
                                                 scylla.yaml:
+                                                    type: struct/yaml
                                                     children:
                                                         api_address:
                                                             type: field/string
+                                                            value: 127.0.0.1
                                                         api_doc_dir:
                                                             type: field/string
+                                                            value: /opt/scylladb/api/api-doc/
                                                         api_port:
                                                             type: field/number
+                                                            value: 10000
                                                         api_ui_dir:
                                                             type: field/string
+                                                            value: /opt/scylladb/swagger-ui/dist/
                                                         batch_size_fail_threshold_in_kb:
                                                             type: field/number
+                                                            value: 50
                                                         batch_size_warn_threshold_in_kb:
                                                             type: field/number
+                                                            value: 5
                                                         cas_contention_timeout_in_ms:
                                                             type: field/number
+                                                            value: 1000
                                                         commitlog_segment_size_in_mb:
                                                             type: field/number
+                                                            value: 32
                                                         commitlog_sync:
                                                             type: field/string
+                                                            value: periodic
                                                         commitlog_sync_period_in_ms:
                                                             type: field/number
+                                                            value: 10000
                                                         commitlog_total_space_in_mb:
                                                             type: field/number
+                                                            value: -1
                                                         endpoint_snitch:
                                                             type: field/string
+                                                            value: SimpleSnitch
                                                         listen_address:
                                                             type: field/string
+                                                            value: localhost
                                                         murmur3_partitioner_ignore_msb_bits:
                                                             type: field/number
+                                                            value: 12
                                                         native_transport_port:
                                                             type: field/number
+                                                            value: 9042
                                                         num_tokens:
                                                             type: field/number
+                                                            value: 256
                                                         partitioner:
                                                             type: field/string
+                                                            value: org.apache.cassandra.dht.Murmur3Partitioner
                                                         read_request_timeout_in_ms:
                                                             type: field/number
+                                                            value: 5000
                                                         rpc_address:
                                                             type: field/string
+                                                            value: localhost
                                                         rpc_port:
                                                             type: field/number
+                                                            value: 9160
                                                         seed_provider:
                                                             children:
                                                                 "0":
                                                                     children:
                                                                         class_name:
                                                                             type: field/string
+                                                                            value: org.apache.cassandra.locator.SimpleSeedProvider
                                                                         parameters:
                                                                             children:
                                                                                 "0":
                                                                                     children:
                                                                                         seeds:
                                                                                             type: field/string
+                                                                                            value: 127.0.0.1
                                                         write_request_timeout_in_ms:
                                                             type: field/number
-                                                    type: object/yaml
+                                                            value: 2000
                                         scylla.d:
                                             children:
                                                 cpuset.conf:
+                                                    type: struct/ini
                                                     children:
                                                         CPUSET:
+                                                            type: struct/flag
                                                             children:
                                                                 --cpuset:
                                                                     type: field/number
+                                                                    value: 0
                                                                 --smp:
                                                                     type: field/number
-                                                            type: object/flag
-                                                    type: object/ini
+                                                                    value: 1
                                                 io.conf:
+                                                    type: struct/ini
                                                     children:
                                                         SEASTAR_IO:
+                                                            type: struct/flag
                                                             children:
                                                                 --max-io-requests:
                                                                     type: field/number
+                                                                    value: 1
                                                                 --num-io-queues:
                                                                     type: field/number
-                                                            type: object/flag
-                                                    type: object/ini
+                                                                    value: 1
                                         sysconfig:
                                             children:
                                                 scylla-server:
+                                                    type: struct/ini
                                                     children:
                                                         AMI:
                                                             type: field/string
+                                                            value: "no"
                                                         BRIDGE:
                                                             type: field/string
+                                                            value: virbr0
                                                         ETHDRV:
                                                             type: field/bool
+                                                            value: false
                                                         ETHPCIID:
                                                             type: field/bool
+                                                            value: false
                                                         GROUP:
                                                             type: field/string
+                                                            value: scylla
                                                         IFNAME:
                                                             type: field/string
+                                                            value: eth0
                                                         NETWORK_MODE:
                                                             type: field/string
+                                                            value: posix
                                                         NR_HUGEPAGES:
                                                             type: field/number
+                                                            value: 64
                                                         SCYLLA_ARGS:
+                                                            type: struct/flag
                                                             children:
                                                                 --default-log-level:
                                                                     type: field/string
+                                                                    value: info
                                                                 --log-to-stdout:
                                                                     type: field/number
+                                                                    value: 1
                                                                 --log-to-syslog:
                                                                     type: field/number
+                                                                    value: 0
                                                                 --network-stack:
                                                                     type: field/string
-                                                            type: object/flag
+                                                                    value: posix
                                                         SCYLLA_CONF:
                                                             type: field/string
+                                                            value: /etc/scylla
                                                         SCYLLA_HOME:
                                                             type: field/string
+                                                            value: /var/lib/scylla
                                                         SET_NIC_AND_DISKS:
                                                             type: field/string
+                                                            value: "no"
                                                         TAP:
                                                             type: field/string
+                                                            value: tap0
                                                         USER:
                                                             type: field/string
-                                                    type: object/ini
+                                                            value: scylla
                         4.2.1:
                             children:
                                 etc:
@@ -265,123 +353,167 @@ scylladb:
                                         scylla:
                                             children:
                                                 scylla.yaml:
+                                                    type: struct/yaml
                                                     children:
                                                         api_address:
                                                             type: field/string
+                                                            value: 127.0.0.1
                                                         api_doc_dir:
                                                             type: field/string
+                                                            value: /opt/scylladb/api/api-doc/
                                                         api_port:
                                                             type: field/number
+                                                            value: 10000
                                                         api_ui_dir:
                                                             type: field/string
+                                                            value: /opt/scylladb/swagger-ui/dist/
                                                         batch_size_fail_threshold_in_kb:
                                                             type: field/number
+                                                            value: 50
                                                         batch_size_warn_threshold_in_kb:
                                                             type: field/number
+                                                            value: 5
                                                         cas_contention_timeout_in_ms:
                                                             type: field/number
+                                                            value: 1000
                                                         commitlog_segment_size_in_mb:
                                                             type: field/number
+                                                            value: 32
                                                         commitlog_sync:
                                                             type: field/string
+                                                            value: periodic
                                                         commitlog_sync_period_in_ms:
                                                             type: field/number
+                                                            value: 10000
                                                         commitlog_total_space_in_mb:
                                                             type: field/number
+                                                            value: -1
                                                         endpoint_snitch:
                                                             type: field/string
+                                                            value: SimpleSnitch
                                                         listen_address:
                                                             type: field/string
+                                                            value: localhost
                                                         murmur3_partitioner_ignore_msb_bits:
                                                             type: field/number
+                                                            value: 12
                                                         native_transport_port:
                                                             type: field/number
+                                                            value: 9042
                                                         num_tokens:
                                                             type: field/number
+                                                            value: 256
                                                         partitioner:
                                                             type: field/string
+                                                            value: org.apache.cassandra.dht.Murmur3Partitioner
                                                         read_request_timeout_in_ms:
                                                             type: field/number
+                                                            value: 5000
                                                         rpc_address:
                                                             type: field/string
+                                                            value: localhost
                                                         rpc_port:
                                                             type: field/number
+                                                            value: 9160
                                                         seed_provider:
                                                             children:
                                                                 "0":
                                                                     children:
                                                                         class_name:
                                                                             type: field/string
+                                                                            value: org.apache.cassandra.locator.SimpleSeedProvider
                                                                         parameters:
                                                                             children:
                                                                                 "0":
                                                                                     children:
                                                                                         seeds:
                                                                                             type: field/string
+                                                                                            value: 127.0.0.1
                                                         write_request_timeout_in_ms:
                                                             type: field/number
-                                                    type: object/yaml
+                                                            value: 2000
                                         scylla.d:
                                             children:
                                                 cpuset.conf:
+                                                    type: struct/ini
                                                     children:
                                                         CPUSET:
+                                                            type: struct/flag
                                                             children:
                                                                 --cpuset:
                                                                     type: field/number
+                                                                    value: 0
                                                                 --smp:
                                                                     type: field/number
-                                                            type: object/flag
-                                                    type: object/ini
+                                                                    value: 1
                                                 io.conf:
+                                                    type: struct/ini
                                                     children:
                                                         SEASTAR_IO:
+                                                            type: struct/flag
                                                             children:
                                                                 --max-io-requests:
                                                                     type: field/number
+                                                                    value: 1
                                                                 --num-io-queues:
                                                                     type: field/number
-                                                            type: object/flag
-                                                    type: object/ini
+                                                                    value: 1
                                         sysconfig:
                                             children:
                                                 scylla-server:
+                                                    type: struct/ini
                                                     children:
                                                         AMI:
                                                             type: field/string
+                                                            value: "no"
                                                         BRIDGE:
                                                             type: field/string
+                                                            value: virbr0
                                                         ETHDRV:
                                                             type: field/bool
+                                                            value: false
                                                         ETHPCIID:
                                                             type: field/bool
+                                                            value: false
                                                         GROUP:
                                                             type: field/string
+                                                            value: scylla
                                                         IFNAME:
                                                             type: field/string
+                                                            value: eth0
                                                         NETWORK_MODE:
                                                             type: field/string
+                                                            value: posix
                                                         NR_HUGEPAGES:
                                                             type: field/number
+                                                            value: 64
                                                         SCYLLA_ARGS:
+                                                            type: struct/flag
                                                             children:
                                                                 --default-log-level:
                                                                     type: field/string
+                                                                    value: info
                                                                 --log-to-stdout:
                                                                     type: field/number
+                                                                    value: 1
                                                                 --log-to-syslog:
                                                                     type: field/number
+                                                                    value: 0
                                                                 --network-stack:
                                                                     type: field/string
-                                                            type: object/flag
+                                                                    value: posix
                                                         SCYLLA_CONF:
                                                             type: field/string
+                                                            value: /etc/scylla
                                                         SCYLLA_HOME:
                                                             type: field/string
+                                                            value: /var/lib/scylla
                                                         SET_NIC_AND_DISKS:
                                                             type: field/string
+                                                            value: "no"
                                                         TAP:
                                                             type: field/string
+                                                            value: tap0
                                                         USER:
                                                             type: field/string
-                                                    type: object/ini
+                                                            value: scylla

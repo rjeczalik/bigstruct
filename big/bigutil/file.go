@@ -1,4 +1,4 @@
-package isrutil
+package bigutil
 
 import (
 	"io/ioutil"
@@ -7,14 +7,14 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/rjeczalik/bigstruct/big"
 	"github.com/rjeczalik/bigstruct/internal/types"
-	"github.com/rjeczalik/bigstruct/isr"
 )
 
-func MakeFile(path string) (isr.Object, error) {
+func MakeFile(path string) (big.Struct, error) {
 	type index map[string]string
 
-	var f isr.Fields
+	var f big.Fields
 
 	switch fi, err := os.Stat(path); {
 	case err != nil:
@@ -42,7 +42,7 @@ func MakeFile(path string) (isr.Object, error) {
 				}
 
 				for k, typ := range idx {
-					f = append(f, isr.Field{
+					f = append(f, big.Field{
 						Key:  stdpath.Join(cleanpath(strings.TrimPrefix(key, path)), k),
 						Type: typ,
 					})
@@ -51,7 +51,7 @@ func MakeFile(path string) (isr.Object, error) {
 				return nil
 			}
 
-			f = append(f, isr.Field{
+			f = append(f, big.Field{
 				Key:   cleanpath(strings.TrimPrefix(key, path)),
 				Value: string(p),
 			})
@@ -67,11 +67,11 @@ func MakeFile(path string) (isr.Object, error) {
 			return nil, err
 		}
 
-		f = append(f, isr.Field{
+		f = append(f, big.Field{
 			Key:   cleanpath(filepath.Base(path)),
 			Value: p,
 		})
 	}
 
-	return f.Object(), nil
+	return f.Struct(), nil
 }

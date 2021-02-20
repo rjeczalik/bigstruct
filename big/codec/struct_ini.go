@@ -10,8 +10,8 @@ import (
 	"strings"
 )
 
-var _ = DefaultObject.
-	Register("ini", Object{
+var _ = DefaultStruct.
+	Register("ini", Struct{
 		Type:      "ini",
 		Marshal:   ini.Marshal,
 		Unmarshal: ini.Unmarshal,

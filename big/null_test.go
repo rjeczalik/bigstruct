@@ -1,14 +1,14 @@
-package isr_test
+package big_test
 
 import (
 	"testing"
 
+	"github.com/rjeczalik/bigstruct/big"
 	"github.com/rjeczalik/bigstruct/internal/types"
-	"github.com/rjeczalik/bigstruct/isr"
 )
 
 func TestNull(t *testing.T) {
-	v := types.MakeYAML(isr.NoValue).Value()
+	v := types.MakeYAML(big.NoValue).Value()
 
 	if v != nil {
 		t.Fatalf("got %#v, want nil", v)

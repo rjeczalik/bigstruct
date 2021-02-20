@@ -1,4 +1,4 @@
-package isrutil
+package bigutil
 
 import (
 	"path"

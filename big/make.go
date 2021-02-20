@@ -1,4 +1,4 @@
-package isr
+package big
 
 import (
 	"fmt"
@@ -6,14 +6,14 @@ import (
 	"github.com/rjeczalik/bigstruct/internal/objects"
 )
 
-func Make(v interface{}) Object {
+func Make(v interface{}) Struct {
 	type elm struct {
 		obj   map[string]interface{}
-		nodes Object
+		nodes Struct
 	}
 
 	var (
-		root  = make(Object)
+		root  = make(Struct)
 		obj   = objects.Object(v)
 		it    elm
 		queue = []elm{{obj, root}}
@@ -29,7 +29,7 @@ func Make(v interface{}) Object {
 		for k, v := range it.obj {
 			node, ok := it.nodes[k]
 			if !ok {
-				node.Children = make(Object)
+				node.Children = make(Struct)
 			}
 
 			jt := it

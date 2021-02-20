@@ -8,7 +8,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/rjeczalik/bigstruct/isr"
+	"github.com/rjeczalik/bigstruct/big"
 )
 
 type Schema struct {
@@ -35,7 +35,7 @@ func (s *Schema) Codec() string {
 
 type Schemas []*Schema
 
-func MakeSchemas(ns *Namespace, f isr.Fields) Schemas {
+func MakeSchemas(ns *Namespace, f big.Fields) Schemas {
 	values := make(Schemas, 0, len(f))
 
 	for _, f := range f {
@@ -75,11 +75,11 @@ func (s Schemas) SetMeta(meta Object) {
 	}
 }
 
-func (s Schemas) Fields() isr.Fields {
-	f := make(isr.Fields, 0, len(s))
+func (s Schemas) Fields() big.Fields {
+	f := make(big.Fields, 0, len(s))
 
 	for _, s := range s {
-		f = append(f, isr.Field{
+		f = append(f, big.Field{
 			Key:  s.Key,
 			Type: path.Join(s.Type, s.Encoding),
 		})

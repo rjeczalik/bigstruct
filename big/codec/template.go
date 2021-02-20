@@ -2,10 +2,11 @@ package codec
 
 import (
 	"bytes"
+	"errors"
 	"path"
 	"text/template"
 
-	"github.com/rjeczalik/bigstruct/isr"
+	"github.com/rjeczalik/bigstruct/big"
 )
 
 type Template struct {
@@ -13,9 +14,9 @@ type Template struct {
 	Funcs map[string]interface{}
 }
 
-var _ isr.Codec = (*Template)(nil)
+var _ big.Codec = (*Template)(nil)
 
-func (t Template) Encode(key string, o isr.Object) error {
+func (t Template) Encode(key string, o big.Struct) error {
 	var (
 		k = path.Base(key)
 		n = o[k]
@@ -23,13 +24,12 @@ func (t Template) Encode(key string, o isr.Object) error {
 
 	p, err := tobytes(n.Value)
 	if err != nil {
-		// nothing to template, skip
-		return nil
+		return nil // nothing to template, skip
 	}
 
 	tmpl, err := template.New(key).Funcs(t.Funcs).Parse(string(p))
 	if err != nil {
-		return &isr.Error{
+		return &big.Error{
 			Type: "template",
 			Op:   "encode",
 			Key:  key,
@@ -37,10 +37,12 @@ func (t Template) Encode(key string, o isr.Object) error {
 		}
 	}
 
-	var buf bytes.Buffer
+	var (
+		buf bytes.Buffer
+	)
 
 	if err := tmpl.Execute(&buf, t.Data); err != nil {
-		return &isr.Error{
+		return &big.Error{
 			Type: "template",
 			Op:   "encode",
 			Key:  key,
@@ -54,8 +56,8 @@ func (t Template) Encode(key string, o isr.Object) error {
 	return nil
 }
 
-func (t Template) Decode(key string, o isr.Object) error {
-	return nil
+func (t Template) Decode(key string, o big.Struct) error {
+	return errors.New("codec: template does not support decoding")
 }
 
 func (Template) GoString() string {

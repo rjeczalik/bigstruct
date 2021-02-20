@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-var _ = DefaultObject.
-	Register("flag", Object{
+var _ = DefaultStruct.
+	Register("flag", Struct{
 		Type:      "flag",
 		Marshal:   flag.Marshal,
 		Unmarshal: flag.Unmarshal,

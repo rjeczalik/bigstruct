@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/rjeczalik/bigstruct/isr"
+	"github.com/rjeczalik/bigstruct/big"
 	"github.com/rjeczalik/bigstruct/storage"
 	"github.com/rjeczalik/bigstruct/storage/model"
 
@@ -17,8 +17,8 @@ type Scope struct {
 	Value     model.Values
 }
 
-func (s *Scope) Object() isr.Object {
-	return append(s.Schema.Fields(), s.Value.Fields()...).Object()
+func (s *Scope) Object() big.Struct {
+	return append(s.Schema.Fields(), s.Value.Fields()...).Struct()
 }
 
 type Object struct {

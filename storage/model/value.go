@@ -6,8 +6,8 @@ import (
 	"io"
 	"text/tabwriter"
 
+	"github.com/rjeczalik/bigstruct/big"
 	"github.com/rjeczalik/bigstruct/internal/types"
-	"github.com/rjeczalik/bigstruct/isr"
 )
 
 type Value struct {
@@ -34,7 +34,7 @@ func (v *Value) Value() interface{} {
 
 type Values []*Value
 
-func MakeValues(ns *Namespace, f isr.Fields) Values {
+func MakeValues(ns *Namespace, f big.Fields) Values {
 	values := make(Values, 0, len(f))
 
 	for _, f := range f {
@@ -49,7 +49,7 @@ func MakeValues(ns *Namespace, f isr.Fields) Values {
 			NamespaceProperty: ns.Property,
 		}
 
-		if f.Value != isr.NoValue {
+		if f.Value != big.NoValue {
 			v.RawValue = types.MakeYAML(f.Value).String()
 		}
 
@@ -72,11 +72,11 @@ func (v Values) SetMeta(meta Object) {
 	}
 }
 
-func (v Values) Fields() isr.Fields {
-	f := make(isr.Fields, 0, len(v))
+func (v Values) Fields() big.Fields {
+	f := make(big.Fields, 0, len(v))
 
 	for _, v := range v {
-		f = append(f, isr.Field{
+		f = append(f, big.Field{
 			Key:   v.Key,
 			Value: v.Value(),
 		})

@@ -5,14 +5,14 @@ import (
 	"os"
 	"path"
 
-	"github.com/rjeczalik/bigstruct/isr"
-	"github.com/rjeczalik/bigstruct/isr/codec"
+	"github.com/rjeczalik/bigstruct/big"
+	"github.com/rjeczalik/bigstruct/big/codec"
 
 	"github.com/spf13/cobra"
 )
 
 type Fielder interface {
-	Fields() isr.Fields
+	Fields() big.Fields
 }
 
 type Printer struct {
@@ -57,7 +57,7 @@ func (p *Printer) Print(app *App, cmd *cobra.Command, f Fielder, prefix string) 
 		app.DefaultFormat(cmd, "yaml")
 		return app.Render(obj.At(prefix).Value())
 	default:
-		return obj.Walk(func(key string, o isr.Object) error {
+		return obj.Walk(func(key string, o big.Struct) error {
 			var (
 				k = path.Base(key)
 				n = o[k]

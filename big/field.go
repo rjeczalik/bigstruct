@@ -1,4 +1,4 @@
-package isr
+package big
 
 import (
 	"path"
@@ -18,24 +18,24 @@ func Value(v interface{}, typ ...string) Func {
 	}.Put
 }
 
-func Children(o Object) Func {
-	return func(key string, u Object) error {
+func Children(s Struct) Func {
+	return func(key string, u Struct) error {
 		var (
 			k = path.Base(key)
-			n = o[k]
+			n = u[k]
 		)
 
-		n.Children = o
-		o[k] = n
+		n.Children = s
+		u[k] = n
 
 		return nil
 	}
 }
 
-func (f Field) Put(key string, o Object) error {
+func (f Field) Put(key string, s Struct) error {
 	var (
 		k = path.Base(key)
-		n = o[k]
+		n = s[k]
 	)
 
 	if f.Type != "" {
@@ -46,20 +46,20 @@ func (f Field) Put(key string, o Object) error {
 		n.Value = f.Value
 	}
 
-	o[k] = n
+	s[k] = n
 
 	return nil
 }
 
-func (f Field) Set(key string, o Object) error {
+func (f Field) Set(key string, s Struct) error {
 	var (
 		k = path.Base(key)
-		n = o[k]
+		n = s[k]
 	)
 
 	n.Type = f.Type
 	n.Value = f.Value
-	o[k] = n
+	s[k] = n
 
 	return nil
 }
@@ -71,10 +71,10 @@ var (
 	_ sort.Interface = (*Fields)(nil)
 )
 
-func (f *Fields) Append(key string, o Object) error {
+func (f *Fields) Append(key string, s Struct) error {
 	var (
 		k = path.Base(key)
-		n = o[k]
+		n = s[k]
 	)
 
 	*f = append(*f, Field{
@@ -96,24 +96,24 @@ func (f Fields) Keys() []string {
 	return keys
 }
 
-func (f Fields) Object() Object {
-	o := make(Object)
+func (f Fields) Struct() Struct {
+	s := make(Struct)
 
 	for _, f := range f {
-		o.Put(f.Key, f.Put)
+		s.Put(f.Key, f.Put)
 	}
 
-	return o
+	return s
 }
 
-func (f Fields) Merge() Object {
-	o := make(Object)
+func (f Fields) Merge() Struct {
+	s := make(Struct)
 
 	for _, f := range f {
-		o.Put(f.Key, f.Set)
+		s.Put(f.Key, f.Set)
 	}
 
-	return o.Shake()
+	return s.Shake()
 }
 
 func (f Fields) Len() int {

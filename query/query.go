@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/rjeczalik/bigstruct/isr"
-	"github.com/rjeczalik/bigstruct/isr/codec"
+	"github.com/rjeczalik/bigstruct/big"
+	"github.com/rjeczalik/bigstruct/big/codec"
 	"github.com/rjeczalik/bigstruct/storage"
 	"github.com/rjeczalik/bigstruct/storage/model"
 
@@ -16,12 +16,12 @@ import (
 
 type (
 	IndexFunc func(context.Context, *model.Index) error
-	CodecFunc func(context.Context, string, *model.Index) (isr.Codec, error)
+	CodecFunc func(context.Context, string, *model.Index) (big.Codec, error)
 )
 
 type Query struct {
 	Storage *storage.Gorm
-	Codec   isr.Codec
+	Codec   big.Codec
 
 	DynamicIndex IndexFunc // StaticIndex by default
 	CustomCodec  CodecFunc // no custom codec support by default
@@ -67,16 +67,16 @@ func (q *Query) txObject(ctx context.Context, index, namespace string, out *Obje
 	}
 }
 
-func (q *Query) Get(ctx context.Context, index, namespace, key string) (isr.Object, error) {
-	var obj isr.Object
+func (q *Query) Get(ctx context.Context, index, namespace, key string) (big.Struct, error) {
+	var obj big.Struct
 	return obj, q.Storage.Transaction(q.txGet(ctx, index, namespace, key, &obj))
 }
 
-func (q *Query) Set(ctx context.Context, index, namespace string, o isr.Object) error {
+func (q *Query) Set(ctx context.Context, index, namespace string, o big.Struct) error {
 	return q.Storage.Transaction(q.txSet(ctx, index, namespace, o))
 }
 
-func (q *Query) txSet(ctx context.Context, index, namespace string, o isr.Object) storage.Func {
+func (q *Query) txSet(ctx context.Context, index, namespace string, o big.Struct) storage.Func {
 	return func(tx storage.Gorm) (err error) {
 		var obj Object
 
@@ -84,17 +84,17 @@ func (q *Query) txSet(ctx context.Context, index, namespace string, o isr.Object
 			return err
 		}
 
-		if err = obj.LoadSchema(tx, isr.Prefix); err != nil {
+		if err = obj.LoadSchema(tx, big.Prefix); err != nil {
 			return err
 		}
 
 		var (
-			schema = obj.Schemas().Fields().Object()
+			schema = obj.Schemas().Fields().Struct()
 		)
 
 		// validate schema
 
-		err = o.Walk(func(key string, o isr.Object) error {
+		err = o.Walk(func(key string, o big.Struct) error {
 			var (
 				k = path.Base(key)
 				n = o[k]
@@ -125,7 +125,7 @@ func (q *Query) txSet(ctx context.Context, index, namespace string, o isr.Object
 
 		// validate key
 
-		err = value.ForEach(func(key string, o isr.Object) error {
+		err = value.ForEach(func(key string, o big.Struct) error {
 			var (
 				d, k = path.Split(key)
 				n    = o[k]
@@ -170,7 +170,7 @@ func (q *Query) txSet(ctx context.Context, index, namespace string, o isr.Object
 	}
 }
 
-func (q *Query) txGet(ctx context.Context, index, namespace, key string, out *isr.Object) storage.Func {
+func (q *Query) txGet(ctx context.Context, index, namespace, key string, out *big.Struct) storage.Func {
 	return func(tx storage.Gorm) (err error) {
 		var obj Object
 
@@ -194,8 +194,8 @@ func (q *Query) txGet(ctx context.Context, index, namespace, key string, out *is
 	}
 }
 
-func (q *Query) buildObject(ctx context.Context, obj *Object) (isr.Object, error) {
-	var fields isr.Fields
+func (q *Query) buildObject(ctx context.Context, obj *Object) (big.Struct, error) {
+	var fields big.Fields
 
 	for _, s := range obj.Scopes {
 		var (
@@ -223,7 +223,7 @@ func (q *Query) buildObject(ctx context.Context, obj *Object) (isr.Object, error
 		fields = append(fields, o.Fields()...)
 	}
 
-	return fields.Object().ShakeTypes(), nil
+	return fields.Struct().ShakeTypes(), nil
 }
 
 func (q *Query) buildNamespaces(ctx context.Context, g storage.Gorm, idx *model.Index, last *model.Namespace) (model.Namespaces, error) {
@@ -285,14 +285,14 @@ func (q *Query) StaticIndex(ctx context.Context, tx storage.Gorm, idx *model.Ind
 	return tx.DB.Where("`name` = ? AND `property` = ?", idx.Name, idx.Property).First(&idx).Error
 }
 
-func (q *Query) customCodec(ctx context.Context, typ string, idx *model.Index) (isr.Codec, error) {
+func (q *Query) customCodec(ctx context.Context, typ string, idx *model.Index) (big.Codec, error) {
 	if q.CustomCodec != nil {
 		return q.CustomCodec(ctx, typ, idx)
 	}
 	return nil, fmt.Errorf("custom codec %q not supported", typ)
 }
 
-func (q *Query) codec() isr.Codec {
+func (q *Query) codec() big.Codec {
 	if q.Codec != nil {
 		return q.Codec
 	}

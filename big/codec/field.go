@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/rjeczalik/bigstruct/isr"
+	"github.com/rjeczalik/bigstruct/big"
 )
 
 var DefaultField = Default.
@@ -16,24 +16,24 @@ type Field struct {
 	Convert func(interface{}) (interface{}, error)
 }
 
-var _ isr.Codec = (*Field)(nil)
+var _ big.Codec = (*Field)(nil)
 
-func (f Field) Encode(key string, o isr.Object) error {
+func (f Field) Encode(key string, o big.Struct) error {
 	return f.convert("encode", key, o)
 }
 
-func (f Field) Decode(key string, o isr.Object) error {
+func (f Field) Decode(key string, o big.Struct) error {
 	return f.convert("decode", key, o)
 }
 
-func (f Field) convert(op, key string, o isr.Object) error {
+func (f Field) convert(op, key string, o big.Struct) error {
 	var (
 		k = path.Base(key)
 		n = o[k]
 	)
 
 	if len(n.Children) != 0 && n.Value == nil {
-		return &isr.Error{
+		return &big.Error{
 			Type: f.Type,
 			Op:   op,
 			Key:  key,
@@ -43,7 +43,7 @@ func (f Field) convert(op, key string, o isr.Object) error {
 
 	w, err := f.Convert(n.Value)
 	if err != nil {
-		return &isr.Error{
+		return &big.Error{
 			Type: f.Type,
 			Op:   op,
 			Key:  key,
@@ -65,5 +65,5 @@ func (f Field) GoString() string {
 }
 
 func isNull(v interface{}) bool {
-	return v == nil || v == isr.NoValue
+	return v == nil || v == big.NoValue
 }

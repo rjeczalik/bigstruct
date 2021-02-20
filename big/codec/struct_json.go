@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 )
 
-var _ = DefaultObject.
-	Register("json", Object{
+var _ = DefaultStruct.
+	Register("json", Struct{
 		Type:      "json",
 		Marshal:   json.Marshal,
 		Unmarshal: json.Unmarshal,

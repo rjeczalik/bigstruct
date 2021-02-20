@@ -1,26 +1,26 @@
-package isr_test
+package big_test
 
 import (
 	"testing"
 
-	"github.com/rjeczalik/bigstruct/isr"
-	"github.com/rjeczalik/bigstruct/isr/codec"
+	"github.com/rjeczalik/bigstruct/big"
+	"github.com/rjeczalik/bigstruct/big/codec"
 
 	"github.com/google/go-cmp/cmp"
 )
 
 func TestObject(t *testing.T) {
-	o := make(isr.Object)
+	o := make(big.Struct)
 
-	o.Put("/foo/bar", isr.Value("[\"qux\",\"baz\"]", "object", "json"))
-	o.Put("/ascii/48", isr.Value(int('a')))
-	o.Put("/ascii/49", isr.Value(int('b')))
-	o.Put("/ascii/50", isr.Value(int('c')))
-	o.Put("/yaml", isr.Value("json: '{\"ini\":\"k=\\\"v\\\"\\nkey=\\\"value\\\"\\n\"}'\n"))
-	o.Put("/yaml/json/ini", isr.Value(nil, "object", "ini"))
+	o.Put("/foo/bar", big.Value("[\"qux\",\"baz\"]", "struct", "json"))
+	o.Put("/ascii/48", big.Value(int('a')))
+	o.Put("/ascii/49", big.Value(int('b')))
+	o.Put("/ascii/50", big.Value(int('c')))
+	o.Put("/yaml", big.Value("json: '{\"ini\":\"k=\\\"v\\\"\\nkey=\\\"value\\\"\\n\"}'\n"))
+	o.Put("/yaml/json/ini", big.Value(nil, "struct", "ini"))
 
 	got := o.Fields()
-	want := isr.Fields{{
+	want := big.Fields{{
 		Key: "/ascii",
 	}, {
 		Key:   "/ascii/48",
@@ -35,7 +35,7 @@ func TestObject(t *testing.T) {
 		Key: "/foo",
 	}, {
 		Key:   "/foo/bar",
-		Type:  "object/json",
+		Type:  "struct/json",
 		Value: "[\"qux\",\"baz\"]",
 	}, {
 		Key:   "/yaml",
@@ -44,7 +44,7 @@ func TestObject(t *testing.T) {
 		Key: "/yaml/json",
 	}, {
 		Key:  "/yaml/json/ini",
-		Type: "object/ini",
+		Type: "struct/ini",
 	}}
 
 	if !cmp.Equal(want, got) {
@@ -56,7 +56,7 @@ func TestObject(t *testing.T) {
 	}
 
 	egot := o.Fields()
-	ewant := isr.Fields{{
+	ewant := big.Fields{{
 		Key: "/ascii",
 	}, {
 		Key:   "/ascii/48",
@@ -74,7 +74,7 @@ func TestObject(t *testing.T) {
 		Key: "/foo",
 	}, {
 		Key:  "/foo/bar",
-		Type: "object/json",
+		Type: "struct/json",
 	}, {
 		Key:   "/foo/bar/0",
 		Type:  "field/string",
@@ -85,13 +85,13 @@ func TestObject(t *testing.T) {
 		Value: "baz",
 	}, {
 		Key:  "/yaml",
-		Type: "object/yaml",
+		Type: "struct/yaml",
 	}, {
 		Key:  "/yaml/json",
-		Type: "object/json",
+		Type: "struct/json",
 	}, {
 		Key:  "/yaml/json/ini",
-		Type: "object/ini",
+		Type: "struct/ini",
 	}, {
 		Key:   "/yaml/json/ini/k",
 		Type:  "field/string",
@@ -106,7 +106,7 @@ func TestObject(t *testing.T) {
 		t.Fatalf("egot != ewant:\n%s", cmp.Diff(ewant, egot))
 	}
 
-	var rgot isr.Fields
+	var rgot big.Fields
 	rwant := []string{
 		"/yaml/json/ini/key",
 		"/yaml/json/ini/k",
@@ -129,7 +129,7 @@ func TestObject(t *testing.T) {
 		t.Fatalf("rgot != rwant:\n%s", cmp.Diff(rwant, rgot.Keys()))
 	}
 
-	var igot isr.Fields
+	var igot big.Fields
 	iwant := []string{
 		"/ascii/48",
 		"/ascii/49",
@@ -146,8 +146,8 @@ func TestObject(t *testing.T) {
 		t.Fatalf("igot != iwant:\n%s", cmp.Diff(iwant, igot.Keys()))
 	}
 
-	var cgot isr.Fields
-	want[6].Type = "object/yaml"
+	var cgot big.Fields
+	want[6].Type = "struct/yaml"
 
 	if err := o.Encode(codec.Default); err != nil {
 		t.Fatalf("o.Encode()=%+v", err)
@@ -155,7 +155,7 @@ func TestObject(t *testing.T) {
 
 	o.Walk(cgot.Append)
 
-	cwant := isr.Fields{{
+	cwant := big.Fields{{
 		Key: "/ascii",
 	}, {
 		Key:   "/ascii/48",
@@ -173,7 +173,7 @@ func TestObject(t *testing.T) {
 		Key: "/foo",
 	}, {
 		Key:   "/foo/bar",
-		Type:  "object/json",
+		Type:  "struct/json",
 		Value: "[\"qux\",\"baz\"]",
 	}, {
 		Key:  "/foo/bar/0",
@@ -183,14 +183,14 @@ func TestObject(t *testing.T) {
 		Type: "field/string",
 	}, {
 		Key:   "/yaml",
-		Type:  "object/yaml",
+		Type:  "struct/yaml",
 		Value: "json: '{\"ini\":\"k=\\\"v\\\"\\nkey=\\\"value\\\"\\n\"}'\n",
 	}, {
 		Key:  "/yaml/json",
-		Type: "object/json",
+		Type: "struct/json",
 	}, {
 		Key:  "/yaml/json/ini",
-		Type: "object/ini",
+		Type: "struct/ini",
 	}, {
 		Key:  "/yaml/json/ini/k",
 		Type: "field/string",

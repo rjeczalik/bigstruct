@@ -1,4 +1,4 @@
-package isr_test
+package big_test
 
 import (
 	"flag"
@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/rjeczalik/bigstruct/isr"
-	"github.com/rjeczalik/bigstruct/isr/codec"
-	"github.com/rjeczalik/bigstruct/isr/isrutil"
+	"github.com/rjeczalik/bigstruct/big"
+	"github.com/rjeczalik/bigstruct/big/bigutil"
+	"github.com/rjeczalik/bigstruct/big/codec"
 
 	"github.com/google/go-cmp/cmp"
 	"gopkg.in/yaml.v3"
@@ -23,7 +23,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestCti(t *testing.T) {
-	orig, err := isrutil.MakeFile("testdata/docker")
+	orig, err := bigutil.MakeFile("testdata/docker")
 	if err != nil {
 		t.Fatalf("FileTree()=%s", err)
 	}
@@ -42,7 +42,7 @@ func TestCti(t *testing.T) {
 	)
 
 	if *updateGolden {
-		if err := writeFile("testdata/docker.isr.yaml.golden", exp); err != nil {
+		if err := writeFile("testdata/docker.big.yaml.golden", exp); err != nil {
 			t.Fatalf("writeFile()=%s", err)
 		}
 
@@ -81,7 +81,7 @@ func TestCti(t *testing.T) {
 		t.Fatalf("cpt.Encode()=%s", err)
 	}
 
-	objwant, err := objReadFile("testdata/docker.isr.yaml.golden")
+	objwant, err := objReadFile("testdata/docker.big.yaml.golden")
 	if err != nil {
 		t.Fatalf("objReadFile()=%s", err)
 	}
@@ -102,7 +102,7 @@ func TestCti(t *testing.T) {
 		t.Fatalf("got != want:\n%s", cmp.Diff(got, want))
 	}
 
-	mgot := isr.Make(exp.Value()).Merge(exp.Schema())
+	mgot := big.Make(exp.Value()).Merge(exp.Schema())
 
 	if got, want := mgot.Value(), exp.Value(); !cmp.Equal(got, want) {
 		t.Fatalf("got != want:\n%s", cmp.Diff(got, want))
@@ -145,13 +145,13 @@ func vReadFile(file string) (interface{}, error) {
 	return v, nil
 }
 
-func objReadFile(file string) (isr.Object, error) {
+func objReadFile(file string) (big.Struct, error) {
 	p, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
 
-	var obj isr.Object
+	var obj big.Struct
 
 	if err := yaml.Unmarshal(p, &obj); err != nil {
 		return nil, err

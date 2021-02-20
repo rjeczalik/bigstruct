@@ -1,4 +1,4 @@
-package isr
+package big
 
 import (
 	"bytes"
@@ -11,32 +11,32 @@ import (
 	"github.com/rjeczalik/bigstruct/internal/objects"
 )
 
-type Func func(key string, parent Object) error
+type Func func(key string, parent Struct) error
 
-type Object map[string]struct {
+type Struct map[string]struct {
 	Type     string      `json:"type,omitempty" yaml:"type,omitempty"`
 	Value    interface{} `json:"value,omitempty" yaml:"value,omitempty"`
-	Children Object      `json:"children,omitempty" yaml:"children,omitempty"`
+	Children Struct      `json:"children,omitempty" yaml:"children,omitempty"`
 }
 
-func Move(key string, o Object) Object {
+func Move(key string, s Struct) Struct {
 	if key == "" || key == "/" {
-		return o
+		return s
 	}
 
-	root := make(Object)
+	root := make(Struct)
 
-	if err := root.Put(key, o.Move); err != nil {
+	if err := root.Put(key, s.Move); err != nil {
 		panic("unexpected error: " + err.Error())
 	}
 
 	return root
 }
 
-func (o Object) Copy() Object {
-	u := make(Object, len(o))
+func (s Struct) Copy() Struct {
+	u := make(Struct, len(s))
 
-	for k, n := range o {
+	for k, n := range s {
 		n.Children = n.Children.Copy()
 		u[k] = n
 	}
@@ -44,10 +44,10 @@ func (o Object) Copy() Object {
 	return u
 }
 
-func (o Object) Schema() Object {
-	u := make(Object, len(o))
+func (s Struct) Schema() Struct {
+	u := make(Struct, len(s))
 
-	for k, n := range o {
+	for k, n := range s {
 		m, _ := u[k] // zero value
 		m.Type = n.Type
 		m.Children = n.Children.Schema()
@@ -57,36 +57,36 @@ func (o Object) Schema() Object {
 	return u.Shake()
 }
 
-func (o Object) Raw() Object {
-	o.Walk(func(key string, o Object) error {
+func (s Struct) Raw() Struct {
+	s.Walk(func(key string, s Struct) error {
 		var (
 			k = path.Base(key)
-			n = o[k]
+			n = s[k]
 		)
 
 		n.Type = ""
-		o[k] = n
+		s[k] = n
 
 		return nil
 	})
 
-	return o.Shake()
+	return s.Shake()
 }
 
-func (o Object) Merge(u Object) Object {
-	return append(o.Fields(), u.Fields()...).Object()
+func (s Struct) Merge(u Struct) Struct {
+	return append(s.Fields(), u.Fields()...).Struct()
 }
 
-func (o Object) Fields() Fields {
+func (s Struct) Fields() Fields {
 	var f Fields
-	o.Walk(f.Append)
+	s.Walk(f.Append)
 	return f
 }
 
-func (o Object) Value() interface{} {
+func (s Struct) Value() interface{} {
 	obj := make(map[string]interface{})
 
-	for name, node := range o {
+	for name, node := range s {
 		if node.Value != nil {
 			obj[name] = node.Value
 		} else {
@@ -105,64 +105,64 @@ func (o Object) Value() interface{} {
 	return obj
 }
 
-func (o Object) Shake() Object {
-	for k, n := range o {
+func (s Struct) Shake() Struct {
+	for k, n := range s {
 		if len(n.Children) == 0 && n.Value == nil && n.Type == "" {
-			delete(o, k)
+			delete(s, k)
 		} else {
 			n.Children = n.Children.Shake()
 		}
 	}
 
-	if len(o) == 0 {
+	if len(s) == 0 {
 		return nil
 	}
 
-	return o
+	return s
 }
 
-func (o Object) ShakeTypes() Object {
-	for k, n := range o {
+func (s Struct) ShakeTypes() Struct {
+	for k, n := range s {
 		if len(n.Children) == 0 && n.Value == nil {
-			delete(o, k)
+			delete(s, k)
 		} else {
 			n.Children = n.Children.ShakeTypes()
 		}
 	}
 
-	if len(o) == 0 {
+	if len(s) == 0 {
 		return nil
 	}
 
-	return o
+	return s
 }
 
-func (o Object) Move(key string, u Object) error {
+func (s Struct) Move(key string, u Struct) error {
 	var (
 		k = path.Base(key)
 		n = u[k]
 	)
 
-	n.Children = o
+	n.Children = s
 	u[k] = n
 
 	return nil
 }
 
-func (o Object) Put(key string, fn Func) error {
+func (s Struct) Put(key string, fn Func) error {
 	if key == "" || key == "/" {
 		return nil // fixme: error invalid key
 	}
 
 	var (
-		parent = o
+		parent = s
 		dir    = path.Dir(key)
 	)
 
 	for _, k := range objects.Split(dir) {
 		node, ok := parent[k]
 		if !ok || node.Children == nil {
-			node.Children = make(Object)
+			node.Children = make(Struct)
 			parent[k] = node
 		}
 		parent = node.Children
@@ -171,9 +171,9 @@ func (o Object) Put(key string, fn Func) error {
 	return fn(key, parent)
 }
 
-func (o Object) At(key string) Object {
+func (s Struct) At(key string) Struct {
 	var (
-		parent = o
+		parent = s
 	)
 
 	for _, k := range objects.Split(key) {
@@ -187,39 +187,39 @@ func (o Object) At(key string) Object {
 	return parent
 }
 
-func (o Object) ValueAt(key string) interface{} {
+func (s Struct) ValueAt(key string) interface{} {
 	var (
 		dir  = path.Dir(key)
 		base = path.Base(key)
 	)
 
-	return o.At(dir)[base].Value
+	return s.At(dir)[base].Value
 }
 
-func (o Object) TypeAt(key string) string {
+func (s Struct) TypeAt(key string) string {
 	var (
 		dir  = path.Dir(key)
 		base = path.Base(key)
 	)
 
-	return o.At(dir)[base].Type
+	return s.At(dir)[base].Type
 }
 
-func (o Object) Walk(fn Func) error {
+func (s Struct) Walk(fn Func) error {
 	type elm struct {
-		parent Object
+		parent Struct
 		key    string
 		left   []string
 	}
 
-	if len(o) == 0 {
+	if len(s) == 0 {
 		return nil
 	}
 
 	var (
 		it    elm
 		k     string
-		queue = []elm{{parent: o, key: "/", left: o.Keys()}}
+		queue = []elm{{parent: s, key: "/", left: s.Keys()}}
 	)
 
 	for len(queue) != 0 {
@@ -244,21 +244,21 @@ func (o Object) Walk(fn Func) error {
 	return nil
 }
 
-func (o Object) ReverseWalk(fn Func) error {
+func (s Struct) ReverseWalk(fn Func) error {
 	type elm struct {
-		parent Object
+		parent Struct
 		key    string
 		left   []string
 	}
 
-	if len(o) == 0 {
+	if len(s) == 0 {
 		return nil
 	}
 
 	var (
 		it    elm
 		k     string
-		queue = []elm{{parent: o, key: "/", left: o.Keys()}}
+		queue = []elm{{parent: s, key: "/", left: s.Keys()}}
 		rev   []elm
 	)
 
@@ -290,16 +290,16 @@ func (o Object) ReverseWalk(fn Func) error {
 	return nil
 }
 
-func (o Object) ForEach(fn Func) error {
-	return o.forEach("/", fn)
+func (s Struct) ForEach(fn Func) error {
+	return s.forEach("/", fn)
 }
 
-func (o Object) forEach(key string, fn Func) (err error) {
-	for _, k := range o.Keys() {
-		if n, p := o[k], path.Join(key, k); len(n.Children) != 0 {
+func (s Struct) forEach(key string, fn Func) (err error) {
+	for _, k := range s.Keys() {
+		if n, p := s[k], path.Join(key, k); len(n.Children) != 0 {
 			err = n.Children.forEach(p, fn)
 		} else {
-			err = fn(p, o)
+			err = fn(p, s)
 		}
 
 		if err != nil {
@@ -310,10 +310,10 @@ func (o Object) forEach(key string, fn Func) (err error) {
 	return nil
 }
 
-func (o Object) Keys() []string {
-	keys := make([]string, 0, len(o))
+func (s Struct) Keys() []string {
+	keys := make([]string, 0, len(s))
 
-	for k := range o {
+	for k := range s {
 		keys = append(keys, k)
 	}
 
@@ -322,7 +322,7 @@ func (o Object) Keys() []string {
 	return keys
 }
 
-func (o Object) WriteTab(w io.Writer) (n int64, err error) {
+func (s Struct) WriteTab(w io.Writer) (n int64, err error) {
 	m, err := fmt.Fprintln(w, "KEY\tTYPE\tVALUE")
 	if err != nil {
 		return int64(n), err
@@ -330,10 +330,10 @@ func (o Object) WriteTab(w io.Writer) (n int64, err error) {
 
 	n += int64(m)
 
-	err = o.Walk(func(key string, o Object) error {
+	err = s.Walk(func(key string, s Struct) error {
 		var (
 			k = path.Base(key)
-			u = o[k]
+			u = s[k]
 		)
 
 		if u.Value == nil && len(u.Children) != 0 && len(u.Type) == 0 {
@@ -354,20 +354,20 @@ func (o Object) WriteTab(w io.Writer) (n int64, err error) {
 	return n, err
 }
 
-func (o Object) String() string {
+func (s Struct) String() string {
 	var buf bytes.Buffer
 
-	if _, err := o.WriteTo(&buf); err != nil {
+	if _, err := s.WriteTo(&buf); err != nil {
 		panic("unexpected error: " + err.Error())
 	}
 
 	return buf.String()
 }
 
-func (o Object) WriteTo(w io.Writer) (int64, error) {
+func (s Struct) WriteTo(w io.Writer) (int64, error) {
 	tw := tabwriter.NewWriter(w, 2, 0, 2, ' ', 0)
 
-	n, err := o.WriteTab(tw)
+	n, err := s.WriteTab(tw)
 	if err != nil {
 		return n, err
 	}
@@ -379,16 +379,16 @@ func (o Object) WriteTo(w io.Writer) (int64, error) {
 	return n, err
 }
 
-func (o Object) Encode(c Codec) error {
+func (s Struct) Encode(c Codec) error {
 	if c == nil {
 		panic("codec is nil")
 	}
-	return o.ReverseWalk(c.Encode)
+	return s.ReverseWalk(c.Encode)
 }
 
-func (o Object) Decode(c Codec) error {
+func (s Struct) Decode(c Codec) error {
 	if c == nil {
 		panic("codec is nil")
 	}
-	return o.Walk(c.Decode)
+	return s.Walk(c.Decode)
 }

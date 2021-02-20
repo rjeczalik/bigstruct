@@ -1,16 +1,16 @@
-package isrutil
+package bigutil
 
 import (
 	"io/ioutil"
 
-	"github.com/rjeczalik/bigstruct/isr"
+	"github.com/rjeczalik/bigstruct/big"
 
 	"github.com/gobuffalo/packd"
 	"github.com/gobuffalo/packr"
 )
 
-func MakeBox(box *packr.Box) (isr.Object, error) {
-	var f isr.Fields
+func MakeBox(box *packr.Box) (big.Struct, error) {
+	var f big.Fields
 
 	err := box.Walk(func(path string, r packd.File) error {
 		p, err := ioutil.ReadAll(r)
@@ -18,7 +18,7 @@ func MakeBox(box *packr.Box) (isr.Object, error) {
 			return err
 		}
 
-		f = append(f, isr.Field{
+		f = append(f, big.Field{
 			Key:   cleanpath(path),
 			Value: string(p),
 		})
@@ -29,5 +29,5 @@ func MakeBox(box *packr.Box) (isr.Object, error) {
 		return nil, err
 	}
 
-	return f.Object(), nil
+	return f.Struct(), nil
 }

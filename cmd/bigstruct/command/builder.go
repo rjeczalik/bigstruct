@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"path"
 
+	"github.com/rjeczalik/bigstruct/big"
+	"github.com/rjeczalik/bigstruct/big/bigutil"
+	"github.com/rjeczalik/bigstruct/big/codec"
 	"github.com/rjeczalik/bigstruct/internal/types"
-	"github.com/rjeczalik/bigstruct/isr"
-	"github.com/rjeczalik/bigstruct/isr/codec"
-	"github.com/rjeczalik/bigstruct/isr/isrutil"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +16,7 @@ type Builder struct {
 	Prefix string
 	Values []string
 	Types  []string
-	Codec  isr.Codec
+	Codec  big.Codec
 }
 
 func (b *Builder) Register(cmd *cobra.Command) {
@@ -28,9 +28,9 @@ func (b *Builder) Register(cmd *cobra.Command) {
 	f.StringArrayVarP(&b.Types, "type", "t", nil, "")
 }
 
-func (b *Builder) Build() (isr.Fields, error) {
+func (b *Builder) Build() (big.Fields, error) {
 	var (
-		f, fields isr.Fields
+		f, fields big.Fields
 		err       error
 	)
 
@@ -49,12 +49,12 @@ func (b *Builder) Build() (isr.Fields, error) {
 	return fields, nil
 }
 
-func (b *Builder) buildFromImport() (isr.Fields, error) {
+func (b *Builder) buildFromImport() (big.Fields, error) {
 	if b.Import == "" {
 		return nil, nil
 	}
 
-	obj, err := isrutil.MakeFile(b.Import)
+	obj, err := bigutil.MakeFile(b.Import)
 	if err != nil {
 		return nil, err
 	}
@@ -64,19 +64,19 @@ func (b *Builder) buildFromImport() (isr.Fields, error) {
 	}
 
 	if b.Prefix != "" {
-		obj = isr.Move(b.Prefix, obj)
+		obj = big.Move(b.Prefix, obj)
 	}
 
 	return obj.Fields(), nil
 }
 
-func (b *Builder) buildFromValues() (isr.Fields, error) {
+func (b *Builder) buildFromValues() (big.Fields, error) {
 	if len(b.Values) == 0 && len(b.Types) == 0 {
 		return nil, nil
 	}
 
 	var (
-		f  isr.Fields
+		f  big.Fields
 		kv = types.MakeKV(b.Values...)
 		kt = types.MakeKV(b.Types...)
 	)
@@ -84,14 +84,14 @@ func (b *Builder) buildFromValues() (isr.Fields, error) {
 	for _, k := range kv.ReverseKeys() {
 		var (
 			key               = path.Join("/", b.Prefix, k)
-			value interface{} = isr.NoValue
+			value interface{} = big.NoValue
 		)
 
 		if v := kv[k]; v != "" {
 			value = types.YAML(v).Value()
 		}
 
-		f = append(f, isr.Field{
+		f = append(f, big.Field{
 			Key:   key,
 			Value: value,
 		})
@@ -107,7 +107,7 @@ func (b *Builder) buildFromValues() (isr.Fields, error) {
 			return nil, fmt.Errorf("type information for %q key is empty", key)
 		}
 
-		f = append(f, isr.Field{
+		f = append(f, big.Field{
 			Key:  key,
 			Type: typ,
 		})
@@ -116,7 +116,7 @@ func (b *Builder) buildFromValues() (isr.Fields, error) {
 	return f, nil
 }
 
-func (b *Builder) codec() isr.Codec {
+func (b *Builder) codec() big.Codec {
 	if b.Codec != nil {
 		return b.Codec
 	}

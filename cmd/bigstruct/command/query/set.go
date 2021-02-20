@@ -1,8 +1,8 @@
 package query
 
 import (
+	"github.com/rjeczalik/bigstruct/big"
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command"
-	"github.com/rjeczalik/bigstruct/isr"
 
 	"github.com/spf13/cobra"
 )
@@ -63,7 +63,7 @@ func (m *setCmd) run(cmd *cobra.Command, _ []string) error {
 	}
 
 	var (
-		obj = f.Object()
+		obj = f.Struct()
 	)
 
 	if m.schema {
@@ -76,5 +76,5 @@ func (m *setCmd) run(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	return m.Printer.Print(m.App, cmd, obj, isr.Prefix)
+	return m.Printer.Print(m.App, cmd, obj, big.Prefix)
 }

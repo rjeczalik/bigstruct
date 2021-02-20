@@ -1,0 +1,387 @@
+scylladb:
+    children:
+        scylla:
+            children:
+                tag:
+                    children:
+                        4.0.11:
+                            children:
+                                etc:
+                                    children:
+                                        scylla:
+                                            children:
+                                                scylla.yaml:
+                                                    children:
+                                                        api_address:
+                                                            type: field/string
+                                                        api_doc_dir:
+                                                            type: field/string
+                                                        api_port:
+                                                            type: field/number
+                                                        api_ui_dir:
+                                                            type: field/string
+                                                        batch_size_fail_threshold_in_kb:
+                                                            type: field/number
+                                                        batch_size_warn_threshold_in_kb:
+                                                            type: field/number
+                                                        cas_contention_timeout_in_ms:
+                                                            type: field/number
+                                                        commitlog_segment_size_in_mb:
+                                                            type: field/number
+                                                        commitlog_sync:
+                                                            type: field/string
+                                                        commitlog_sync_period_in_ms:
+                                                            type: field/number
+                                                        commitlog_total_space_in_mb:
+                                                            type: field/number
+                                                        endpoint_snitch:
+                                                            type: field/string
+                                                        listen_address:
+                                                            type: field/string
+                                                        murmur3_partitioner_ignore_msb_bits:
+                                                            type: field/number
+                                                        native_transport_port:
+                                                            type: field/number
+                                                        num_tokens:
+                                                            type: field/number
+                                                        partitioner:
+                                                            type: field/string
+                                                        read_request_timeout_in_ms:
+                                                            type: field/number
+                                                        rpc_address:
+                                                            type: field/string
+                                                        rpc_port:
+                                                            type: field/number
+                                                        seed_provider:
+                                                            children:
+                                                                "0":
+                                                                    children:
+                                                                        class_name:
+                                                                            type: field/string
+                                                                        parameters:
+                                                                            children:
+                                                                                "0":
+                                                                                    children:
+                                                                                        seeds:
+                                                                                            type: field/string
+                                                        write_request_timeout_in_ms:
+                                                            type: field/number
+                                                    type: struct/yaml
+                                        scylla.d:
+                                            children:
+                                                cpuset.conf:
+                                                    children:
+                                                        CPUSET:
+                                                            children:
+                                                                --cpuset:
+                                                                    type: field/number
+                                                                --smp:
+                                                                    type: field/number
+                                                            type: struct/flag
+                                                    type: struct/ini
+                                                io.conf:
+                                                    children:
+                                                        SEASTAR_IO:
+                                                            children:
+                                                                --max-io-requests:
+                                                                    type: field/number
+                                                                --num-io-queues:
+                                                                    type: field/number
+                                                            type: struct/flag
+                                                    type: struct/ini
+                                        sysconfig:
+                                            children:
+                                                scylla-server:
+                                                    children:
+                                                        AMI:
+                                                            type: field/string
+                                                        BRIDGE:
+                                                            type: field/string
+                                                        ETHDRV:
+                                                            type: field/bool
+                                                        ETHPCIID:
+                                                            type: field/bool
+                                                        GROUP:
+                                                            type: field/string
+                                                        IFNAME:
+                                                            type: field/string
+                                                        NETWORK_MODE:
+                                                            type: field/string
+                                                        NR_HUGEPAGES:
+                                                            type: field/number
+                                                        SCYLLA_ARGS:
+                                                            children:
+                                                                --default-log-level:
+                                                                    type: field/string
+                                                                --log-to-stdout:
+                                                                    type: field/number
+                                                                --log-to-syslog:
+                                                                    type: field/number
+                                                                --network-stack:
+                                                                    type: field/string
+                                                            type: struct/flag
+                                                        SCYLLA_CONF:
+                                                            type: field/string
+                                                        SCYLLA_HOME:
+                                                            type: field/string
+                                                        SET_NIC_AND_DISKS:
+                                                            type: field/string
+                                                        TAP:
+                                                            type: field/string
+                                                        USER:
+                                                            type: field/string
+                                                    type: struct/ini
+                        4.1.9:
+                            children:
+                                etc:
+                                    children:
+                                        scylla:
+                                            children:
+                                                scylla.yaml:
+                                                    children:
+                                                        api_address:
+                                                            type: field/string
+                                                        api_doc_dir:
+                                                            type: field/string
+                                                        api_port:
+                                                            type: field/number
+                                                        api_ui_dir:
+                                                            type: field/string
+                                                        batch_size_fail_threshold_in_kb:
+                                                            type: field/number
+                                                        batch_size_warn_threshold_in_kb:
+                                                            type: field/number
+                                                        cas_contention_timeout_in_ms:
+                                                            type: field/number
+                                                        commitlog_segment_size_in_mb:
+                                                            type: field/number
+                                                        commitlog_sync:
+                                                            type: field/string
+                                                        commitlog_sync_period_in_ms:
+                                                            type: field/number
+                                                        commitlog_total_space_in_mb:
+                                                            type: field/number
+                                                        endpoint_snitch:
+                                                            type: field/string
+                                                        listen_address:
+                                                            type: field/string
+                                                        murmur3_partitioner_ignore_msb_bits:
+                                                            type: field/number
+                                                        native_transport_port:
+                                                            type: field/number
+                                                        num_tokens:
+                                                            type: field/number
+                                                        partitioner:
+                                                            type: field/string
+                                                        read_request_timeout_in_ms:
+                                                            type: field/number
+                                                        rpc_address:
+                                                            type: field/string
+                                                        rpc_port:
+                                                            type: field/number
+                                                        seed_provider:
+                                                            children:
+                                                                "0":
+                                                                    children:
+                                                                        class_name:
+                                                                            type: field/string
+                                                                        parameters:
+                                                                            children:
+                                                                                "0":
+                                                                                    children:
+                                                                                        seeds:
+                                                                                            type: field/string
+                                                        write_request_timeout_in_ms:
+                                                            type: field/number
+                                                    type: struct/yaml
+                                        scylla.d:
+                                            children:
+                                                cpuset.conf:
+                                                    children:
+                                                        CPUSET:
+                                                            children:
+                                                                --cpuset:
+                                                                    type: field/number
+                                                                --smp:
+                                                                    type: field/number
+                                                            type: struct/flag
+                                                    type: struct/ini
+                                                io.conf:
+                                                    children:
+                                                        SEASTAR_IO:
+                                                            children:
+                                                                --max-io-requests:
+                                                                    type: field/number
+                                                                --num-io-queues:
+                                                                    type: field/number
+                                                            type: struct/flag
+                                                    type: struct/ini
+                                        sysconfig:
+                                            children:
+                                                scylla-server:
+                                                    children:
+                                                        AMI:
+                                                            type: field/string
+                                                        BRIDGE:
+                                                            type: field/string
+                                                        ETHDRV:
+                                                            type: field/bool
+                                                        ETHPCIID:
+                                                            type: field/bool
+                                                        GROUP:
+                                                            type: field/string
+                                                        IFNAME:
+                                                            type: field/string
+                                                        NETWORK_MODE:
+                                                            type: field/string
+                                                        NR_HUGEPAGES:
+                                                            type: field/number
+                                                        SCYLLA_ARGS:
+                                                            children:
+                                                                --default-log-level:
+                                                                    type: field/string
+                                                                --log-to-stdout:
+                                                                    type: field/number
+                                                                --log-to-syslog:
+                                                                    type: field/number
+                                                                --network-stack:
+                                                                    type: field/string
+                                                            type: struct/flag
+                                                        SCYLLA_CONF:
+                                                            type: field/string
+                                                        SCYLLA_HOME:
+                                                            type: field/string
+                                                        SET_NIC_AND_DISKS:
+                                                            type: field/string
+                                                        TAP:
+                                                            type: field/string
+                                                        USER:
+                                                            type: field/string
+                                                    type: struct/ini
+                        4.2.1:
+                            children:
+                                etc:
+                                    children:
+                                        scylla:
+                                            children:
+                                                scylla.yaml:
+                                                    children:
+                                                        api_address:
+                                                            type: field/string
+                                                        api_doc_dir:
+                                                            type: field/string
+                                                        api_port:
+                                                            type: field/number
+                                                        api_ui_dir:
+                                                            type: field/string
+                                                        batch_size_fail_threshold_in_kb:
+                                                            type: field/number
+                                                        batch_size_warn_threshold_in_kb:
+                                                            type: field/number
+                                                        cas_contention_timeout_in_ms:
+                                                            type: field/number
+                                                        commitlog_segment_size_in_mb:
+                                                            type: field/number
+                                                        commitlog_sync:
+                                                            type: field/string
+                                                        commitlog_sync_period_in_ms:
+                                                            type: field/number
+                                                        commitlog_total_space_in_mb:
+                                                            type: field/number
+                                                        endpoint_snitch:
+                                                            type: field/string
+                                                        listen_address:
+                                                            type: field/string
+                                                        murmur3_partitioner_ignore_msb_bits:
+                                                            type: field/number
+                                                        native_transport_port:
+                                                            type: field/number
+                                                        num_tokens:
+                                                            type: field/number
+                                                        partitioner:
+                                                            type: field/string
+                                                        read_request_timeout_in_ms:
+                                                            type: field/number
+                                                        rpc_address:
+                                                            type: field/string
+                                                        rpc_port:
+                                                            type: field/number
+                                                        seed_provider:
+                                                            children:
+                                                                "0":
+                                                                    children:
+                                                                        class_name:
+                                                                            type: field/string
+                                                                        parameters:
+                                                                            children:
+                                                                                "0":
+                                                                                    children:
+                                                                                        seeds:
+                                                                                            type: field/string
+                                                        write_request_timeout_in_ms:
+                                                            type: field/number
+                                                    type: struct/yaml
+                                        scylla.d:
+                                            children:
+                                                cpuset.conf:
+                                                    children:
+                                                        CPUSET:
+                                                            children:
+                                                                --cpuset:
+                                                                    type: field/number
+                                                                --smp:
+                                                                    type: field/number
+                                                            type: struct/flag
+                                                    type: struct/ini
+                                                io.conf:
+                                                    children:
+                                                        SEASTAR_IO:
+                                                            children:
+                                                                --max-io-requests:
+                                                                    type: field/number
+                                                                --num-io-queues:
+                                                                    type: field/number
+                                                            type: struct/flag
+                                                    type: struct/ini
+                                        sysconfig:
+                                            children:
+                                                scylla-server:
+                                                    children:
+                                                        AMI:
+                                                            type: field/string
+                                                        BRIDGE:
+                                                            type: field/string
+                                                        ETHDRV:
+                                                            type: field/bool
+                                                        ETHPCIID:
+                                                            type: field/bool
+                                                        GROUP:
+                                                            type: field/string
+                                                        IFNAME:
+                                                            type: field/string
+                                                        NETWORK_MODE:
+                                                            type: field/string
+                                                        NR_HUGEPAGES:
+                                                            type: field/number
+                                                        SCYLLA_ARGS:
+                                                            children:
+                                                                --default-log-level:
+                                                                    type: field/string
+                                                                --log-to-stdout:
+                                                                    type: field/number
+                                                                --log-to-syslog:
+                                                                    type: field/number
+                                                                --network-stack:
+                                                                    type: field/string
+                                                            type: struct/flag
+                                                        SCYLLA_CONF:
+                                                            type: field/string
+                                                        SCYLLA_HOME:
+                                                            type: field/string
+                                                        SET_NIC_AND_DISKS:
+                                                            type: field/string
+                                                        TAP:
+                                                            type: field/string
+                                                        USER:
+                                                            type: field/string
+                                                    type: struct/ini

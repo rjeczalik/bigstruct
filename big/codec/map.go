@@ -9,21 +9,21 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/rjeczalik/bigstruct/isr"
+	"github.com/rjeczalik/bigstruct/big"
 	"github.com/rjeczalik/bigstruct/internal/objects"
 )
 
 type Func func(typ string, m Map) error
 
 type Map map[string]struct {
-	Codec    isr.Codec
+	Codec    big.Codec
 	Priority int
 	Children Map
 }
 
-var _ isr.Codec = Map(nil)
+var _ big.Codec = Map(nil)
 
-func (m Map) Register(name string, c isr.Codec) Map {
+func (m Map) Register(name string, c big.Codec) Map {
 	n := m[name]
 	n.Codec = c
 	m[name] = n
@@ -41,7 +41,7 @@ func (m Map) RegisterMap(name string, priority int, cm Map) Map {
 	return cm
 }
 
-func (m Map) Codec(typ string) isr.Codec {
+func (m Map) Codec(typ string) big.Codec {
 	var (
 		parent = m
 		dir    = path.Dir(typ)
@@ -64,7 +64,7 @@ func (m Map) Codec(typ string) isr.Codec {
 	return n.Codec
 }
 
-func (m Map) Encode(key string, o isr.Object) error {
+func (m Map) Encode(key string, o big.Struct) error {
 	var (
 		k   = path.Base(key)
 		n   = o[k]
@@ -78,7 +78,7 @@ func (m Map) Encode(key string, o isr.Object) error {
 
 		if c := m.Codec(typ); c != nil {
 			if e := c.Encode(key, o); e != nil {
-				err = (&isr.Error{
+				err = (&big.Error{
 					Type: typ,
 					Op:   "encode",
 					Key:  key,
@@ -93,7 +93,7 @@ func (m Map) Encode(key string, o isr.Object) error {
 	}
 
 	if n.Type != "" {
-		err = (&isr.Error{
+		err = (&big.Error{
 			Type: n.Type,
 			Op:   "encode",
 			Key:  key,
@@ -104,7 +104,7 @@ func (m Map) Encode(key string, o isr.Object) error {
 	return err
 }
 
-func (m Map) Decode(key string, o isr.Object) error {
+func (m Map) Decode(key string, o big.Struct) error {
 	var (
 		err error
 		k   = path.Base(key)
@@ -122,7 +122,7 @@ func (m Map) Decode(key string, o isr.Object) error {
 
 		if c := m.Codec(typ); c != nil {
 			if e := c.Decode(key, o); e != nil {
-				err = (&isr.Error{
+				err = (&big.Error{
 					Type: typ,
 					Op:   "decode",
 					Key:  key,
@@ -137,7 +137,7 @@ func (m Map) Decode(key string, o isr.Object) error {
 	}
 
 	if n.Type != "" {
-		err = (&isr.Error{
+		err = (&big.Error{
 			Type: n.Type,
 			Op:   "decode",
 			Key:  key,
@@ -155,7 +155,7 @@ func (m Map) Decode(key string, o isr.Object) error {
 
 	for _, typ := range m.Keys() {
 		if e := m[typ].Codec.Decode(key, o); e != nil {
-			err = (&isr.Error{
+			err = (&big.Error{
 				Type: typ,
 				Op:   "decode",
 				Key:  key,
