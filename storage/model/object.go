@@ -1,13 +1,22 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 
 	"github.com/rjeczalik/bigstruct/internal/types"
+	"gopkg.in/yaml.v3"
 )
 
 type Object string
+
+var (
+	_ json.Marshaler   = Object("")
+	_ json.Unmarshaler = (*Object)(nil)
+	_ yaml.Marshaler   = Object("")
+	_ yaml.Unmarshaler = (*Object)(nil)
+)
 
 func (obj *Object) Set(v interface{}) Object {
 	var o types.Object
@@ -47,6 +56,38 @@ func (obj *Object) SetValues(kv ...interface{}) Object {
 	}
 
 	return obj.Set(o)
+}
+
+func (obj Object) MarshalJSON() ([]byte, error) {
+	return json.Marshal(obj.Map())
+}
+
+func (obj *Object) UnmarshalJSON(p []byte) error {
+	var o types.Object
+
+	if err := json.Unmarshal(p, &o); err != nil {
+		return err
+	}
+
+	obj.Set(o)
+
+	return nil
+}
+
+func (obj Object) MarshalYAML() (interface{}, error) {
+	return obj.Map(), nil
+}
+
+func (obj *Object) UnmarshalYAML(n *yaml.Node) error {
+	var o types.Object
+
+	if err := n.Decode(&o); err != nil {
+		return err
+	}
+
+	obj.Set(o)
+
+	return nil
 }
 
 func (obj *Object) Merge(v map[string]interface{}) Object {

@@ -1,0 +1,36 @@
+name: bigpack-scylla
+url: https://github.com/rjeczalik/bigpack-scylla
+version: 0.1.0
+namespaces:
+- name: base
+  priority: 10
+  metadata:
+    property: true
+- name: service
+  priority: 20
+  metadata:
+    property: true
+    custom_codec: template/server
+- name: instance
+  priority: 30
+  metadata:
+    property: true
+- name: account
+  priority: 40
+  metadata:
+    property: true
+- name: cluster
+  priority: 50
+  metadata:
+    property: true
+    custom_codec: template/cluster
+- name: dc
+  priority: 60
+  metadata:
+    property: true
+    custom_codec: template/dc
+- name: server
+  priority: 70
+  metadata:
+    property: true
+    custom_codec: template/server

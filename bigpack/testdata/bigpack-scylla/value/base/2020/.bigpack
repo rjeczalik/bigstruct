@@ -1,0 +1,2 @@
+/etc/scylla/scylla.yaml: struct/yaml
+/etc/sysconfig/scylla-server: struct/ini
