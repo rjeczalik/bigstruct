@@ -65,6 +65,7 @@ func MakeSchemas(ns *Namespace, f big.Fields) Schemas {
 func (s Schemas) SetNamespace(ns *Namespace) {
 	for _, s := range s {
 		s.Namespace = ns
+		s.NamespaceID = ns.ID
 		s.NamespaceProperty = ns.Property
 	}
 }

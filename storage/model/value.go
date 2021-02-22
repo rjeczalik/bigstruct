@@ -62,6 +62,7 @@ func MakeValues(ns *Namespace, f big.Fields) Values {
 func (v Values) SetNamespace(ns *Namespace) {
 	for _, v := range v {
 		v.Namespace = ns
+		v.NamespaceID = ns.ID
 		v.NamespaceProperty = ns.Property
 	}
 }
