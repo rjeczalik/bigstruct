@@ -44,7 +44,7 @@ func Packr(prefix string, b *packr.Box) FS {
 	return func(fn Func) error {
 		return b.WalkPrefix(prefix, func(path string, f packd.File) error {
 			defer f.Close()
-			return fn(trimPrefix(prefix, path), f)
+			return fn(trimPrefix(path, prefix), f)
 		})
 	}
 }
