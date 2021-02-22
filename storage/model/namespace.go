@@ -65,6 +65,33 @@ func (n *Namespace) UpdateMeta(nm *NamespaceMeta) {
 
 type Namespaces []*Namespace
 
+func (ns Namespaces) ByName(name string) *Namespace {
+	for _, n := range ns {
+		if n.Name == name {
+			return n
+		}
+	}
+	return nil
+}
+
+func (ns Namespaces) ByRef(ref string) *Namespace {
+	name, prop, err := ParseRef(ref)
+	if err != nil {
+		return nil
+	}
+
+	n := ns.ByName(name)
+	if n == nil {
+		return nil
+	}
+
+	if err := n.SetProperty(prop); err != nil {
+		return nil
+	}
+
+	return n
+}
+
 func (ns Namespaces) WriteTab(w io.Writer) (int64, error) {
 	var n int64
 

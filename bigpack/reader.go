@@ -65,9 +65,8 @@ func (r *Reader) Read(fs pak.FS) (*pak.Pak, error) {
 	}
 
 	var (
-		mnamespaces = make(map[string]*model.Namespace)
-		mschema     = make(map[string]big.Fields)
-		mvalue      = make(map[string]big.Fields)
+		mschema = make(map[string]big.Fields)
+		mvalue  = make(map[string]big.Fields)
 	)
 
 	err = fs(func(path string, rc io.ReadCloser) error {
@@ -87,7 +86,7 @@ func (r *Reader) Read(fs pak.FS) (*pak.Pak, error) {
 			return fmt.Errorf("file %q has invalid layout", path)
 		}
 
-		ns := nslookup(pk.Namespaces, parts[1]).Copy()
+		ns := pk.Namespaces.ByName(parts[1])
 		if ns == nil {
 			return fmt.Errorf("namespace %q not found for key: %q", parts[1], path)
 		}
@@ -107,12 +106,6 @@ func (r *Reader) Read(fs pak.FS) (*pak.Pak, error) {
 			key = stdpath.Join("/", parts[2], filepath.ToSlash(parts[3]))
 		} else {
 			key = stdpath.Join("/", filepath.ToSlash(parts[2]))
-		}
-
-		if n, ok := mnamespaces[ns.Ref()]; ok {
-			ns = n
-		} else {
-			mnamespaces[ns.Ref()] = ns
 		}
 
 		p, err := ioutil.ReadAll(rc)
@@ -155,7 +148,7 @@ func (r *Reader) Read(fs pak.FS) (*pak.Pak, error) {
 		}
 
 		var (
-			ns     = mnamespaces[ref]
+			ns     = pk.Namespaces.ByRef(ref)
 			schema = model.MakeSchemas(ns, s.Fields())
 		)
 
@@ -172,7 +165,7 @@ func (r *Reader) Read(fs pak.FS) (*pak.Pak, error) {
 		f = s.Fields()
 
 		var (
-			ns     = mnamespaces[ref]
+			ns     = pk.Namespaces.ByRef(ref)
 			schema = model.MakeSchemas(ns, f)
 			value  = model.MakeValues(ns, f)
 		)
@@ -189,15 +182,6 @@ func (r *Reader) codec() big.Codec {
 		return r.Codec
 	}
 	return codec.Default
-}
-
-func nslookup(ns model.Namespaces, name string) *model.Namespace {
-	for _, n := range ns {
-		if n.Name == name {
-			return n
-		}
-	}
-	return nil
 }
 
 func Read(fs pak.FS) (*pak.Pak, error) {

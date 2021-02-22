@@ -157,9 +157,11 @@ func (g Gorm) UpsertValues(v model.Values) error {
 
 func (g Gorm) txUpsertValues(v model.Values) Func {
 	return func(tx Gorm) error {
-		tx = Gorm{DB: tx.DB.Omit(clause.Associations)}
-
 		for _, v := range v {
+			if v.Namespace != nil && v.NamespaceID == 0 {
+				v.NamespaceID = v.Namespace.ID
+			}
+
 			q := &model.Value{
 				Key:               v.Key,
 				NamespaceID:       v.NamespaceID,
@@ -204,9 +206,11 @@ func (g Gorm) UpsertSchemas(s model.Schemas) error {
 
 func (g Gorm) txUpsertSchemas(s model.Schemas) Func {
 	return func(tx Gorm) error {
-		tx = Gorm{DB: tx.DB.Omit(clause.Associations)}
-
 		for _, s := range s {
+			if s.Namespace != nil && s.NamespaceID == 0 {
+				s.NamespaceID = s.Namespace.ID
+			}
+
 			q := &model.Schema{
 				Key:               s.Key,
 				NamespaceID:       s.NamespaceID,
