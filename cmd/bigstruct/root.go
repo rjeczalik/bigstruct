@@ -6,6 +6,7 @@ import (
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command"
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/index"
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/namespace"
+	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/pak"
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/query"
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/schema"
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/value"
@@ -27,6 +28,7 @@ func NewCommand(app *command.App) *cobra.Command {
 		index.NewCommand(app),
 		value.NewCommand(app),
 		schema.NewCommand(app),
+		pak.NewCommand(app),
 		command.Hidden(xq.NewCommand(app)),
 	)
 
