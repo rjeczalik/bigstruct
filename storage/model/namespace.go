@@ -47,10 +47,10 @@ func (n *Namespace) Meta() *NamespaceMeta {
 }
 
 func (n *Namespace) SetProperty(prop string) error {
-	switch p := n.Meta().Property; {
-	case !p && prop != "":
+	switch ok := !n.Meta().NoProperty; {
+	case !ok && prop != "":
 		return fmt.Errorf("property %q not supported for %q namespace", prop, n.Name)
-	case p && prop == "":
+	case ok && prop == "":
 		return fmt.Errorf("property required for %q namespace", n.Name)
 	default:
 		n.Property = prop
@@ -147,20 +147,9 @@ func (ns Namespaces) String() string {
 }
 
 type NamespaceMeta struct {
-	Property    bool   `json:"property"`
-	CustomCodec string `json:"custom_codec,omitempty"`
-}
-
-func (nm *NamespaceMeta) Update(um *NamespaceMeta) *NamespaceMeta {
-	if um == nil {
-		return nm
-	}
-
-	if um.CustomCodec != "" {
-		nm.CustomCodec = um.CustomCodec
-	}
-
-	return nm
+	NoProperty bool `json:"property,omitempty"`
+	Schema     bool `json:"schema,omitempty"`
+	ReadOnly   bool `json:"read_only,omitempty"`
 }
 
 func (nm *NamespaceMeta) JSON() types.JSON {

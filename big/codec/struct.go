@@ -1,6 +1,7 @@
 package codec
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"path"
@@ -20,7 +21,7 @@ type Struct struct {
 
 var _ big.Codec = (*Struct)(nil)
 
-func (s Struct) Encode(key string, o big.Struct) error {
+func (s Struct) Encode(_ context.Context, key string, o big.Struct) error {
 	var (
 		k = path.Base(key)
 		n = o[k]
@@ -61,7 +62,7 @@ func (s Struct) Encode(key string, o big.Struct) error {
 	return nil
 }
 
-func (s Struct) Decode(key string, o big.Struct) error {
+func (s Struct) Decode(_ context.Context, key string, o big.Struct) error {
 	var (
 		k = path.Base(key)
 		n = o[k]

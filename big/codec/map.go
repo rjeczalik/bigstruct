@@ -1,6 +1,7 @@
 package codec
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -64,7 +65,7 @@ func (m Map) Codec(typ string) big.Codec {
 	return n.Codec
 }
 
-func (m Map) Encode(key string, o big.Struct) error {
+func (m Map) Encode(ctx context.Context, key string, o big.Struct) error {
 	var (
 		k   = path.Base(key)
 		n   = o[k]
@@ -77,7 +78,7 @@ func (m Map) Encode(key string, o big.Struct) error {
 		)
 
 		if c := m.Codec(typ); c != nil {
-			if e := c.Encode(key, o); e != nil {
+			if e := c.Encode(ctx, key, o); e != nil {
 				err = (&big.Error{
 					Type: typ,
 					Op:   "encode",
@@ -104,7 +105,7 @@ func (m Map) Encode(key string, o big.Struct) error {
 	return err
 }
 
-func (m Map) Decode(key string, o big.Struct) error {
+func (m Map) Decode(ctx context.Context, key string, o big.Struct) error {
 	var (
 		err error
 		k   = path.Base(key)
@@ -121,7 +122,7 @@ func (m Map) Decode(key string, o big.Struct) error {
 		)
 
 		if c := m.Codec(typ); c != nil {
-			if e := c.Decode(key, o); e != nil {
+			if e := c.Decode(ctx, key, o); e != nil {
 				err = (&big.Error{
 					Type: typ,
 					Op:   "decode",
@@ -154,7 +155,7 @@ func (m Map) Decode(key string, o big.Struct) error {
 	// would be required - e.g. guessing content type using http
 
 	for _, typ := range m.Keys() {
-		if e := m[typ].Codec.Decode(key, o); e != nil {
+		if e := m[typ].Codec.Decode(ctx, key, o); e != nil {
 			err = (&big.Error{
 				Type: typ,
 				Op:   "decode",

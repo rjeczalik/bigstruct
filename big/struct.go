@@ -2,6 +2,7 @@ package big
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"path"
@@ -379,16 +380,20 @@ func (s Struct) WriteTo(w io.Writer) (int64, error) {
 	return n, err
 }
 
-func (s Struct) Encode(c Codec) error {
+func (s Struct) Encode(ctx context.Context, c Codec) error {
 	if c == nil {
 		panic("codec is nil")
 	}
-	return s.ReverseWalk(c.Encode)
+	return s.ReverseWalk(func(key string, s Struct) error {
+		return c.Encode(ctx, key, s)
+	})
 }
 
-func (s Struct) Decode(c Codec) error {
+func (s Struct) Decode(ctx context.Context, c Codec) error {
 	if c == nil {
 		panic("codec is nil")
 	}
-	return s.Walk(c.Decode)
+	return s.Walk(func(key string, s Struct) error {
+		return c.Decode(ctx, key, s)
+	})
 }

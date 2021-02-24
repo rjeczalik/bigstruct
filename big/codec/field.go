@@ -1,6 +1,7 @@
 package codec
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"path"
@@ -18,11 +19,11 @@ type Field struct {
 
 var _ big.Codec = (*Field)(nil)
 
-func (f Field) Encode(key string, o big.Struct) error {
+func (f Field) Encode(_ context.Context, key string, o big.Struct) error {
 	return f.convert("encode", key, o)
 }
 
-func (f Field) Decode(key string, o big.Struct) error {
+func (f Field) Decode(_ context.Context, key string, o big.Struct) error {
 	return f.convert("decode", key, o)
 }
 

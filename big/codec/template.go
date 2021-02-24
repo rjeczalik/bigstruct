@@ -2,6 +2,7 @@ package codec
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"path"
 	"text/template"
@@ -16,10 +17,10 @@ type Template struct {
 
 var _ big.Codec = (*Template)(nil)
 
-func (t Template) Encode(key string, o big.Struct) error {
+func (t Template) Encode(ctx context.Context, key string, s big.Struct) error {
 	var (
 		k = path.Base(key)
-		n = o[k]
+		n = s[k]
 	)
 
 	p, err := tobytes(n.Value)
@@ -51,12 +52,12 @@ func (t Template) Encode(key string, o big.Struct) error {
 	}
 
 	n.Value = buf.String()
-	o[k] = n
+	s[k] = n
 
 	return nil
 }
 
-func (t Template) Decode(key string, o big.Struct) error {
+func (Template) Decode(context.Context, string, big.Struct) error {
 	return errors.New("codec: template does not support decoding")
 }
 

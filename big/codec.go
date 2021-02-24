@@ -1,6 +1,8 @@
 package big
 
+import "context"
+
 type Codec interface {
-	Encode(key string, s Struct) error
-	Decode(key string, s Struct) error
+	Encode(ctx context.Context, key string, s Struct) error
+	Decode(ctx context.Context, key string, s Struct) error
 }
