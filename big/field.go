@@ -1,8 +1,12 @@
 package big
 
 import (
+	"bytes"
+	"fmt"
+	"io"
 	"path"
 	"sort"
+	"text/tabwriter"
 )
 
 type Field struct {
@@ -64,12 +68,88 @@ func (f Field) Set(key string, s Struct) error {
 	return nil
 }
 
+func (f Field) String() string {
+	switch v := f.Value.(type) {
+	case nil:
+		return ""
+	case string:
+		return v
+	case []byte:
+		return string(v)
+	default:
+		panic(fmt.Errorf("unable to convert %T to string", f.Value))
+	}
+}
+
+func (f Field) Bytes() []byte {
+	switch v := f.Value.(type) {
+	case nil:
+		return nil
+	case []byte:
+		return v
+	case string:
+		return []byte(v)
+	default:
+		panic(fmt.Errorf("unable to convert %T to []byte", f.Value))
+	}
+}
+
 type Fields []Field
 
 var (
 	_ Func           = (*Fields)(nil).Append
 	_ sort.Interface = (*Fields)(nil)
 )
+
+func (f Fields) WriteTab(w io.Writer) (n int64, err error) {
+	m, err := fmt.Fprintln(w, "KEY\tTYPE\tVALUE")
+	if err != nil {
+		return int64(n), err
+	}
+
+	n += int64(m)
+
+	for _, f := range f {
+		m, err := fmt.Fprintf(w, "%s\t%s\t%+v\n",
+			f.Key,
+			nonempty(f.Type, "-"),
+			nonil(f.Value, "-"),
+		)
+
+		n += int64(m)
+
+		if err != nil {
+			return n, err
+		}
+	}
+
+	return n, err
+}
+
+func (f Fields) String() string {
+	var buf bytes.Buffer
+
+	if _, err := f.WriteTo(&buf); err != nil {
+		panic("unexpected error: " + err.Error())
+	}
+
+	return buf.String()
+}
+
+func (f Fields) WriteTo(w io.Writer) (int64, error) {
+	tw := tabwriter.NewWriter(w, 2, 0, 2, ' ', 0)
+
+	n, err := f.WriteTab(tw)
+	if err != nil {
+		return n, err
+	}
+
+	if err := tw.Flush(); err != nil {
+		return n, err
+	}
+
+	return n, err
+}
 
 func (f *Fields) Append(key string, s Struct) error {
 	var (
@@ -82,6 +162,23 @@ func (f *Fields) Append(key string, s Struct) error {
 		Type:  n.Type,
 		Value: n.Value,
 	})
+
+	return nil
+}
+
+func (f *Fields) AppendIf(key string, s Struct) error {
+	var (
+		k = path.Base(key)
+		n = s[k]
+	)
+
+	if len(n.Children) != 0 && (n.Type != "" || n.Value != nil) {
+		*f = append(*f, Field{
+			Key:   key,
+			Type:  n.Type,
+			Value: n.Value,
+		})
+	}
 
 	return nil
 }
@@ -104,6 +201,13 @@ func (f Fields) Struct() Struct {
 	}
 
 	return s
+}
+
+func (f Fields) At(i int) Field {
+	if i < len(f) {
+		return f[i]
+	}
+	return Field{}
 }
 
 func (f Fields) Merge() Struct {

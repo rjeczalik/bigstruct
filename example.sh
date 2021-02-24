@@ -49,5 +49,3 @@ bigstruct set --index server=5 \
 	--value /etc/scylla/scylla.yaml/endpoint_snitch=ComplexSnitch
 
 bigstruct get --index server=5 /etc/scylla/scylla.yaml
-
-bigstruct schema list --namespace version=4.2.1

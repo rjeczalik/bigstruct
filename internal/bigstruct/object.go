@@ -17,8 +17,12 @@ type Scope struct {
 	Value     model.Values
 }
 
-func (s *Scope) Object() big.Struct {
-	return append(s.Schema.Fields(), s.Value.Fields()...).Struct()
+func (s *Scope) Fields() big.Fields {
+	return append(s.Schema.Fields(), s.Value.Fields()...)
+}
+
+func (s *Scope) Struct() big.Struct {
+	return s.Fields().Struct()
 }
 
 type Object struct {
@@ -37,7 +41,7 @@ func (obj *Object) LoadSchema(tx storage.Gorm, prefix string) error {
 			return fmt.Errorf("failed loading schema for %q namespace: %w", scope.Namespace.Ref(), err)
 		}
 
-		obj.Scopes[i].Schema = s
+		obj.Scopes[i].Schema = append(obj.Scopes[i].Schema, s...)
 	}
 
 	return nil
@@ -53,7 +57,7 @@ func (obj *Object) LoadValue(tx storage.Gorm, prefix string) error {
 			return fmt.Errorf("failed loading value for %q namespace: %w", scope.Namespace.Ref(), err)
 		}
 
-		obj.Scopes[i].Value = v
+		obj.Scopes[i].Value = append(obj.Scopes[i].Value, v...)
 	}
 
 	return nil
@@ -87,4 +91,14 @@ func (obj *Object) Namespaces() model.Namespaces {
 	}
 
 	return namespaces
+}
+
+func (obj *Object) Fields() big.Fields {
+	var f big.Fields
+
+	for _, s := range obj.Scopes {
+		f = append(f, s.Fields()...)
+	}
+
+	return f
 }

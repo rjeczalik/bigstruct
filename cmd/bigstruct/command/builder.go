@@ -1,6 +1,7 @@
 package command
 
 import (
+	"context"
 	"fmt"
 	"path"
 
@@ -28,13 +29,13 @@ func (b *Builder) Register(cmd *cobra.Command) {
 	f.StringArrayVarP(&b.Types, "type", "t", nil, "")
 }
 
-func (b *Builder) Build() (big.Fields, error) {
+func (b *Builder) Build(ctx context.Context) (big.Fields, error) {
 	var (
 		f, fields big.Fields
 		err       error
 	)
 
-	if f, err = b.buildFromImport(); err != nil {
+	if f, err = b.buildFromImport(ctx); err != nil {
 		return nil, err
 	}
 
@@ -49,7 +50,7 @@ func (b *Builder) Build() (big.Fields, error) {
 	return fields, nil
 }
 
-func (b *Builder) buildFromImport() (big.Fields, error) {
+func (b *Builder) buildFromImport(ctx context.Context) (big.Fields, error) {
 	if b.Import == "" {
 		return nil, nil
 	}
@@ -59,7 +60,7 @@ func (b *Builder) buildFromImport() (big.Fields, error) {
 		return nil, err
 	}
 
-	if err := obj.Decode(b.codec()); err != nil {
+	if err := obj.Decode(ctx, b.codec()); err != nil {
 		return nil, err
 	}
 

@@ -42,8 +42,11 @@ func newConfig(v url.Values) *gorm.Config {
 
 type Func func(tx Gorm) error
 
+type Scope func(tx Gorm) Gorm
+
 type Gorm struct {
-	DB *gorm.DB
+	DB     *gorm.DB
+	Scopes []Scope
 }
 
 var _ io.Closer = (*Gorm)(nil)
@@ -59,8 +62,30 @@ func (g Gorm) Close() error {
 
 func (g Gorm) Transaction(fn Func) error {
 	return g.DB.Transaction(func(tx *gorm.DB) error {
-		return fn(Gorm{DB: tx})
+		return fn(g.WithDB(tx))
 	})
+}
+
+func (g Gorm) WithDB(db *gorm.DB) Gorm {
+	return Gorm{
+		DB:     db,
+		Scopes: g.Scopes,
+	}
+}
+
+func (g Gorm) WithScopes(scopes ...Scope) Gorm {
+	return Gorm{
+		DB:     g.DB,
+		Scopes: append(g.Scopes, scopes...),
+	}
+}
+
+func (g Gorm) db() *gorm.DB {
+	for _, scope := range g.Scopes {
+		g = scope(g)
+	}
+
+	return g.DB
 }
 
 func (g Gorm) Namespace(namespace string) (*model.Namespace, error) {
@@ -71,7 +96,7 @@ func (g Gorm) Namespace(namespace string) (*model.Namespace, error) {
 
 	var ns model.Namespace
 
-	if err := g.DB.Where("name = ?", name).First(&ns).Error; err != nil {
+	if err := g.db().Where("name = ?", name).First(&ns).Error; err != nil {
 		return nil, err
 	}
 
@@ -92,7 +117,7 @@ func (g Gorm) txUpsertNamespace(n *model.Namespace) Func {
 			cur model.Namespace
 		)
 
-		switch err := tx.DB.Where("`name` = ?", n.Name).First(&cur).Error; {
+		switch err := tx.db().Where("`name` = ?", n.Name).First(&cur).Error; {
 		case errors.Is(err, gorm.ErrRecordNotFound):
 			return tx.DB.Create(n).Error
 		case err != nil:
@@ -100,7 +125,7 @@ func (g Gorm) txUpsertNamespace(n *model.Namespace) Func {
 		}
 
 		var (
-			db     = tx.DB.Model(&cur).Where("`id` = ?", cur.ID)
+			db     = tx.db().Model(&cur).Where("`id` = ?", cur.ID)
 			update = &model.Namespace{
 				Priority: n.Priority,
 			}
@@ -124,7 +149,7 @@ func (g Gorm) txUpsertIndex(i *model.Index) Func {
 			cur model.Index
 		)
 
-		switch err := tx.DB.Where("`name` = ? AND `property` = ?", i.Name, i.Property).First(&cur).Error; {
+		switch err := tx.db().Where("`name` = ? AND `property` = ?", i.Name, i.Property).First(&cur).Error; {
 		case errors.Is(err, gorm.ErrRecordNotFound):
 			return tx.DB.Create(i).Error
 		case err != nil:
@@ -132,7 +157,7 @@ func (g Gorm) txUpsertIndex(i *model.Index) Func {
 		}
 
 		var (
-			db     = tx.DB.Model(new(model.Index)).Where("`id` = ?", cur.ID)
+			db     = tx.db().Model(new(model.Index)).Where("`id` = ?", cur.ID)
 			update = new(model.Index)
 		)
 
@@ -168,7 +193,7 @@ func (g Gorm) txUpsertValues(v model.Values) Func {
 				NamespaceProperty: v.NamespaceProperty,
 			}
 
-			err := tx.DB.Model(q).Where(q).Select("id", "value", "metadata").Take(q).Error
+			err := tx.db().Model(q).Where(q).Select("id", "value", "metadata").Take(q).Error
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				continue
 			}
@@ -185,7 +210,7 @@ func (g Gorm) txUpsertValues(v model.Values) Func {
 				continue
 			}
 
-			if err := tx.DB.Model(q).Where("`id` = ?", q.ID).Delete(q).Error; err != nil {
+			if err := tx.db().Model(q).Where("`id` = ?", q.ID).Delete(q).Error; err != nil {
 				return err
 			}
 		}
@@ -217,7 +242,7 @@ func (g Gorm) txUpsertSchemas(s model.Schemas) Func {
 				NamespaceProperty: s.NamespaceProperty,
 			}
 
-			err := tx.DB.Model(q).Where(q).Select("id", "type", "encoding", "metadata").Take(q).Error
+			err := tx.db().Model(q).Where(q).Select("id", "type", "encoding", "metadata").Take(q).Error
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				continue
 			}
@@ -234,12 +259,12 @@ func (g Gorm) txUpsertSchemas(s model.Schemas) Func {
 				continue
 			}
 
-			if err := tx.DB.Model(q).Where("`id` = ?", q.ID).Delete(q).Error; err != nil {
+			if err := tx.db().Model(q).Where("`id` = ?", q.ID).Delete(q).Error; err != nil {
 				return err
 			}
 		}
 
-		return tx.DB.Clauses(clause.OnConflict{
+		return tx.db().Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "id"}},
 			DoUpdates: clause.AssignmentColumns([]string{"metadata", "updated_at"}),
 		}).Create(s).Error
@@ -249,7 +274,7 @@ func (g Gorm) txUpsertSchemas(s model.Schemas) Func {
 func (g Gorm) ListNamespaces() (model.Namespaces, error) {
 	var n model.Namespaces
 
-	return n, g.DB.
+	return n, g.db().
 		Where("`priority` > -1").
 		Order("`priority` ASC").
 		Find(&n).Error
@@ -258,7 +283,7 @@ func (g Gorm) ListNamespaces() (model.Namespaces, error) {
 func (g Gorm) ListIndexes() (model.Indexes, error) {
 	var i model.Indexes
 
-	return i, g.DB.
+	return i, g.db().
 		Order("`name`, `property` ASC").
 		Find(&i).
 		Error
@@ -267,7 +292,7 @@ func (g Gorm) ListIndexes() (model.Indexes, error) {
 func (g Gorm) ListSchemas(ns *model.Namespace, key string) (model.Schemas, error) {
 	var (
 		s  model.Schemas
-		db = g.DB
+		db = g.db()
 	)
 
 	if ns != nil {
@@ -290,7 +315,7 @@ func (g Gorm) ListSchemas(ns *model.Namespace, key string) (model.Schemas, error
 func (g Gorm) ListValues(ns *model.Namespace, key string) (model.Values, error) {
 	var (
 		v  model.Values
-		db = g.DB
+		db = g.db()
 	)
 
 	if ns != nil {
@@ -311,14 +336,14 @@ func (g Gorm) ListValues(ns *model.Namespace, key string) (model.Values, error) 
 }
 
 func (g Gorm) DeleteNamespace(n *model.Namespace) error {
-	return g.DB.
+	return g.db().
 		Where(n).
 		Delete((*model.Namespace)(nil)).
 		Error
 }
 
 func (g Gorm) DeleteIndex(i *model.Index) error {
-	return g.DB.
+	return g.db().
 		Where(i).
 		Delete((*model.Index)(nil)).
 		Error

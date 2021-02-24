@@ -100,9 +100,9 @@ func (s Schemas) WriteTab(w io.Writer) (int64, error) {
 	n += int64(m)
 
 	for _, s := range s {
-		m, err = fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\n",
+		m, err = fmt.Fprintf(w, "%v\t%s\t%s\t%s\t%s\t%s\n",
 			s.ID,
-			s.Namespace.Ref(),
+			nonempty(s.Namespace.Ref(), "-"),
 			s.Key,
 			s.Type,
 			s.Encoding,

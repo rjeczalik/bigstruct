@@ -1,4 +1,4 @@
-package query
+package bigstruct
 
 import (
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command"
@@ -8,7 +8,10 @@ import (
 
 func NewCommands(app *command.App) []*cobra.Command {
 	return []*cobra.Command{
+		NewListCommand(app),
 		NewGetCommand(app),
 		NewSetCommand(app),
+		NewDebugCommand(app),
+		NewHistoryCommand(app),
 	}
 }

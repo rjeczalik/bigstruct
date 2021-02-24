@@ -1,4 +1,4 @@
-package query
+package bigstruct
 
 import (
 	"github.com/rjeczalik/bigstruct/big"
@@ -31,8 +31,8 @@ type setCmd struct {
 	*command.App
 	*command.Builder
 	*command.Printer
-	namespace string
-	index     string
+	namespace command.Ref
+	index     command.Ref
 	schema    bool
 }
 
@@ -41,9 +41,9 @@ func (m *setCmd) register(cmd *cobra.Command) {
 
 	f := cmd.Flags()
 
-	f.StringVarP(&m.index, "index", "z", "", "")
-	f.StringVarP(&m.namespace, "namespace", "N", m.index, "")
-	f.BoolVarP(&m.schema, "schema", "x", false, "")
+	f.VarP(&m.index, "index", "z", "")
+	f.VarP(&m.namespace, "namespace", "N", "")
+	f.BoolVarP(&m.schema, "schema", "s", false, "")
 
 	cmd.MarkFlagRequired("index")
 }
@@ -57,7 +57,7 @@ func (m *setCmd) setDefaults(cmd *cobra.Command) {
 func (m *setCmd) run(cmd *cobra.Command, _ []string) error {
 	m.setDefaults(cmd)
 
-	f, err := m.Builder.Build()
+	f, err := m.Builder.Build(m.Context)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func (m *setCmd) run(cmd *cobra.Command, _ []string) error {
 		obj = obj.Raw()
 	}
 
-	if err := m.Query.Set(m.Context, m.index, m.namespace, obj); err != nil {
+	if err := m.Client.Set(m.Context, m.index.Ref(), m.namespace.Ref(), obj); err != nil {
 		return err
 	}
 

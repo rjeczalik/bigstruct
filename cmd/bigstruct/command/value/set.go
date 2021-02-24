@@ -53,7 +53,7 @@ func (m *setCmd) run(*cobra.Command, []string) error {
 }
 
 func (m *setCmd) txRun(g storage.Gorm) error {
-	f, err := m.Builder.Build()
+	f, err := m.Builder.Build(m.Context)
 	if err != nil {
 		return err
 	}

@@ -19,6 +19,6 @@ func (m Meta) Object() model.Object {
 	return new(model.Object).Set(types.MakeObject(m...))
 }
 
-func (m Meta) Slice() []string {
+func (m Meta) Strings() []string {
 	return m
 }

@@ -1,6 +1,7 @@
 package bigpack
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -24,7 +25,7 @@ type Reader struct {
 	Codec big.Codec // or codec.Default if nil
 }
 
-func (r *Reader) Read(fs pak.FS) (*pak.Pak, error) {
+func (r *Reader) Read(ctx context.Context, fs pak.FS) (*pak.Pak, error) {
 	const (
 		def   = "bigpack.yaml"
 		index = ".bigpack"
@@ -93,7 +94,7 @@ func (r *Reader) Read(fs pak.FS) (*pak.Pak, error) {
 
 		var key string
 
-		if ns.Meta().Property {
+		if !ns.Meta().NoProperty {
 			if err := ns.SetProperty(parts[2]); err != nil {
 				return fmt.Errorf(
 					"error setting %q property for %q namespace and %q key: %w",
@@ -143,7 +144,7 @@ func (r *Reader) Read(fs pak.FS) (*pak.Pak, error) {
 	for ref, f := range mschema {
 		s := f.Struct()
 
-		if err := s.Decode(r.codec()); err != nil {
+		if err := s.Decode(ctx, r.codec()); err != nil {
 			return nil, fmt.Errorf("error decoding schema for %q namespace: %w", ref, err)
 		}
 
@@ -158,7 +159,7 @@ func (r *Reader) Read(fs pak.FS) (*pak.Pak, error) {
 	for ref, f := range mvalue {
 		s := f.Struct()
 
-		if err := s.Decode(r.codec()); err != nil {
+		if err := s.Decode(ctx, r.codec()); err != nil {
 			return nil, fmt.Errorf("error decoding values for %q namespace: %w", ref, err)
 		}
 
@@ -184,6 +185,6 @@ func (r *Reader) codec() big.Codec {
 	return codec.Default
 }
 
-func Read(fs pak.FS) (*pak.Pak, error) {
-	return globalReader.Read(fs)
+func Read(ctx context.Context, fs pak.FS) (*pak.Pak, error) {
+	return globalReader.Read(ctx, fs)
 }

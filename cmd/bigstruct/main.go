@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -13,7 +12,6 @@ import (
 )
 
 func die(err error) {
-	fmt.Fprintln(os.Stderr, err)
 	os.Exit(1)
 }
 

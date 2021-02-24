@@ -80,7 +80,8 @@ func (s Struct) Merge(u Struct) Struct {
 
 func (s Struct) Fields() Fields {
 	var f Fields
-	s.Walk(f.Append)
+	s.ForEach(f.Append)
+	s.ReverseWalk(f.AppendIf)
 	return f
 }
 

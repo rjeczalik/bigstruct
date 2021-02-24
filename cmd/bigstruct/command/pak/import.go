@@ -41,7 +41,7 @@ func (m *importCmd) register(cmd *cobra.Command) {
 func (m *importCmd) run(cmd *cobra.Command, args []string) error {
 	m.setDefaults(cmd)
 
-	pk, err := bigpack.Read(pak.Dir(args[0]))
+	pk, err := bigpack.Read(m.Context, pak.Dir(args[0]))
 	if err != nil {
 		return fmt.Errorf("failed to read %q buildpack: %w", args[0], err)
 	}

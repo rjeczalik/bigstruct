@@ -4,10 +4,10 @@ import (
 	"os"
 
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command"
+	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/bigstruct"
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/index"
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/namespace"
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/pak"
-	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/query"
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/schema"
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/value"
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/xq"
@@ -33,7 +33,7 @@ func NewCommand(app *command.App) *cobra.Command {
 	)
 
 	cmd.AddCommand(
-		query.NewCommands(app)...,
+		bigstruct.NewCommands(app)...,
 	)
 
 	app.Register(cmd.PersistentFlags())

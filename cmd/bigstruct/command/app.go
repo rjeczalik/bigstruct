@@ -25,7 +25,7 @@ type App struct {
 
 	Config  Config
 	Storage *storage.Gorm
-	Query   *bigstruct.Query
+	Client  *bigstruct.Client
 }
 
 func (app *App) Register(f *pflag.FlagSet) {
@@ -72,7 +72,11 @@ func (app *App) Init(*cobra.Command, []string) error {
 		return err
 	}
 
-	app.Query = &bigstruct.Query{Storage: app.Storage}
+	app.Client = &bigstruct.Client{
+		Transport: &bigstruct.Server{
+			Storage: app.Storage,
+		},
+	}
 
 	return nil
 }
@@ -125,7 +129,7 @@ func (app *App) Render(v interface{}) (err error) {
 }
 
 func DefaultHome() string {
-	if dir := os.Getenv("CONFETTI_HOME"); dir != "" {
+	if dir := os.Getenv("BIGSTRUCT_HOME"); dir != "" {
 		return dir
 	}
 

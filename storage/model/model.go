@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/rjeczalik/bigstruct/internal/random"
 
@@ -51,7 +52,12 @@ func Ref(name, prop string) string {
 }
 
 func ParseRef(ref string) (name, prop string, err error) {
-	switch parts := strings.Split(ref, string(RefSeparator)); len(parts) {
+	parts, err := splitAlphanum(ref, string(RefSeparator))
+	if err != nil {
+		return "", "", fmt.Errorf("invalid ref: %w", err)
+	}
+
+	switch len(parts) {
 	case 0:
 		return "", "", errors.New("ref is empty or missing")
 	case 1:
@@ -70,6 +76,24 @@ func nonempty(s ...string) string {
 		}
 	}
 	return ""
+}
+
+func splitAlphanum(s, sep string) (sl []string, err error) {
+	for _, s := range strings.Split(s, sep) {
+		if s = strings.TrimSpace(s); s == "" {
+			continue
+		}
+
+		for _, r := range s {
+			if !unicode.IsLetter(r) && !unicode.IsNumber(r) && r != '.' {
+				return nil, fmt.Errorf("bad char: %q", r)
+			}
+		}
+
+		sl = append(sl, s)
+	}
+
+	return sl, nil
 }
 
 func reencode(in, out interface{}) error {

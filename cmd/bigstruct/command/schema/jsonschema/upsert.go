@@ -44,7 +44,7 @@ func (m *upsertCmd) register(cmd *cobra.Command) {
 }
 
 func (m *upsertCmd) run(cmd *cobra.Command, args []string) error {
-	f, err := m.Builder.Build()
+	f, err := m.Builder.Build(m.Context)
 	if err != nil {
 		return err
 	}

@@ -28,6 +28,18 @@ func (n *Namespace) Ref() string {
 	return n.Name
 }
 
+func (n *Namespace) SetRef(ref string) error {
+	name, prop, err := ParseRef(ref)
+	if err != nil {
+		return err
+	}
+
+	n.Name = name
+	n.Property = prop
+
+	return nil
+}
+
 func (n *Namespace) Copy() *Namespace {
 	if n == nil {
 		return nil
@@ -59,8 +71,8 @@ func (n *Namespace) SetProperty(prop string) error {
 	return nil
 }
 
-func (n *Namespace) UpdateMeta(nm *NamespaceMeta) {
-	n.Metadata = n.Meta().Update(nm).Metadata()
+func (n *Namespace) UpdateMeta(m map[string]interface{}) {
+	// n.Metadata = n.Meta().Update(nm).Metadata()
 }
 
 type Namespaces []*Namespace
@@ -147,7 +159,7 @@ func (ns Namespaces) String() string {
 }
 
 type NamespaceMeta struct {
-	NoProperty bool `json:"property,omitempty"`
+	NoProperty bool `json:"no_property,omitempty"`
 	Schema     bool `json:"schema,omitempty"`
 	ReadOnly   bool `json:"read_only,omitempty"`
 }

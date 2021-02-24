@@ -32,18 +32,14 @@ func (p *Printer) Register(cmd *cobra.Command) {
 }
 
 func (p *Printer) Print(app *App, cmd *cobra.Command, f Fielder, prefix string) error {
-	if !p.Encode && !p.Decode {
-		return app.Render(f)
-	}
-
 	obj := f.Fields().Merge()
 
 	if p.Encode {
-		if err := obj.Encode(codec.Default); err != nil {
+		if err := obj.Encode(app.Context, codec.Default); err != nil {
 			return err
 		}
-	} else {
-		if err := obj.Decode(codec.Default); err != nil {
+	} else if p.Decode {
+		if err := obj.Decode(app.Context, codec.Default); err != nil {
 			return err
 		}
 	}
