@@ -1,7 +1,6 @@
 package bigstruct
 
 import (
-	"github.com/rjeczalik/bigstruct/big"
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command"
 
 	"github.com/spf13/cobra"
@@ -11,7 +10,6 @@ func NewSetCommand(app *command.App) *cobra.Command {
 	m := &setCmd{
 		App:     app,
 		Builder: new(command.Builder),
-		Printer: new(command.Printer),
 	}
 
 	cmd := &cobra.Command{
@@ -30,7 +28,6 @@ func NewSetCommand(app *command.App) *cobra.Command {
 type setCmd struct {
 	*command.App
 	*command.Builder
-	*command.Printer
 	namespace command.Ref
 	index     command.Ref
 	schema    bool
@@ -43,7 +40,6 @@ func (m *setCmd) register(cmd *cobra.Command) {
 
 	f.VarP(&m.index, "index", "z", "")
 	f.VarP(&m.namespace, "namespace", "N", "")
-	f.BoolVarP(&m.schema, "schema", "s", false, "")
 
 	cmd.MarkFlagRequired("index")
 }
@@ -66,15 +62,9 @@ func (m *setCmd) run(cmd *cobra.Command, _ []string) error {
 		obj = f.Struct()
 	)
 
-	if m.schema {
-		obj = obj.Schema()
-	} else {
-		obj = obj.Raw()
-	}
-
 	if err := m.Client.Set(m.Context, m.index.Ref(), m.namespace.Ref(), obj); err != nil {
 		return err
 	}
 
-	return m.Printer.Print(m.App, cmd, obj, big.Prefix)
+	return m.Render(f)
 }

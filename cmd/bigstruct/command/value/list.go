@@ -10,8 +10,7 @@ import (
 
 func NewListCommand(app *command.App) *cobra.Command {
 	m := &listCmd{
-		App:     app,
-		Printer: new(command.Printer),
+		App: app,
 	}
 
 	cmd := &cobra.Command{
@@ -30,14 +29,11 @@ func NewListCommand(app *command.App) *cobra.Command {
 
 type listCmd struct {
 	*command.App
-	*command.Printer
 	namespace string
 	prefix    string
 }
 
 func (m *listCmd) register(cmd *cobra.Command) {
-	m.Printer.Register(cmd)
-
 	f := cmd.Flags()
 
 	f.StringVarP(&m.namespace, "namespace", "N", "", "")
@@ -46,7 +42,7 @@ func (m *listCmd) register(cmd *cobra.Command) {
 	cmd.MarkFlagRequired("namespace")
 }
 
-func (m *listCmd) run(cmd *cobra.Command, _ []string) error {
+func (m *listCmd) run(*cobra.Command, []string) error {
 	ns, err := m.Storage.Namespace(m.namespace)
 	if err != nil {
 		return fmt.Errorf("error loading %q namespace: %w", m.namespace, err)
@@ -57,5 +53,5 @@ func (m *listCmd) run(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("error listing %q values for %q namespace: %w", m.prefix, ns.Ref(), err)
 	}
 
-	return m.Printer.Print(m.App, cmd, v, m.prefix)
+	return m.Render(v)
 }

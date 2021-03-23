@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/rjeczalik/bigstruct"
+	"github.com/rjeczalik/bigstruct/big"
 	"github.com/rjeczalik/bigstruct/internal/types"
 	"github.com/rjeczalik/bigstruct/storage"
 
@@ -22,6 +23,7 @@ type App struct {
 
 	Home   string
 	Format string
+	Raw    bool
 
 	Config  Config
 	Storage *storage.Gorm
@@ -31,6 +33,7 @@ type App struct {
 func (app *App) Register(f *pflag.FlagSet) {
 	f.StringVar(&app.Home, "home", DefaultHome(), "Default home directory")
 	f.StringVarP(&app.Format, "format", "f", "text", "Output formatting type")
+	f.BoolVarP(&app.Raw, "raw", "r", false, "Print big.Struct representation")
 }
 
 func (app *App) DefaultHome(cmd *cobra.Command, home string) {
@@ -107,11 +110,28 @@ func (app *App) DefaultConfig() Config {
 }
 
 func (app *App) Render(v interface{}) (err error) {
+	type fielder interface {
+		Fields() big.Fields
+	}
+
+	type structer interface {
+		Struct() big.Struct
+	}
+
+	if app.Raw {
+		switch w := v.(type) {
+		case fielder:
+			v = w.Fields().Struct()
+		case structer:
+			v = w.Struct()
+		}
+	}
+
 	switch app.Format {
 	case "json":
-		fmt.Print(types.MakePrettyJSON(v))
+		fmt.Println(types.MakePrettyJSON(v))
 	case "yaml":
-		fmt.Print(types.MakeYAML(v))
+		fmt.Println(types.MakeYAML(v))
 	case "text":
 		switch v := v.(type) {
 		case []byte:

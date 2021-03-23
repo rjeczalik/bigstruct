@@ -71,10 +71,6 @@ func (n *Namespace) SetProperty(prop string) error {
 	return nil
 }
 
-func (n *Namespace) UpdateMeta(m map[string]interface{}) {
-	// n.Metadata = n.Meta().Update(nm).Metadata()
-}
-
 type Namespaces []*Namespace
 
 func (ns Namespaces) ByName(name string) *Namespace {
@@ -161,7 +157,6 @@ func (ns Namespaces) String() string {
 type NamespaceMeta struct {
 	NoProperty bool `json:"no_property,omitempty"`
 	Schema     bool `json:"schema,omitempty"`
-	ReadOnly   bool `json:"read_only,omitempty"`
 }
 
 func (nm *NamespaceMeta) JSON() types.JSON {

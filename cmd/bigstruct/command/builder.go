@@ -86,10 +86,13 @@ func (b *Builder) buildFromValues() (big.Fields, error) {
 		var (
 			key               = path.Join("/", b.Prefix, k)
 			value interface{} = big.NoValue
+			err   error
 		)
 
 		if v := kv[k]; v != "" {
-			value = types.YAML(v).Value()
+			if value, err = types.YAML(v).TryValue(); err != nil {
+				value = v
+			}
 		}
 
 		f = append(f, big.Field{

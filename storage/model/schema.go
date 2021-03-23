@@ -105,7 +105,7 @@ func (s Schemas) WriteTab(w io.Writer) (int64, error) {
 			nonempty(s.Namespace.Ref(), "-"),
 			s.Key,
 			s.Type,
-			s.Encoding,
+			nonempty(s.Encoding, "-"),
 			nonempty(s.Metadata.String(), "-"),
 		)
 

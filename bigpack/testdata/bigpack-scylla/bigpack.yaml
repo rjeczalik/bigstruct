@@ -4,23 +4,17 @@ version: 0.1.0
 namespaces:
 - name: base
   priority: 10
+  metadata:
+    schema: true
 - name: service
   priority: 20
-  metadata:
-    custom_codec: template/server
 - name: instance
   priority: 30
 - name: account
   priority: 40
 - name: cluster
   priority: 50
-  metadata:
-    custom_codec: template/cluster
 - name: dc
   priority: 60
-  metadata:
-    custom_codec: template/dc
 - name: server
   priority: 70
-  metadata:
-    custom_codec: template/server

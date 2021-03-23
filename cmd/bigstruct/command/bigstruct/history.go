@@ -9,9 +9,6 @@ import (
 func NewHistoryCommand(app *command.App) *cobra.Command {
 	m := &historyCmd{
 		App: app,
-		Printer: &command.Printer{
-			Encode: true,
-		},
 	}
 
 	cmd := &cobra.Command{
@@ -29,14 +26,11 @@ func NewHistoryCommand(app *command.App) *cobra.Command {
 
 type historyCmd struct {
 	*command.App
-	*command.Printer
 	index     string
 	namespace string
 }
 
 func (m *historyCmd) register(cmd *cobra.Command) {
-	m.Printer.Register(cmd)
-
 	f := cmd.Flags()
 
 	f.StringVarP(&m.index, "index", "z", "", "")

@@ -1,8 +1,8 @@
 package xq
 
 import (
-	"errors"
-
+	"github.com/rjeczalik/bigstruct/big/bigutil"
+	"github.com/rjeczalik/bigstruct/big/codec"
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command"
 
 	"github.com/spf13/cobra"
@@ -13,11 +13,12 @@ func NewCommand(app *command.App) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:           "xq",
-		Short:         "(wip)",
-		Args:          cobra.NoArgs,
+		Short:         "",
+		Args:          cobra.ExactArgs(1),
 		RunE:          m.run,
 		SilenceUsage:  true,
 		SilenceErrors: true,
+		Hidden:        true,
 	}
 
 	m.register(cmd)
@@ -36,5 +37,14 @@ func (m *xqCmd) register(cmd *cobra.Command) {
 }
 
 func (m *xqCmd) run(_ *cobra.Command, args []string) error {
-	return errors.New("not implemented")
+	s, err := bigutil.MakeFile(args[0])
+	if err != nil {
+		return err
+	}
+
+	if err := s.Decode(m.Context, codec.Default); err != nil {
+		return err
+	}
+
+	return m.Render(s)
 }

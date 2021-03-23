@@ -48,4 +48,21 @@ bigstruct set --index server=5 \
 	--value /etc/scylla/scylla.yaml/api_port=9090 \
 	--value /etc/scylla/scylla.yaml/endpoint_snitch=ComplexSnitch
 
+bigstruct set --index service=cql \
+	--type /etc/sysconfig/scylla-server/SCYLLA_ARGS=template
+
+bigstruct set --index service=cql \
+	--type /etc/sysconfig/scylla-server/USER=field/template
+
+bigstruct set --index service=cql \
+	--value /etc/sysconfig/scylla-server/SCYLLA_ARGS/--default-log-level='{{ printf "debug" }}' \
+	--value /etc/sysconfig/scylla-server/SCYLLA_ARGS/--log-to-stdout='{{ printf "11" }}' \
+	--value /etc/sysconfig/scylla-server/SCYLLA_ARGS/--log-to-syslog='{{ printf "12" }}' \
+	--value /etc/sysconfig/scylla-server/SCYLLA_ARGS/--network-stack='{{ printf "unix" }}'
+
+bigstruct set --index service=cql \
+	--value /etc/sysconfig/scylla-server/USER='{{ printf "scylla" }}'
+
 bigstruct get --index server=5 /etc/scylla/scylla.yaml
+
+bigstruct get --index server=5 /etc/sysconfig/scylla-server

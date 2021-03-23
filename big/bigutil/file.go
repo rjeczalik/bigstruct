@@ -34,7 +34,7 @@ func MakeFile(path string) (big.Struct, error) {
 				return err
 			}
 
-			if filepath.Base(key) == ".bigstruct.index" {
+			if filepath.Base(key) == ".bigpack" {
 				var idx index
 
 				if err := types.YAML(p).Unmarshal(&idx); err != nil {

@@ -22,17 +22,26 @@ func MakeYAML(v interface{}) YAML {
 }
 
 func (s YAML) Value() interface{} {
+	v, err := s.TryValue()
+	if err != nil {
+		panic("unexpected error: " + err.Error())
+	}
+
+	return v
+}
+
+func (s YAML) TryValue() (interface{}, error) {
 	if s == "" {
-		return nil
+		return nil, nil
 	}
 
 	var v interface{}
 
 	if err := s.Unmarshal(&v); err != nil {
-		panic("unexpected error: " + err.Error())
+		return nil, err
 	}
 
-	return v
+	return v, nil
 }
 
 func (s YAML) String() string {

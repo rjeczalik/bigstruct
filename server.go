@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"path"
 
 	"github.com/rjeczalik/bigstruct/big"
 	"github.com/rjeczalik/bigstruct/big/codec"
@@ -113,6 +112,10 @@ func (s *Server) txDoGet(ctx context.Context, op *Op) storage.Func {
 			}
 		}
 
+		if err := obj.Encode(ctx, s.codec()); err != nil {
+			return fmt.Errorf("error decoding object: %w", err)
+		}
+
 		op.Struct = obj.Fields().Merge().ShakeTypes().Shake()
 
 		if op.Encode {
@@ -134,89 +137,29 @@ func (s *Server) txDoSet(ctx context.Context, op *Op) storage.Func {
 		var obj bigstruct.Object
 
 		if err = s.txObject(ctx, op, &obj)(tx); err != nil {
-			return err
+			return fmt.Errorf("error building object: %w", err)
 		}
 
+		if obj.Namespace == nil {
+			return errors.New("namespace is missing")
+		}
+
+		// todo: load only schema=true and schema for obj.Namespace
 		if err = obj.LoadSchema(tx, big.Prefix); err != nil {
-			return err
+			return fmt.Errorf("error loading schema: %w", err)
 		}
 
-		var (
-			schema = obj.Schemas().Fields().Struct()
-		)
-
-		// validate schema
-
-		err = op.Struct.Walk(func(key string, o big.Struct) error {
-			var (
-				k = path.Base(key)
-				n = o[k]
-			)
-
-			if n.Type != "" {
-				switch t := schema.TypeAt(key); {
-				case t == "":
-					// ok
-				case t == n.Type:
-					n.Type = "" // strip
-					o[k] = n
-				default:
-					return fmt.Errorf("cannot override existing schema %q for %q key with %q type (%#v)", t, key, n.Type, n.Value)
-				}
-			}
-
-			return nil
-		})
-
+		scope, err := obj.Build(ctx, op.Struct, s.codec())
 		if err != nil {
-			return err
+			return fmt.Errorf("error building object: %w", err)
 		}
 
-		var (
-			value = op.Struct.Copy().Raw()
-		)
-
-		// validate key
-
-		err = value.ForEach(func(key string, o big.Struct) error {
-			var (
-				d, k = path.Split(key)
-				n    = o[k]
-			)
-
-			if n.Value == nil {
-				return nil
-			}
-
-			if _, ok := schema.At(d)[k]; !ok {
-				return fmt.Errorf("the key %q (%T) does not exist in schema", key, n.Value)
-			}
-
-			return nil
-		})
-
-		if err != nil {
-			return err
+		if err := tx.UpsertSchemas(scope.Schema); err != nil {
+			return fmt.Errorf("error upserting schema: %w", err)
 		}
 
-		// validate value
-
-		if err := schema.Merge(value).Decode(ctx, s.codec()); err != nil {
-			return err
-		}
-
-		var (
-			f = op.Struct.Fields()
-			v = model.MakeValues(obj.Namespace, f)
-			s = model.MakeSchemas(obj.Namespace, f)
-		)
-
-		if err := tx.UpsertSchemas(s); err != nil {
-			return err
-		}
-
-		if err := tx.UpsertValues(v); err != nil {
-			return err
+		if err := tx.UpsertValues(scope.Value); err != nil {
+			return fmt.Errorf("error upserting values: %w", err)
 		}
 
 		return nil

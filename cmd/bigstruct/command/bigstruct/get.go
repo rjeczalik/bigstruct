@@ -1,6 +1,10 @@
 package bigstruct
 
 import (
+	"fmt"
+	"path"
+
+	"github.com/rjeczalik/bigstruct/big"
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command"
 
 	"github.com/spf13/cobra"
@@ -8,8 +12,7 @@ import (
 
 func NewGetCommand(app *command.App) *cobra.Command {
 	m := &getCmd{
-		App:     app,
-		Printer: new(command.Printer),
+		App: app,
 	}
 
 	cmd := &cobra.Command{
@@ -27,13 +30,10 @@ func NewGetCommand(app *command.App) *cobra.Command {
 
 type getCmd struct {
 	*command.App
-	*command.Printer
 	index command.Ref
 }
 
 func (m *getCmd) register(cmd *cobra.Command) {
-	m.Printer.Register(cmd)
-
 	f := cmd.Flags()
 
 	f.VarP(&m.index, "index", "z", "")
@@ -47,5 +47,18 @@ func (m *getCmd) run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return m.Printer.Print(m.App, cmd, s, args[0])
+	return s.Walk(func(key string, o big.Struct) error {
+		var (
+			k = path.Base(key)
+			n = o[k]
+		)
+
+		if n.Value == nil {
+			return nil
+		}
+
+		fmt.Printf("# %s\n%s\n", key, n.Value)
+
+		return nil
+	})
 }
