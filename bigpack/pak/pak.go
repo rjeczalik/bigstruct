@@ -8,19 +8,19 @@ import (
 )
 
 type Pak struct {
-	Name       string           `yaml:"name"`
-	URL        string           `yaml:"url"`
-	Version    string           `yaml:"version"`
-	Namespaces model.Namespaces `yaml:"namespaces"`
-	Indexes    model.Indexes    `yaml:"indexes,omitempty"`
-	Schemas    model.Schemas    `yaml:"schemas,omitempty"`
-	Values     model.Values     `yaml:"values,omitempty"`
+	Name     string         `yaml:"name"`
+	URL      string         `yaml:"url"`
+	Version  string         `yaml:"version"`
+	Overlays model.Overlays `yaml:"overlays"`
+	Indexes  model.Indexes  `yaml:"indexes,omitempty"`
+	Schemas  model.Schemas  `yaml:"schemas,omitempty"`
+	Values   model.Values   `yaml:"values,omitempty"`
 }
 
 func (pk *Pak) Store(tx storage.Gorm) error {
-	for _, ns := range pk.Namespaces {
-		if err := tx.UpsertNamespace(ns); err != nil {
-			return fmt.Errorf("error upserting %q namespace: %w", ns.Ref(), err)
+	for _, o := range pk.Overlays {
+		if err := tx.UpsertOverlay(o); err != nil {
+			return fmt.Errorf("error upserting %q overlay: %w", o.Ref(), err)
 		}
 	}
 

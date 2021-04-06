@@ -12,14 +12,14 @@ import (
 )
 
 type Schema struct {
-	Model             `yaml:",inline"`
-	Namespace         *Namespace `yaml:"-" json:"-"`
-	NamespaceID       uint64     `gorm:"column:namespace_id;type:bigint;not null;index" yaml:"namespace_id,omitempty" json:"namespace_id,omitempty"`
-	NamespaceProperty string     `gorm:"column:namespace_property;type:tinytext;not null" yaml:"namespace_property,omitempty" json:"namespace_property,omitempty"`
-	Key               string     `gorm:"column:key;type:text;not null" yaml:"key,omitempty" json:"key,omitempty"`
-	Type              string     `gorm:"column:type;type:tinytext;not null" yaml:"type,omitempty" json:"type,omitempty"`
-	Encoding          string     `gorm:"column:encoding;type:tinytext;not null" yaml:"encoding,omitempty" json:"encoding,omitempty"`
-	Metadata          Object     `gorm:"column:metadata;type:text" yaml:"metadata,omitempty" json:"metadata,omitempty"`
+	Model           `yaml:",inline"`
+	Overlay         *Overlay `yaml:"-" json:"-"`
+	OverlayID       uint64   `gorm:"column:overlay_id;type:bigint;not null;index" yaml:"overlay_id,omitempty" json:"overlay_id,omitempty"`
+	OverlayProperty string   `gorm:"column:overlay_property;type:tinytext;not null" yaml:"overlay_property,omitempty" json:"overlay_property,omitempty"`
+	Key             string   `gorm:"column:key;type:text;not null" yaml:"key,omitempty" json:"key,omitempty"`
+	Type            string   `gorm:"column:type;type:tinytext;not null" yaml:"type,omitempty" json:"type,omitempty"`
+	Encoding        string   `gorm:"column:encoding;type:tinytext;not null" yaml:"encoding,omitempty" json:"encoding,omitempty"`
+	Metadata        Object   `gorm:"column:metadata;type:text" yaml:"metadata,omitempty" json:"metadata,omitempty"`
 }
 
 func (*Schema) TableName() string {
@@ -35,38 +35,41 @@ func (s *Schema) Codec() string {
 
 type Schemas []*Schema
 
-func MakeSchemas(ns *Namespace, f big.Fields) Schemas {
-	values := make(Schemas, 0, len(f))
+func MakeSchemas(o *Overlay, f big.Fields) Schemas {
+	schemas := make(Schemas, 0, len(f))
 
 	for _, f := range f {
 		if f.Type == "" {
 			continue // skip empty entries, they will get recreated from the tree either way
 		}
 
-		v := &Schema{
-			Key:               f.Key,
-			Type:              f.Type,
-			Namespace:         ns,
-			NamespaceID:       ns.ID,
-			NamespaceProperty: ns.Property,
+		s := &Schema{
+			Key:  f.Key,
+			Type: f.Type,
+		}
+
+		if o != nil {
+			s.Overlay = o
+			s.OverlayID = o.ID
+			s.OverlayProperty = o.Property
 		}
 
 		if i := strings.IndexRune(f.Type, '/'); i != -1 {
-			v.Type = f.Type[:i]
-			v.Encoding = f.Type[i+1:]
+			s.Type = f.Type[:i]
+			s.Encoding = f.Type[i+1:]
 		}
 
-		values = append(values, v)
+		schemas = append(schemas, s)
 	}
 
-	return values
+	return schemas
 }
 
-func (s Schemas) SetNamespace(ns *Namespace) {
+func (s Schemas) SetOverlay(o *Overlay) {
 	for _, s := range s {
-		s.Namespace = ns
-		s.NamespaceID = ns.ID
-		s.NamespaceProperty = ns.Property
+		s.Overlay = o
+		s.OverlayID = o.ID
+		s.OverlayProperty = o.Property
 	}
 }
 
@@ -92,7 +95,7 @@ func (s Schemas) Fields() big.Fields {
 func (s Schemas) WriteTab(w io.Writer) (int64, error) {
 	var n int64
 
-	m, err := fmt.Fprint(w, "ID\tNAMESPACE\tKEY\tTYPE\tENCODING\tMETADATA\n")
+	m, err := fmt.Fprint(w, "ID\tOVERLAY\tKEY\tTYPE\tENCODING\tMETADATA\n")
 	if err != nil {
 		return int64(m), err
 	}
@@ -102,7 +105,7 @@ func (s Schemas) WriteTab(w io.Writer) (int64, error) {
 	for _, s := range s {
 		m, err = fmt.Fprintf(w, "%v\t%s\t%s\t%s\t%s\t%s\n",
 			s.ID,
-			nonempty(s.Namespace.Ref(), "-"),
+			nonempty(s.Overlay.Ref(), "-"),
 			s.Key,
 			s.Type,
 			nonempty(s.Encoding, "-"),

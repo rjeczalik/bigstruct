@@ -11,8 +11,8 @@ import (
 
 func NewDeleteCommand(app *command.App) *cobra.Command {
 	m := &deleteCmd{
-		App:       app,
-		Namespace: new(model.Namespace),
+		App:     app,
+		Overlay: new(model.Overlay),
 	}
 
 	cmd := &cobra.Command{
@@ -31,7 +31,7 @@ func NewDeleteCommand(app *command.App) *cobra.Command {
 
 type deleteCmd struct {
 	*command.App
-	*model.Namespace
+	*model.Overlay
 }
 
 func (m *deleteCmd) register(cmd *cobra.Command) {

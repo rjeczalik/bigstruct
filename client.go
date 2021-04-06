@@ -10,12 +10,12 @@ import (
 )
 
 type Op struct {
-	Type      string // LIST, GET, SET, DEBUG
-	Encode    bool
-	Encoding  string
-	Index     *model.Index
-	Namespace *model.Namespace
-	Struct    big.Struct
+	Type     string // LIST, GET, SET, DEBUG
+	Encode   bool
+	Encoding string
+	Index    *model.Index
+	Overlay  *model.Overlay
+	Struct   big.Struct
 
 	Debug struct {
 		Values  model.Values
@@ -36,7 +36,7 @@ func (r Ref) String() string {
 }
 
 func (r Ref) IsZero() bool {
-	return r.Name != ""
+	return r.Name == ""
 }
 
 type Client struct {
@@ -79,7 +79,44 @@ func (c *Client) Get(ctx context.Context, index Ref, key string) (big.Struct, er
 	return op.Struct, nil
 }
 
-func (c *Client) Debug(ctx context.Context, index Ref, key string) (*model.Index, model.Schemas, model.Values, error) {
+func (c *Client) Diff(ctx context.Context, index Ref, ovStart, ovEnd Ref, key string) (big.Struct, error) {
+	var (
+		s   = big.Fields{{Key: key}}.Struct()
+		ops = []*Op{{
+			Type:    "GET",
+			Encode:  false,
+			Index:   new(model.Index),
+			Overlay: new(model.Overlay),
+			Struct:  s,
+		}, {
+			Type:    "GET",
+			Encode:  false,
+			Index:   new(model.Index),
+			Overlay: new(model.Overlay),
+			Struct:  s,
+		}}
+	)
+
+	for _, op := range ops {
+		if err := op.Index.SetRef(index.String()); err != nil {
+			return nil, err
+		}
+	}
+
+	for i, ref := range []Ref{ovStart, ovEnd} {
+		if err := ops[i].Overlay.SetRef(ref.String()); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := c.Do(ctx, ops...); err != nil {
+		return nil, err
+	}
+
+	return ops[1].Struct.Sub(ops[0].Struct), nil
+}
+
+func (c *Client) Debug(ctx context.Context, index, overlay Ref, key string) (*model.Index, model.Schemas, model.Values, error) {
 	op := &Op{
 		Type:   "DEBUG",
 		Index:  new(model.Index),
@@ -88,6 +125,14 @@ func (c *Client) Debug(ctx context.Context, index Ref, key string) (*model.Index
 
 	if err := op.Index.SetRef(index.String()); err != nil {
 		return nil, nil, nil, err
+	}
+
+	if !overlay.IsZero() {
+		op.Overlay = new(model.Overlay)
+
+		if err := op.Overlay.SetRef(overlay.String()); err != nil {
+			return nil, nil, nil, err
+		}
 	}
 
 	if err := c.Do(ctx, op); err != nil {
@@ -123,19 +168,19 @@ func (c *Client) Struct(ctx context.Context, index Ref, key string, v interface{
 	return nil
 }
 
-func (c *Client) Set(ctx context.Context, index, namespace Ref, s big.Struct) error {
+func (c *Client) Set(ctx context.Context, index, overlay Ref, s big.Struct) error {
 	op := &Op{
-		Type:      "SET",
-		Index:     new(model.Index),
-		Namespace: new(model.Namespace),
-		Struct:    s,
+		Type:    "SET",
+		Index:   new(model.Index),
+		Overlay: new(model.Overlay),
+		Struct:  s,
 	}
 
 	if err := op.Index.SetRef(index.String()); err != nil {
 		return err
 	}
 
-	if err := op.Namespace.SetRef(namespace.String()); err != nil {
+	if err := op.Overlay.SetRef(overlay.String()); err != nil {
 		return err
 	}
 

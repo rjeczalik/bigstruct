@@ -63,6 +63,11 @@ bigstruct set --index service=cql \
 bigstruct set --index service=cql \
 	--value /etc/sysconfig/scylla-server/USER='{{ printf "scylla" }}'
 
+bigstruct set --index server=5 \
+	--value /etc/scylla/scylla.yaml/snapshot_before_compaction=true
+
 bigstruct get --index server=5 /etc/scylla/scylla.yaml
 
 bigstruct get --index server=5 /etc/sysconfig/scylla-server
+
+bigstruct diff -z server=5 -s base=4 -e server=5 /etc/scylla/scylla.yaml

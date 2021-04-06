@@ -19,30 +19,44 @@ var (
 )
 
 type Transport interface {
-	Do(context.Context, *Op) error
+	Do(context.Context, ...*Op) error
 }
 
-type Func func(context.Context, *Op) error
+type Func func(context.Context, ...*Op) error
 
-func (fn Func) Do(ctx context.Context, op *Op) error { return fn(ctx, op) }
+func (fn Func) Do(ctx context.Context, ops ...*Op) error { return fn(ctx, ops...) }
 
 type Server struct {
 	Storage *storage.Gorm
 	Codec   big.Codec
 }
 
-func (s *Server) Do(ctx context.Context, op *Op) error {
-	switch op.Type {
-	case "LIST":
-		return s.doList(ctx, op)
-	case "GET":
-		return s.doGet(ctx, op)
-	case "SET":
-		return s.doSet(ctx, op)
-	case "DEBUG":
-		return s.doDebug(ctx, op)
-	default:
-		return fmt.Errorf("unsupported op type: %q", op.Type)
+func (s *Server) Do(ctx context.Context, ops ...*Op) error {
+	return s.Storage.Transaction(s.txDo(ctx, ops...))
+}
+
+func (s *Server) txDo(ctx context.Context, ops ...*Op) storage.Func {
+	return func(tx storage.Gorm) (err error) {
+		for _, op := range ops {
+			switch op.Type {
+			case "LIST":
+				err = s.txDoList(ctx, op)(tx)
+			case "GET":
+				err = s.txDoGet(ctx, op)(tx)
+			case "SET":
+				err = s.txDoSet(ctx, op)(tx)
+			case "DEBUG":
+				err = s.txDoDebug(ctx, op)(tx)
+			default:
+				err = fmt.Errorf("unsupported op type: %q", op.Type)
+			}
+
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
 	}
 }
 
@@ -112,8 +126,8 @@ func (s *Server) txDoGet(ctx context.Context, op *Op) storage.Func {
 			}
 		}
 
-		if err := obj.Encode(ctx, s.codec()); err != nil {
-			return fmt.Errorf("error decoding object: %w", err)
+		if err := obj.Encode(ctx, codec.DefaultTemplate); err != nil {
+			return fmt.Errorf("error templating object: %w", err)
 		}
 
 		op.Struct = obj.Fields().Merge().ShakeTypes().Shake()
@@ -140,11 +154,11 @@ func (s *Server) txDoSet(ctx context.Context, op *Op) storage.Func {
 			return fmt.Errorf("error building object: %w", err)
 		}
 
-		if obj.Namespace == nil {
-			return errors.New("namespace is missing")
+		if obj.Overlay == nil {
+			return errors.New("overlay is missing")
 		}
 
-		// todo: load only schema=true and schema for obj.Namespace
+		// todo: load only schema=true and schema for obj.Overlay
 		if err = obj.LoadSchema(tx, big.Prefix); err != nil {
 			return fmt.Errorf("error loading schema: %w", err)
 		}
@@ -213,25 +227,25 @@ func (s *Server) object(ctx context.Context, op *Op) (*bigstruct.Object, error) 
 func (s *Server) txObject(ctx context.Context, op *Op, out *bigstruct.Object) storage.Func {
 	return func(tx storage.Gorm) (err error) {
 		obj := bigstruct.Object{
-			Index:     op.Index,
-			Namespace: op.Namespace,
+			Index:   op.Index,
+			Overlay: op.Overlay,
 		}
 
-		if op.Namespace != nil {
-			obj.Namespace, err = tx.Namespace(op.Namespace.Ref())
+		if op.Overlay != nil {
+			obj.Overlay, err = tx.Overlay(op.Overlay.Ref())
 			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-				return fmt.Errorf("error loading %q namespace: %w", op.Namespace.Ref(), err)
+				return fmt.Errorf("error loading %q overlay: %w", op.Overlay.Ref(), err)
 			}
 		}
 
-		ns, err := s.buildNamespaces(ctx, tx, &obj)
+		ns, err := s.buildOverlays(ctx, tx, &obj)
 		if err != nil {
-			return fmt.Errorf("error building namespaces: %w", err)
+			return fmt.Errorf("error building overlays: %w", err)
 		}
 
 		for _, n := range ns {
 			obj.Scopes = append(obj.Scopes, bigstruct.Scope{
-				Namespace: n,
+				Overlay: n,
 			})
 		}
 
@@ -241,13 +255,13 @@ func (s *Server) txObject(ctx context.Context, op *Op, out *bigstruct.Object) st
 	}
 }
 
-func (s *Server) buildNamespaces(ctx context.Context, tx storage.Gorm, obj *bigstruct.Object) (model.Namespaces, error) {
-	ns, err := tx.ListNamespaces()
+func (s *Server) buildOverlays(ctx context.Context, tx storage.Gorm, obj *bigstruct.Object) (model.Overlays, error) {
+	ns, err := tx.ListOverlays()
 	if err != nil {
 		return nil, err
 	}
 
-	n, err := s.indexNamespaces(ctx, tx, ns, obj)
+	n, err := s.indexOverlays(ctx, tx, ns, obj)
 	if err != nil {
 		return nil, err
 	}
@@ -255,7 +269,7 @@ func (s *Server) buildNamespaces(ctx context.Context, tx storage.Gorm, obj *bigs
 	return ns[:n], nil
 }
 
-func (s *Server) indexNamespaces(ctx context.Context, tx storage.Gorm, ns model.Namespaces, obj *bigstruct.Object) (int, error) {
+func (s *Server) indexOverlays(ctx context.Context, tx storage.Gorm, ns model.Overlays, obj *bigstruct.Object) (int, error) {
 	var (
 		m = obj.Index.Index.Map()
 		n = len(ns)
@@ -279,12 +293,12 @@ func (s *Server) indexNamespaces(ctx context.Context, tx storage.Gorm, ns model.
 
 		if err := ns.SetProperty(prop); err != nil {
 			return 0, fmt.Errorf(
-				"unable to set property %v for namespace %q indexed via %q: %w",
+				"unable to set property %v for overlay %q indexed via %q: %w",
 				prop, ns.Name, obj.Index.Ref(), err,
 			)
 		}
 
-		if obj.Namespace != nil && obj.Namespace.Name == ns.Name {
+		if obj.Overlay != nil && obj.Overlay.Name == ns.Name {
 			n = i + 1
 			break
 		}

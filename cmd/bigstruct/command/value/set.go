@@ -32,8 +32,8 @@ type setCmd struct {
 	*command.App
 	*command.Builder
 	*command.Meta
-	namespace string
-	schema    bool
+	overlay string
+	schema  bool
 }
 
 func (m *setCmd) register(cmd *cobra.Command) {
@@ -42,10 +42,10 @@ func (m *setCmd) register(cmd *cobra.Command) {
 
 	f := cmd.Flags()
 
-	f.StringVarP(&m.namespace, "namespace", "N", "", "")
+	f.StringVarP(&m.overlay, "overlay", "L", "", "")
 	f.BoolVarP(&m.schema, "schema", "x", false, "")
 
-	cmd.MarkFlagRequired("namespace")
+	cmd.MarkFlagRequired("overlay")
 }
 
 func (m *setCmd) run(*cobra.Command, []string) error {
@@ -58,7 +58,7 @@ func (m *setCmd) txRun(g storage.Gorm) error {
 		return err
 	}
 
-	ns, err := g.Namespace(m.namespace)
+	ns, err := g.Overlay(m.overlay)
 	if err != nil {
 		return err
 	}

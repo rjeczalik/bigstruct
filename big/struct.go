@@ -324,6 +324,10 @@ func (s Struct) Keys() []string {
 	return keys
 }
 
+func (s Struct) Sub(u Struct) Struct {
+	return s.Fields().Map().Sub(u.Fields().Map()).Fields().Struct()
+}
+
 func (s Struct) WriteTab(w io.Writer) (n int64, err error) {
 	m, err := fmt.Fprintln(w, "KEY\tTYPE\tVALUE")
 	if err != nil {

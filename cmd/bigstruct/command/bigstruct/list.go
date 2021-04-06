@@ -45,7 +45,7 @@ func (m *listCmd) run(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	list := model.MakeSchemas(new(model.Namespace), s.Fields())
+	list := model.MakeSchemas(new(model.Overlay), s.Fields())
 
 	return m.Render(list)
 }

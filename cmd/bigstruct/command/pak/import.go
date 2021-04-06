@@ -54,6 +54,8 @@ func (m *importCmd) run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to store %q buildpack: %w", args[0], err)
 	}
 
+	fmt.Printf("Imported: %d indexes, %d values, %d schemas\n", len(pk.Indexes), len(pk.Values), len(pk.Schemas))
+
 	return nil
 }
 

@@ -2,7 +2,6 @@ package model
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -59,13 +58,13 @@ func ParseRef(ref string) (name, prop string, err error) {
 
 	switch len(parts) {
 	case 0:
-		return "", "", errors.New("ref is empty or missing")
+		return "", "", fmt.Errorf("ref is empty or missing: %q", ref)
 	case 1:
 		return parts[0], "", nil
 	case 2:
 		return parts[0], parts[1], nil
 	default:
-		return "", "", fmt.Errorf("invalid ref: %q", name)
+		return "", "", fmt.Errorf("invalid ref: %q", ref)
 	}
 }
 

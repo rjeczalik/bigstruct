@@ -15,7 +15,7 @@ import (
 )
 
 var tables = []interface{}{
-	new(model.Namespace),
+	new(model.Overlay),
 	new(model.Index),
 	new(model.Value),
 	new(model.Schema),
@@ -88,33 +88,33 @@ func (g Gorm) db() *gorm.DB {
 	return g.DB
 }
 
-func (g Gorm) Namespace(namespace string) (*model.Namespace, error) {
-	name, prop, err := model.ParseRef(namespace)
+func (g Gorm) Overlay(overlay string) (*model.Overlay, error) {
+	name, prop, err := model.ParseRef(overlay)
 	if err != nil {
 		return nil, err
 	}
 
-	var ns model.Namespace
+	var o model.Overlay
 
-	if err := g.db().Where("name = ?", name).First(&ns).Error; err != nil {
+	if err := g.db().Where("name = ?", name).First(&o).Error; err != nil {
 		return nil, err
 	}
 
-	if err := ns.SetProperty(prop); err != nil {
-		return nil, fmt.Errorf("unable to set property %q for namespace %q: %w", prop, name, err)
+	if err := o.SetProperty(prop); err != nil {
+		return nil, fmt.Errorf("unable to set property %q for overlay %q: %w", prop, name, err)
 	}
 
-	return &ns, nil
+	return &o, nil
 }
 
-func (g Gorm) UpsertNamespace(n *model.Namespace) error {
-	return g.Transaction(g.txUpsertNamespace(n))
+func (g Gorm) UpsertOverlay(n *model.Overlay) error {
+	return g.Transaction(g.txUpsertOverlay(n))
 }
 
-func (g Gorm) txUpsertNamespace(n *model.Namespace) Func {
+func (g Gorm) txUpsertOverlay(n *model.Overlay) Func {
 	return func(tx Gorm) error {
 		var (
-			cur model.Namespace
+			cur model.Overlay
 		)
 
 		switch err := tx.db().Where("`name` = ?", n.Name).First(&cur).Error; {
@@ -126,7 +126,7 @@ func (g Gorm) txUpsertNamespace(n *model.Namespace) Func {
 
 		var (
 			db     = tx.db().Model(&cur).Where("`id` = ?", cur.ID)
-			update = &model.Namespace{
+			update = &model.Overlay{
 				Priority: n.Priority,
 			}
 		)
@@ -183,14 +183,14 @@ func (g Gorm) UpsertValues(v model.Values) error {
 func (g Gorm) txUpsertValues(v model.Values) Func {
 	return func(tx Gorm) error {
 		for _, v := range v {
-			if v.Namespace != nil && v.NamespaceID == 0 {
-				v.NamespaceID = v.Namespace.ID
+			if v.Overlay != nil && v.OverlayID == 0 {
+				v.OverlayID = v.Overlay.ID
 			}
 
 			q := &model.Value{
-				Key:               v.Key,
-				NamespaceID:       v.NamespaceID,
-				NamespaceProperty: v.NamespaceProperty,
+				Key:             v.Key,
+				OverlayID:       v.OverlayID,
+				OverlayProperty: v.OverlayProperty,
 			}
 
 			err := tx.db().Model(q).Where(q).Select("id", "value", "metadata").Take(q).Error
@@ -232,14 +232,14 @@ func (g Gorm) UpsertSchemas(s model.Schemas) error {
 func (g Gorm) txUpsertSchemas(s model.Schemas) Func {
 	return func(tx Gorm) error {
 		for _, s := range s {
-			if s.Namespace != nil && s.NamespaceID == 0 {
-				s.NamespaceID = s.Namespace.ID
+			if s.Overlay != nil && s.OverlayID == 0 {
+				s.OverlayID = s.Overlay.ID
 			}
 
 			q := &model.Schema{
-				Key:               s.Key,
-				NamespaceID:       s.NamespaceID,
-				NamespaceProperty: s.NamespaceProperty,
+				Key:             s.Key,
+				OverlayID:       s.OverlayID,
+				OverlayProperty: s.OverlayProperty,
 			}
 
 			err := tx.db().Model(q).Where(q).Select("id", "type", "encoding", "metadata").Take(q).Error
@@ -271,8 +271,8 @@ func (g Gorm) txUpsertSchemas(s model.Schemas) Func {
 	}
 }
 
-func (g Gorm) ListNamespaces() (model.Namespaces, error) {
-	var n model.Namespaces
+func (g Gorm) ListOverlays() (model.Overlays, error) {
+	var n model.Overlays
 
 	return n, g.db().
 		Where("`priority` > -1").
@@ -289,14 +289,14 @@ func (g Gorm) ListIndexes() (model.Indexes, error) {
 		Error
 }
 
-func (g Gorm) ListSchemas(ns *model.Namespace, key string) (model.Schemas, error) {
+func (g Gorm) ListSchemas(o *model.Overlay, key string) (model.Schemas, error) {
 	var (
 		s  model.Schemas
 		db = g.db()
 	)
 
-	if ns != nil {
-		db = db.Where("`namespace_id` = ? AND `namespace_property` = ?", ns.ID, ns.Property)
+	if o != nil {
+		db = db.Where("`overlay_id` = ? AND `overlay_property` = ?", o.ID, o.Property)
 	}
 
 	if key != "" {
@@ -307,19 +307,19 @@ func (g Gorm) ListSchemas(ns *model.Namespace, key string) (model.Schemas, error
 		return nil, err
 	}
 
-	s.SetNamespace(ns)
+	s.SetOverlay(o)
 
 	return s, nil
 }
 
-func (g Gorm) ListValues(ns *model.Namespace, key string) (model.Values, error) {
+func (g Gorm) ListValues(o *model.Overlay, key string) (model.Values, error) {
 	var (
 		v  model.Values
 		db = g.db()
 	)
 
-	if ns != nil {
-		db = db.Where("`namespace_id` = ? AND `namespace_property` = ?", ns.ID, ns.Property)
+	if o != nil {
+		db = db.Where("`overlay_id` = ? AND `overlay_property` = ?", o.ID, o.Property)
 	}
 
 	if key != "" {
@@ -330,15 +330,15 @@ func (g Gorm) ListValues(ns *model.Namespace, key string) (model.Values, error) 
 		return nil, err
 	}
 
-	v.SetNamespace(ns)
+	v.SetOverlay(o)
 
 	return v, nil
 }
 
-func (g Gorm) DeleteNamespace(n *model.Namespace) error {
+func (g Gorm) DeleteOverlay(n *model.Overlay) error {
 	return g.db().
 		Where(n).
-		Delete((*model.Namespace)(nil)).
+		Delete((*model.Overlay)(nil)).
 		Error
 }
 

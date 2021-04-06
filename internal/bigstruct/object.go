@@ -7,6 +7,7 @@ import (
 	"path"
 
 	"github.com/rjeczalik/bigstruct/big"
+	"github.com/rjeczalik/bigstruct/big/codec"
 	"github.com/rjeczalik/bigstruct/storage"
 	"github.com/rjeczalik/bigstruct/storage/model"
 
@@ -14,25 +15,25 @@ import (
 )
 
 type Scope struct {
-	Namespace *model.Namespace
-	Schema    model.Schemas
-	Value     model.Values
+	Overlay *model.Overlay
+	Schema  model.Schemas
+	Value   model.Values
 }
 
-func NewScope(ns *model.Namespace, s big.Struct) *Scope {
+func NewScope(ns *model.Overlay, s big.Struct) *Scope {
 	var (
 		f = s.Fields()
 	)
 
 	return &Scope{
-		Namespace: ns,
-		Schema:    model.MakeSchemas(ns, f),
-		Value:     model.MakeValues(ns, f),
+		Overlay: ns,
+		Schema:  model.MakeSchemas(ns, f),
+		Value:   model.MakeValues(ns, f),
 	}
 }
 
 func (s *Scope) Fields() big.Fields {
-	if s.Namespace.Meta().Schema {
+	if s.Overlay.Meta().Schema {
 		return s.fields()
 	}
 	return s.Value.Fields()
@@ -47,7 +48,7 @@ func (s *Scope) Struct() big.Struct {
 }
 
 func (s *Scope) Encode(ctx context.Context, codec big.Codec) error {
-	if s.Namespace.Meta().Schema || len(s.Schema) == 0 || len(s.Value) == 0 {
+	if s.Overlay.Meta().Schema || len(s.Schema) == 0 || len(s.Value) == 0 {
 		return nil // early return
 	}
 
@@ -62,16 +63,16 @@ func (s *Scope) Encode(ctx context.Context, codec big.Codec) error {
 
 	f = o.Fields()
 
-	s.Schema = model.MakeSchemas(s.Namespace, f)
-	s.Value = model.MakeValues(s.Namespace, f)
+	s.Schema = model.MakeSchemas(s.Overlay, f)
+	s.Value = model.MakeValues(s.Overlay, f)
 
 	return nil
 }
 
 type Object struct {
-	Index     *model.Index
-	Namespace *model.Namespace
-	Scopes    []Scope
+	Index   *model.Index
+	Overlay *model.Overlay
+	Scopes  []Scope
 }
 
 func (obj *Object) Build(ctx context.Context, s big.Struct, c big.Codec) (*Scope, error) {
@@ -91,7 +92,7 @@ func (obj *Object) Build(ctx context.Context, s big.Struct, c big.Codec) (*Scope
 		return nil, fmt.Errorf("value validation error: %w", err)
 	}
 
-	return NewScope(obj.Namespace, s), nil
+	return NewScope(obj.Overlay, s), nil
 }
 
 func (obj *Object) validateSchema(ctx context.Context, s, schema big.Struct) error {
@@ -109,7 +110,7 @@ func (obj *Object) validateSchema(ctx context.Context, s, schema big.Struct) err
 				n.Type = "" // strip
 				o[k] = n
 			default:
-				if obj.Namespace.Meta().Schema {
+				if obj.Overlay.Meta().Schema {
 					return fmt.Errorf("cannot override existing schema %q for %q key with %q type (%#v)", t, key, n.Type, n.Value)
 				}
 			}
@@ -140,14 +141,14 @@ func (obj *Object) validateKeys(ctx context.Context, s, schema big.Struct) error
 
 func (obj *Object) validateValues(ctx context.Context, s, schema big.Struct, c big.Codec) error {
 	var (
-		scope = obj.scope(obj.Namespace)
+		scope = obj.scope(obj.Overlay)
 		f     = s.Fields()
 	)
 
-	scope.Value = append(scope.Value, model.MakeValues(scope.Namespace, f)...)
+	scope.Value = append(scope.Value, model.MakeValues(scope.Overlay, f)...)
 
-	if err := scope.Encode(ctx, c); err != nil {
-		return fmt.Errorf("error decoding %q namespace: %w", scope.Namespace.Ref(), err)
+	if err := scope.Encode(ctx, codec.DefaultTemplate); err != nil {
+		return fmt.Errorf("error templating %q overlay: %w", scope.Overlay.Ref(), err)
 	}
 
 	if err := schema.Merge(scope.Value.Fields().Struct()).Decode(ctx, c); err != nil {
@@ -157,9 +158,9 @@ func (obj *Object) validateValues(ctx context.Context, s, schema big.Struct, c b
 	return nil
 }
 
-func (obj *Object) scope(ns *model.Namespace) *Scope {
+func (obj *Object) scope(ns *model.Overlay) *Scope {
 	for i, s := range obj.Scopes {
-		if s.Namespace.Ref() == ns.Ref() {
+		if s.Overlay.Ref() == ns.Ref() {
 			return &obj.Scopes[i]
 		}
 	}
@@ -168,12 +169,12 @@ func (obj *Object) scope(ns *model.Namespace) *Scope {
 
 func (obj *Object) LoadSchema(tx storage.Gorm, prefix string) error {
 	for i, scope := range obj.Scopes {
-		s, err := tx.ListSchemas(scope.Namespace, prefix)
+		s, err := tx.ListSchemas(scope.Overlay, prefix)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			continue
 		}
 		if err != nil {
-			return fmt.Errorf("error loading schema for %q namespace: %w", scope.Namespace.Ref(), err)
+			return fmt.Errorf("error loading schema for %q overlay: %w", scope.Overlay.Ref(), err)
 		}
 
 		obj.Scopes[i].Schema = append(obj.Scopes[i].Schema, s...)
@@ -184,12 +185,12 @@ func (obj *Object) LoadSchema(tx storage.Gorm, prefix string) error {
 
 func (obj *Object) LoadValue(tx storage.Gorm, prefix string) error {
 	for i, scope := range obj.Scopes {
-		v, err := tx.ListValues(scope.Namespace, prefix)
+		v, err := tx.ListValues(scope.Overlay, prefix)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			continue
 		}
 		if err != nil {
-			return fmt.Errorf("error loading value for %q namespace: %w", scope.Namespace.Ref(), err)
+			return fmt.Errorf("error loading value for %q overlay: %w", scope.Overlay.Ref(), err)
 		}
 
 		obj.Scopes[i].Value = append(obj.Scopes[i].Value, v...)
@@ -203,7 +204,7 @@ func (obj *Object) Encode(ctx context.Context, codec big.Codec) error {
 		scope := &obj.Scopes[i]
 
 		if err := scope.Encode(ctx, codec); err != nil {
-			return fmt.Errorf("error decoding %q namespace: %w", scope.Namespace.Ref(), err)
+			return fmt.Errorf("error encoding %q overlay: %w", scope.Overlay.Ref(), err)
 		}
 	}
 
@@ -214,7 +215,7 @@ func (obj *Object) Schemas() model.Schemas {
 	var schema model.Schemas
 
 	for _, s := range obj.Scopes {
-		if s.Namespace.Meta().Schema {
+		if s.Overlay.Meta().Schema {
 			schema = append(schema, s.Schema...)
 		}
 	}
@@ -232,14 +233,14 @@ func (obj *Object) Values() model.Values {
 	return value
 }
 
-func (obj *Object) Namespaces() model.Namespaces {
-	var namespaces model.Namespaces
+func (obj *Object) Overlays() model.Overlays {
+	var overlays model.Overlays
 
 	for _, s := range obj.Scopes {
-		namespaces = append(namespaces, s.Namespace)
+		overlays = append(overlays, s.Overlay)
 	}
 
-	return namespaces
+	return overlays
 }
 
 func (obj *Object) Fields() big.Fields {

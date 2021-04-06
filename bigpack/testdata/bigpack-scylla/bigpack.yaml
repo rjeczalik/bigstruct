@@ -1,7 +1,7 @@
 name: bigpack-scylla
 url: https://github.com/rjeczalik/bigpack-scylla
 version: 0.1.0
-namespaces:
+overlays:
 - name: base
   priority: 10
   metadata:

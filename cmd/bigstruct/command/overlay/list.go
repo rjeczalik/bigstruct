@@ -1,4 +1,4 @@
-package namespace
+package overlay
 
 import (
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command"
@@ -12,7 +12,7 @@ func NewListCommand(app *command.App) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "list",
 		Aliases:      []string{"ls"},
-		Short:        "Lists all namespaces",
+		Short:        "Lists all overlays",
 		Args:         cobra.NoArgs,
 		RunE:         m.run,
 		SilenceUsage: true,
@@ -32,7 +32,7 @@ func (m *listCmd) register(cmd *cobra.Command) {
 }
 
 func (m *listCmd) run(*cobra.Command, []string) error {
-	n, err := m.Storage.ListNamespaces()
+	n, err := m.Storage.ListOverlays()
 	if err != nil {
 		return err
 	}

@@ -13,5 +13,6 @@ func NewCommands(app *command.App) []*cobra.Command {
 		NewSetCommand(app),
 		NewDebugCommand(app),
 		NewHistoryCommand(app),
+		NewDiffCommand(app),
 	}
 }

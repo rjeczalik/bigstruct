@@ -26,8 +26,7 @@ func NewHistoryCommand(app *command.App) *cobra.Command {
 
 type historyCmd struct {
 	*command.App
-	index     string
-	namespace string
+	index string
 }
 
 func (m *historyCmd) register(cmd *cobra.Command) {

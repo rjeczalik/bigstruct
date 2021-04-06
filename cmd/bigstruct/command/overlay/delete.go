@@ -1,4 +1,4 @@
-package namespace
+package overlay
 
 import (
 	"errors"
@@ -11,14 +11,14 @@ import (
 
 func NewDeleteCommand(app *command.App) *cobra.Command {
 	m := &deleteCmd{
-		App:       app,
-		Namespace: new(model.Namespace),
+		App:     app,
+		Overlay: new(model.Overlay),
 	}
 
 	cmd := &cobra.Command{
 		Use:          "delete",
 		Aliases:      []string{"del"},
-		Short:        "Deletes a namespace",
+		Short:        "Deletes an overlay",
 		Args:         cobra.NoArgs,
 		RunE:         m.run,
 		SilenceUsage: true,
@@ -31,22 +31,22 @@ func NewDeleteCommand(app *command.App) *cobra.Command {
 
 type deleteCmd struct {
 	*command.App
-	*model.Namespace
+	*model.Overlay
 }
 
 func (m *deleteCmd) register(cmd *cobra.Command) {
 	f := cmd.Flags()
 
-	f.Uint64Var(&m.Namespace.ID, "id", 0, "")
-	f.StringVarP(&m.Namespace.Name, "name", "n", "", "")
+	f.Uint64Var(&m.Overlay.ID, "id", 0, "")
+	f.StringVarP(&m.Overlay.Name, "name", "n", "", "")
 }
 
 func (m *deleteCmd) run(*cobra.Command, []string) error {
-	if m.Namespace.ID == 0 && m.Namespace.Name == "" {
+	if m.Overlay.ID == 0 && m.Overlay.Name == "" {
 		return errors.New("either --id or --name flag is required")
 	}
 
-	if err := m.Storage.DeleteNamespace(m.Namespace); err != nil {
+	if err := m.Storage.DeleteOverlay(m.Overlay); err != nil {
 		return err
 	}
 

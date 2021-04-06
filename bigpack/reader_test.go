@@ -1,6 +1,7 @@
 package bigpack_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/rjeczalik/bigstruct/bigpack"
@@ -11,7 +12,7 @@ import (
 func TestReader(t *testing.T) {
 	const uri = "sqlite://file::memory:?cache=shared"
 
-	pk, err := bigpack.Read(pak.Dir("testdata/bigpack-scylla"))
+	pk, err := bigpack.Read(context.Background(), pak.Dir("testdata/bigpack-scylla"))
 	if err != nil {
 		t.Fatalf("Read()=%+v", err)
 	}

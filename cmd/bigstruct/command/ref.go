@@ -26,6 +26,10 @@ func (r Ref) Type() string {
 }
 
 func (r *Ref) Set(ref string) error {
+	if ref == "" {
+		return nil
+	}
+
 	name, prop, err := model.ParseRef(ref)
 	if err != nil {
 		return err

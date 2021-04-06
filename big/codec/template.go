@@ -9,10 +9,15 @@ import (
 	"github.com/rjeczalik/bigstruct/big"
 )
 
-var _ = DefaultField.
+var DefaultTemplate = make(Map)
+
+var DefaultTemplateField = DefaultTemplate.
+	RegisterMap("field", 50, make(Map))
+
+var _ = DefaultTemplateField.
 	Register("template", Template{})
 
-var _ = Default.
+var _ = DefaultTemplate.
 	Register("template", Recursive{
 		Codec: Template{},
 	})

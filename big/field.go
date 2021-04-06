@@ -94,10 +94,43 @@ func (f Field) Bytes() []byte {
 	}
 }
 
+type FieldMap map[string]Field
+
+func (fm FieldMap) Sub(m FieldMap) FieldMap {
+	for k, f := range m {
+		if ff, ok := fm[k]; ok && ff.Value == f.Value {
+			delete(fm, k)
+		}
+	}
+
+	return fm
+}
+
+func (fm FieldMap) Fields() Fields {
+	f := make(Fields, 0, len(fm))
+
+	for _, field := range fm {
+		f = append(f, field)
+	}
+
+	return f.Sort()
+}
+
+func (fm FieldMap) Copy() FieldMap {
+	m := make(FieldMap, len(fm))
+
+	for k, v := range fm {
+		m[k] = v
+	}
+
+	return m
+}
+
 type Fields []Field
 
 var (
 	_ Func           = (*Fields)(nil).Append
+	_ Func           = (*Fields)(nil).AppendIf
 	_ sort.Interface = (*Fields)(nil)
 )
 
@@ -193,6 +226,16 @@ func (f Fields) Keys() []string {
 	return keys
 }
 
+func (f Fields) Map() FieldMap {
+	m := make(FieldMap, len(f))
+
+	for _, f := range f {
+		m[f.Key] = f
+	}
+
+	return m
+}
+
 func (f Fields) Struct() Struct {
 	s := make(Struct)
 
@@ -218,6 +261,12 @@ func (f Fields) Merge() Struct {
 	}
 
 	return s.Shake()
+}
+
+func (f Fields) Copy() Fields {
+	fCopy := make(Fields, len(f))
+	copy(fCopy, f)
+	return fCopy
 }
 
 func (f Fields) Len() int {

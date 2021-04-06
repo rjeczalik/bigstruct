@@ -1,4 +1,4 @@
-package namespace
+package overlay
 
 import (
 	"os"
@@ -10,9 +10,9 @@ import (
 
 func NewCommand(app *command.App) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "namespace",
-		Aliases: []string{"ns"},
-		Short:   "Manages namespaces",
+		Use:     "overlay",
+		Aliases: []string{"ov"},
+		Short:   "Manages overlays",
 		Args:    cobra.NoArgs,
 		RunE:    command.PrintHelp(os.Stderr),
 	}

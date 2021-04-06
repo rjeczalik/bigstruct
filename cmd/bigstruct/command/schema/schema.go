@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command"
-	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/schema/jsonschema"
 
 	"github.com/spf13/cobra"
 )
@@ -22,7 +21,6 @@ func NewCommand(app *command.App) *cobra.Command {
 		NewSetCommand(app),
 		NewDeleteCommand(app),
 		NewListCommand(app),
-		jsonschema.NewCommand(app),
 	)
 
 	return cmd

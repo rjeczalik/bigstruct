@@ -28,9 +28,9 @@ func NewSetCommand(app *command.App) *cobra.Command {
 type setCmd struct {
 	*command.App
 	*command.Builder
-	namespace command.Ref
-	index     command.Ref
-	schema    bool
+	overlay command.Ref
+	index   command.Ref
+	schema  bool
 }
 
 func (m *setCmd) register(cmd *cobra.Command) {
@@ -39,14 +39,14 @@ func (m *setCmd) register(cmd *cobra.Command) {
 	f := cmd.Flags()
 
 	f.VarP(&m.index, "index", "z", "")
-	f.VarP(&m.namespace, "namespace", "N", "")
+	f.VarP(&m.overlay, "overlay", "L", "")
 
 	cmd.MarkFlagRequired("index")
 }
 
 func (m *setCmd) setDefaults(cmd *cobra.Command) {
-	if !cmd.Flags().Changed("namespace") {
-		m.namespace = m.index
+	if !cmd.Flags().Changed("overlay") {
+		m.overlay = m.index
 	}
 }
 
@@ -62,7 +62,7 @@ func (m *setCmd) run(cmd *cobra.Command, _ []string) error {
 		obj = f.Struct()
 	)
 
-	if err := m.Client.Set(m.Context, m.index.Ref(), m.namespace.Ref(), obj); err != nil {
+	if err := m.Client.Set(m.Context, m.index.Ref(), m.overlay.Ref(), obj); err != nil {
 		return err
 	}
 

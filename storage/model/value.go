@@ -11,13 +11,13 @@ import (
 )
 
 type Value struct {
-	Model             `yaml:",inline"`
-	Namespace         *Namespace `gorm:"" yaml:"-" json:"-"`
-	NamespaceID       uint64     `gorm:"column:namespace_id;type:bigint;not null;index" yaml:"namespace_id,omitempty" json:"namespace_id,omitempty"`
-	NamespaceProperty string     `gorm:"column:namespace_property;type:tinytext;not null" yaml:"namespace_property,omitempty" json:"namespace_property,omitempty"`
-	Key               string     `gorm:"column:key;type:text;not null" yaml:"key,omitempty" json:"key,omitempty"`
-	RawValue          string     `gorm:"column:value;type:text" yaml:"value,omitempty" json:"value,omitempty"`
-	Metadata          Object     `gorm:"column:metadata;type:text" yaml:"metadata,omitempty" json:"metadata,omitempty"`
+	Model           `yaml:",inline"`
+	Overlay         *Overlay `gorm:"" yaml:"-" json:"-"`
+	OverlayID       uint64   `gorm:"column:overlay_id;type:bigint;not null;index" yaml:"overlay_id,omitempty" json:"overlay_id,omitempty"`
+	OverlayProperty string   `gorm:"column:overlay_property;type:tinytext;not null" yaml:"overlay_property,omitempty" json:"overlay_property,omitempty"`
+	Key             string   `gorm:"column:key;type:text;not null" yaml:"key,omitempty" json:"key,omitempty"`
+	RawValue        string   `gorm:"column:value;type:text" yaml:"value,omitempty" json:"value,omitempty"`
+	Metadata        Object   `gorm:"column:metadata;type:text" yaml:"metadata,omitempty" json:"metadata,omitempty"`
 }
 
 func (*Value) TableName() string {
@@ -34,7 +34,7 @@ func (v *Value) Value() interface{} {
 
 type Values []*Value
 
-func MakeValues(ns *Namespace, f big.Fields) Values {
+func MakeValues(o *Overlay, f big.Fields) Values {
 	values := make(Values, 0, len(f))
 
 	for _, f := range f {
@@ -43,10 +43,13 @@ func MakeValues(ns *Namespace, f big.Fields) Values {
 		}
 
 		v := &Value{
-			Key:               f.Key,
-			Namespace:         ns,
-			NamespaceID:       ns.ID,
-			NamespaceProperty: ns.Property,
+			Key: f.Key,
+		}
+
+		if o != nil {
+			v.Overlay = o
+			v.OverlayID = o.ID
+			v.OverlayProperty = o.Property
 		}
 
 		if f.Value != big.NoValue {
@@ -59,11 +62,11 @@ func MakeValues(ns *Namespace, f big.Fields) Values {
 	return values
 }
 
-func (v Values) SetNamespace(ns *Namespace) {
+func (v Values) SetOverlay(o *Overlay) {
 	for _, v := range v {
-		v.Namespace = ns
-		v.NamespaceID = ns.ID
-		v.NamespaceProperty = ns.Property
+		v.Overlay = o
+		v.OverlayID = o.ID
+		v.OverlayProperty = o.Property
 	}
 }
 
@@ -89,7 +92,7 @@ func (v Values) Fields() big.Fields {
 func (v Values) WriteTab(w io.Writer) (int64, error) {
 	var n int64
 
-	m, err := fmt.Fprint(w, "ID\tNAMESPACE\tKEY\tVALUE\tMETADATA\n")
+	m, err := fmt.Fprint(w, "ID\tOVERLAY\tKEY\tVALUE\tMETADATA\n")
 	if err != nil {
 		return int64(m), err
 	}
@@ -99,7 +102,7 @@ func (v Values) WriteTab(w io.Writer) (int64, error) {
 	for _, v := range v {
 		m, err = fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n",
 			v.ID,
-			v.Namespace.Ref(),
+			v.Overlay.Ref(),
 			v.Key,
 			nonempty(v.RawValue, "-"),
 			nonempty(v.Metadata.String(), "-"),

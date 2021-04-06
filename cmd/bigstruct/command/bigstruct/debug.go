@@ -29,19 +29,21 @@ func NewDebugCommand(app *command.App) *cobra.Command {
 
 type debugCmd struct {
 	*command.App
-	index command.Ref
+	index   command.Ref
+	overlay command.Ref
 }
 
 func (m *debugCmd) register(cmd *cobra.Command) {
 	f := cmd.Flags()
 
 	f.VarP(&m.index, "index", "z", "")
+	f.VarP(&m.overlay, "overlay", "L", "")
 
 	cmd.MarkFlagRequired("index")
 }
 
 func (m *debugCmd) run(cmd *cobra.Command, args []string) error {
-	index, schema, values, err := m.Client.Debug(m.Context, m.index.Ref(), args[0])
+	index, schema, values, err := m.Client.Debug(m.Context, m.index.Ref(), m.overlay.Ref(), args[0])
 	if err != nil {
 		return err
 	}

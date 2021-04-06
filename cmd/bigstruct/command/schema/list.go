@@ -29,28 +29,28 @@ func NewListCommand(app *command.App) *cobra.Command {
 
 type listCmd struct {
 	*command.App
-	namespace string
-	prefix    string
+	overlay string
+	prefix  string
 }
 
 func (m *listCmd) register(cmd *cobra.Command) {
 	f := cmd.Flags()
 
-	f.StringVarP(&m.namespace, "namespace", "N", "", "")
+	f.StringVarP(&m.overlay, "overlay", "L", "", "")
 	f.StringVarP(&m.prefix, "prefix", "p", "/", "")
 
-	cmd.MarkFlagRequired("namespace")
+	cmd.MarkFlagRequired("overlay")
 }
 
 func (m *listCmd) run(*cobra.Command, []string) error {
-	ns, err := m.Storage.Namespace(m.namespace)
+	ns, err := m.Storage.Overlay(m.overlay)
 	if err != nil {
-		return fmt.Errorf("error loading %q namespace: %w", m.namespace, err)
+		return fmt.Errorf("error loading %q overlay: %w", m.overlay, err)
 	}
 
 	s, err := m.Storage.ListSchemas(ns, m.prefix)
 	if err != nil {
-		return fmt.Errorf("error listing %q values for %q namespace: %w", m.prefix, ns.Ref(), err)
+		return fmt.Errorf("error listing %q values for %q overlay: %w", m.prefix, ns.Ref(), err)
 	}
 
 	return m.Render(s)

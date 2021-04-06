@@ -75,7 +75,7 @@ func (r *Reader) Read(ctx context.Context, fs pak.FS) (*pak.Pak, error) {
 			return nil // skip
 		}
 
-		// path ~ <type>/<namespace>[/<property>]/<key>
+		// path ~ <type>/<overlay>[/<property>]/<key>
 		parts := strings.SplitN(path, sep, 4)
 
 		out := mschema
@@ -87,18 +87,18 @@ func (r *Reader) Read(ctx context.Context, fs pak.FS) (*pak.Pak, error) {
 			return fmt.Errorf("file %q has invalid layout", path)
 		}
 
-		ns := pk.Namespaces.ByName(parts[1])
-		if ns == nil {
-			return fmt.Errorf("namespace %q not found for key: %q", parts[1], path)
+		o := pk.Overlays.ByName(parts[1])
+		if o == nil {
+			return fmt.Errorf("overlay %q not found for key: %q", parts[1], path)
 		}
 
 		var key string
 
-		if !ns.Meta().NoProperty {
-			if err := ns.SetProperty(parts[2]); err != nil {
+		if !o.Meta().NoProperty {
+			if err := o.SetProperty(parts[2]); err != nil {
 				return fmt.Errorf(
-					"error setting %q property for %q namespace and %q key: %w",
-					parts[2], ns.Name, path, err,
+					"error setting %q property for %q overlay and %q key: %w",
+					parts[2], o.Name, path, err,
 				)
 			}
 
@@ -111,24 +111,24 @@ func (r *Reader) Read(ctx context.Context, fs pak.FS) (*pak.Pak, error) {
 
 		p, err := ioutil.ReadAll(rc)
 		if err != nil {
-			return fmt.Errorf("error reading %q key from %q namespace: %w", key, ns.Ref(), err)
+			return fmt.Errorf("error reading %q key from %q overlay: %w", key, o.Ref(), err)
 		}
 
 		if stdpath.Base(key) == index {
 			var idx map[string]string
 
 			if err := types.YAML(p).Unmarshal(&idx); err != nil {
-				return fmt.Errorf("error parsing %q index from %q namespace: %w", key, ns.Ref(), err)
+				return fmt.Errorf("error parsing %q index from %q overlay: %w", key, o.Ref(), err)
 			}
 
 			for k, typ := range idx {
-				out[ns.Ref()] = append(out[ns.Ref()], big.Field{
+				out[o.Ref()] = append(out[o.Ref()], big.Field{
 					Key:  stdpath.Join(stdpath.Dir(key), k),
 					Type: typ,
 				})
 			}
 		} else {
-			out[ns.Ref()] = append(out[ns.Ref()], big.Field{
+			out[o.Ref()] = append(out[o.Ref()], big.Field{
 				Key:   key,
 				Value: string(p),
 			})
@@ -145,12 +145,14 @@ func (r *Reader) Read(ctx context.Context, fs pak.FS) (*pak.Pak, error) {
 		s := f.Struct()
 
 		if err := s.Decode(ctx, r.codec()); err != nil {
-			return nil, fmt.Errorf("error decoding schema for %q namespace: %w", ref, err)
+			return nil, fmt.Errorf("error decoding schema for %q overlay: %w", ref, err)
 		}
 
+		fmt.Println("DEBU", s)
+
 		var (
-			ns     = pk.Namespaces.ByRef(ref)
-			schema = model.MakeSchemas(ns, s.Fields())
+			o      = pk.Overlays.ByRef(ref)
+			schema = model.MakeSchemas(o, s.Fields())
 		)
 
 		pk.Schemas = append(pk.Schemas, schema...)
@@ -160,15 +162,15 @@ func (r *Reader) Read(ctx context.Context, fs pak.FS) (*pak.Pak, error) {
 		s := f.Struct()
 
 		if err := s.Decode(ctx, r.codec()); err != nil {
-			return nil, fmt.Errorf("error decoding values for %q namespace: %w", ref, err)
+			return nil, fmt.Errorf("error decoding values for %q overlay: %w", ref, err)
 		}
 
 		f = s.Fields()
 
 		var (
-			ns     = pk.Namespaces.ByRef(ref)
-			schema = model.MakeSchemas(ns, f)
-			value  = model.MakeValues(ns, f)
+			o      = pk.Overlays.ByRef(ref)
+			schema = model.MakeSchemas(o, f)
+			value  = model.MakeValues(o, f)
 		)
 
 		pk.Schemas = append(pk.Schemas, schema...)

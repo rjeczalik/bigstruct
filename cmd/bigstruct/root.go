@@ -6,7 +6,7 @@ import (
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command"
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/bigstruct"
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/index"
-	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/namespace"
+	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/overlay"
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/pak"
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/schema"
 	"github.com/rjeczalik/bigstruct/cmd/bigstruct/command/value"
@@ -24,7 +24,7 @@ func NewCommand(app *command.App) *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		namespace.NewCommand(app),
+		overlay.NewCommand(app),
 		index.NewCommand(app),
 		value.NewCommand(app),
 		schema.NewCommand(app),
