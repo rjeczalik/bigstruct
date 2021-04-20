@@ -11,7 +11,7 @@ import (
 )
 
 var _ = DefaultStruct.
-	Register("ini", Struct{
+	Register("ini", 40, Struct{
 		Type:      "ini",
 		Marshal:   ini.Marshal,
 		Unmarshal: ini.Unmarshal,

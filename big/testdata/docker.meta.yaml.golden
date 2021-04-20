@@ -98,9 +98,9 @@ scylladb:
                                                         BRIDGE:
                                                             type: field/string
                                                         ETHDRV:
-                                                            type: field/bool
+                                                            type: field/string
                                                         ETHPCIID:
-                                                            type: field/bool
+                                                            type: field/string
                                                         GROUP:
                                                             type: field/string
                                                         IFNAME:
@@ -225,9 +225,9 @@ scylladb:
                                                         BRIDGE:
                                                             type: field/string
                                                         ETHDRV:
-                                                            type: field/bool
+                                                            type: field/string
                                                         ETHPCIID:
-                                                            type: field/bool
+                                                            type: field/string
                                                         GROUP:
                                                             type: field/string
                                                         IFNAME:
@@ -352,9 +352,9 @@ scylladb:
                                                         BRIDGE:
                                                             type: field/string
                                                         ETHDRV:
-                                                            type: field/bool
+                                                            type: field/string
                                                         ETHPCIID:
-                                                            type: field/bool
+                                                            type: field/string
                                                         GROUP:
                                                             type: field/string
                                                         IFNAME:

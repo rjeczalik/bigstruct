@@ -43,8 +43,8 @@ scylladb:
                         scylla-server:
                             AMI: "no"
                             BRIDGE: virbr0
-                            ETHDRV: false
-                            ETHPCIID: false
+                            ETHDRV: ""
+                            ETHPCIID: ""
                             GROUP: scylla
                             IFNAME: eth0
                             NETWORK_MODE: posix
@@ -101,8 +101,8 @@ scylladb:
                         scylla-server:
                             AMI: "no"
                             BRIDGE: virbr0
-                            ETHDRV: false
-                            ETHPCIID: false
+                            ETHDRV: ""
+                            ETHPCIID: ""
                             GROUP: scylla
                             IFNAME: eth0
                             NETWORK_MODE: posix
@@ -159,8 +159,8 @@ scylladb:
                         scylla-server:
                             AMI: "no"
                             BRIDGE: virbr0
-                            ETHDRV: false
-                            ETHPCIID: false
+                            ETHDRV: ""
+                            ETHPCIID: ""
                             GROUP: scylla
                             IFNAME: eth0
                             NETWORK_MODE: posix

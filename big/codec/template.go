@@ -15,10 +15,10 @@ var DefaultTemplateField = DefaultTemplate.
 	RegisterMap("field", 50, make(Map))
 
 var _ = DefaultTemplateField.
-	Register("template", Template{})
+	Register("template", 100, Template{})
 
 var _ = DefaultTemplate.
-	Register("template", Recursive{
+	Register("template", 100, Recursive{
 		Codec: Template{},
 	})
 

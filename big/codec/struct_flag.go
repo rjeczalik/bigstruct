@@ -8,7 +8,7 @@ import (
 )
 
 var _ = DefaultStruct.
-	Register("flag", Struct{
+	Register("flag", 50, Struct{
 		Type:      "flag",
 		Marshal:   flag.Marshal,
 		Unmarshal: flag.Unmarshal,

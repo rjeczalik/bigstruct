@@ -24,9 +24,10 @@ type Map map[string]struct {
 
 var _ big.Codec = Map(nil)
 
-func (m Map) Register(name string, c big.Codec) Map {
+func (m Map) Register(name string, priority int, c big.Codec) Map {
 	n := m[name]
 	n.Codec = c
+	n.Priority = priority
 	m[name] = n
 
 	return m
@@ -152,7 +153,7 @@ func (m Map) Decode(ctx context.Context, key string, o big.Struct) error {
 	// generating schema from raw data. While this part is pretty accurate,
 	// proper design would be to decouple schema building into a separate routine.
 	// This part may require refactoring when more complex schema building
-	// would be required - e.g. guessing content type using http
+	// would be required - e.g. guessing content type using mime-type sniffing
 
 	for _, typ := range m.Keys() {
 		if e := m[typ].Codec.Decode(ctx, key, o); e != nil {
@@ -167,7 +168,7 @@ func (m Map) Decode(ctx context.Context, key string, o big.Struct) error {
 		}
 
 		// fixme: more complex codecs may require more accurate
-		// feedback about dencoding result than quessing here
+		// feedback about decoding result than quessing here
 		// (it currently assumes the type has been set on success)
 		if n = o[k]; n.Type != "" && n.Type != typ {
 			n.Type = path.Join(typ, n.Type)
@@ -295,7 +296,7 @@ func (set priokey) Less(i, j int) bool {
 	if set[i].prio == set[j].prio {
 		return set[i].key < set[j].key
 	}
-	return set[i].key >= set[j].key
+	return set[i].prio >= set[j].prio
 }
 
 func (set priokey) Keys() []string {

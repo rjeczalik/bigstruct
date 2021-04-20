@@ -128,11 +128,11 @@ scylladb:
                                                             type: field/string
                                                             value: virbr0
                                                         ETHDRV:
-                                                            type: field/bool
-                                                            value: false
+                                                            type: field/string
+                                                            value: ""
                                                         ETHPCIID:
-                                                            type: field/bool
-                                                            value: false
+                                                            type: field/string
+                                                            value: ""
                                                         GROUP:
                                                             type: field/string
                                                             value: scylla
@@ -299,11 +299,11 @@ scylladb:
                                                             type: field/string
                                                             value: virbr0
                                                         ETHDRV:
-                                                            type: field/bool
-                                                            value: false
+                                                            type: field/string
+                                                            value: ""
                                                         ETHPCIID:
-                                                            type: field/bool
-                                                            value: false
+                                                            type: field/string
+                                                            value: ""
                                                         GROUP:
                                                             type: field/string
                                                             value: scylla
@@ -470,11 +470,11 @@ scylladb:
                                                             type: field/string
                                                             value: virbr0
                                                         ETHDRV:
-                                                            type: field/bool
-                                                            value: false
+                                                            type: field/string
+                                                            value: ""
                                                         ETHPCIID:
-                                                            type: field/bool
-                                                            value: false
+                                                            type: field/string
+                                                            value: ""
                                                         GROUP:
                                                             type: field/string
                                                             value: scylla

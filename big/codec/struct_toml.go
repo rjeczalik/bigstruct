@@ -5,7 +5,7 @@ import (
 )
 
 var _ = DefaultStruct.
-	Register("toml", Struct{
+	Register("toml", 20, Struct{
 		Type:      "toml",
 		Marshal:   toml.Marshal,
 		Unmarshal: toml.Unmarshal,

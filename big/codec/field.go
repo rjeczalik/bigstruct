@@ -14,20 +14,20 @@ var DefaultField = Default.
 
 type Field struct {
 	Type    string
-	Convert func(interface{}) (interface{}, error)
+	Convert func(bool, interface{}) (interface{}, error)
 }
 
 var _ big.Codec = (*Field)(nil)
 
 func (f Field) Encode(_ context.Context, key string, o big.Struct) error {
-	return f.convert("encode", key, o)
+	return f.convert("encode", true, key, o)
 }
 
 func (f Field) Decode(_ context.Context, key string, o big.Struct) error {
-	return f.convert("decode", key, o)
+	return f.convert("decode", false, key, o)
 }
 
-func (f Field) convert(op, key string, o big.Struct) error {
+func (f Field) convert(op string, allowEmpty bool, key string, o big.Struct) error {
 	var (
 		k = path.Base(key)
 		n = o[k]
@@ -42,7 +42,7 @@ func (f Field) convert(op, key string, o big.Struct) error {
 		}
 	}
 
-	w, err := f.Convert(n.Value)
+	w, err := f.Convert(allowEmpty, n.Value)
 	if err != nil {
 		return &big.Error{
 			Type: f.Type,

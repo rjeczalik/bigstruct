@@ -148,8 +148,6 @@ func (r *Reader) Read(ctx context.Context, fs pak.FS) (*pak.Pak, error) {
 			return nil, fmt.Errorf("error decoding schema for %q overlay: %w", ref, err)
 		}
 
-		fmt.Println("DEBU", s)
-
 		var (
 			o      = pk.Overlays.ByRef(ref)
 			schema = model.MakeSchemas(o, s.Fields())

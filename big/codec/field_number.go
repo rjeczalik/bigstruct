@@ -1,20 +1,21 @@
 package codec
 
 import (
+	"errors"
 	"reflect"
 	"strconv"
 )
 
 var _ = DefaultField.
-	Register("number", Field{
+	Register("number", 20, Field{
 		Type:    "number",
 		Convert: numberConvert,
 	})
 
 var numberType = reflect.TypeOf((*int)(nil)).Elem()
 
-func numberConvert(v interface{}) (interface{}, error) {
-	if isNull(v) {
+func numberConvert(allowEmpty bool, v interface{}) (interface{}, error) {
+	if allowEmpty && isNull(v) {
 		return 0, nil
 	}
 
@@ -23,13 +24,17 @@ func numberConvert(v interface{}) (interface{}, error) {
 	}
 
 	var err error
-	if v, err = stringConvert(v); err != nil {
+	if v, err = stringConvert(allowEmpty, v); err != nil {
 		return nil, err
 	}
 
 	s, _ := v.(string)
 	if s == "" {
-		return 0, nil
+		if allowEmpty {
+			return 0, nil
+		}
+
+		return nil, errors.New("string is empty")
 	}
 
 	if d, err := strconv.ParseFloat(s, 64); err == nil {

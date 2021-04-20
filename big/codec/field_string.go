@@ -6,14 +6,14 @@ import (
 )
 
 var _ = DefaultField.
-	Register("string", Field{
+	Register("string", 10, Field{
 		Type:    "string",
 		Convert: stringConvert,
 	})
 
 var stringType = reflect.TypeOf((*string)(nil)).Elem()
 
-func stringConvert(v interface{}) (interface{}, error) {
+func stringConvert(_ bool, v interface{}) (interface{}, error) {
 	if isNull(v) {
 		return "", nil
 	}

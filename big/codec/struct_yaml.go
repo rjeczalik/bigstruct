@@ -5,7 +5,7 @@ import (
 )
 
 var _ = DefaultStruct.
-	Register("yaml", Struct{
+	Register("yaml", 10, Struct{
 		Type:      "yaml",
 		Marshal:   yaml.Marshal,
 		Unmarshal: yaml.Unmarshal,
