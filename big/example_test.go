@@ -1,6 +1,7 @@
 package big_test
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -16,13 +17,13 @@ func ExampleObject_Put() {
 
 	obj.Put("/foo/bar", big.Value(`{"key":[{"name":true},{"name":1}]}`))
 
-	if err := obj.Decode(codec.Default); err != nil {
+	if err := obj.Decode(context.Background(), codec.Default); err != nil {
 		log.Fatalf("obj.Decode()=%+v", err)
 	}
 
 	obj.Put("/foo/bar/key/1/args", big.Value("--foo=bar --key=20"))
 
-	if err := obj.Decode(codec.Default); err != nil {
+	if err := obj.Decode(context.Background(), codec.Default); err != nil {
 		log.Fatalf("obj.Decode()=%+v", err)
 	}
 

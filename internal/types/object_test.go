@@ -32,7 +32,6 @@ func TestMakeObject(t *testing.T) {
 				"f": types.Object{
 					"g": 3,
 				},
-				"g": nil,
 			},
 			"f": types.Object{
 				"g": 5,
@@ -43,7 +42,6 @@ func TestMakeObject(t *testing.T) {
 			"d": types.Object{
 				"e": 8,
 			},
-			"foo": nil,
 		},
 	}
 
@@ -57,11 +55,9 @@ func TestMakeObject(t *testing.T) {
 		"a.b.c=1",
 		"a.d.e=2",
 		"a.d.f.g=3",
-		"a.d.g",
 		"a.f.g=5",
 		"b=7",
 		"c.d.e=8",
-		"c.foo",
 	}
 
 	g := got.Slice()
@@ -126,9 +122,7 @@ func TestObjectMerge(t *testing.T) {
 		},
 		"b": -2,
 		"e": -3,
-		"g": types.Object{
-			"g": nil,
-		},
+		"g": types.Object{},
 		"h": -4,
 		"i": types.Object{
 			"j": -5,

@@ -1,6 +1,7 @@
 package big_test
 
 import (
+	"context"
 	"flag"
 	"io/ioutil"
 	"os"
@@ -32,7 +33,7 @@ func TestCti(t *testing.T) {
 		exp = orig.Copy()
 	)
 
-	if err := exp.Decode(codec.Default); err != nil {
+	if err := exp.Decode(context.TODO(), codec.Default); err != nil {
 		t.Fatalf("exp.Decode()=%s", err)
 	}
 
@@ -77,7 +78,7 @@ func TestCti(t *testing.T) {
 
 	cpt := exp.Copy()
 
-	if err := cpt.Encode(codec.Default); err != nil {
+	if err := cpt.Encode(context.TODO(), codec.Default); err != nil {
 		t.Fatalf("cpt.Encode()=%s", err)
 	}
 
@@ -86,7 +87,7 @@ func TestCti(t *testing.T) {
 		t.Fatalf("objReadFile()=%s", err)
 	}
 
-	if err := objwant.Encode(codec.Default); err != nil {
+	if err := objwant.Encode(context.TODO(), codec.Default); err != nil {
 		t.Fatalf("objwant.Encode()=%s", err)
 	}
 
@@ -94,7 +95,7 @@ func TestCti(t *testing.T) {
 		t.Fatalf("got != want:\n%s", cmp.Diff(got, want))
 	}
 
-	if err := objwant.Decode(codec.Default); err != nil {
+	if err := objwant.Decode(context.TODO(), codec.Default); err != nil {
 		t.Fatalf("objwant.Decode()=%s", err)
 	}
 
@@ -112,7 +113,7 @@ func TestCti(t *testing.T) {
 
 	gdd.WriteTo(os.Stdout)
 
-	if err := gdd.Decode(codec.Default); err != nil {
+	if err := gdd.Decode(context.TODO(), codec.Default); err != nil {
 		t.Fatalf("gdd.Decode()=%s", err)
 	}
 

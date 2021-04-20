@@ -1,6 +1,7 @@
 package big_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/rjeczalik/bigstruct/big"
@@ -21,8 +22,6 @@ func TestObject(t *testing.T) {
 
 	got := o.Fields()
 	want := big.Fields{{
-		Key: "/ascii",
-	}, {
 		Key:   "/ascii/48",
 		Value: int('a'),
 	}, {
@@ -32,33 +31,27 @@ func TestObject(t *testing.T) {
 		Key:   "/ascii/50",
 		Value: int('c'),
 	}, {
-		Key: "/foo",
-	}, {
 		Key:   "/foo/bar",
 		Type:  "struct/json",
 		Value: "[\"qux\",\"baz\"]",
 	}, {
-		Key:   "/yaml",
-		Value: "json: '{\"ini\":\"k=\\\"v\\\"\\nkey=\\\"value\\\"\\n\"}'\n",
-	}, {
-		Key: "/yaml/json",
-	}, {
 		Key:  "/yaml/json/ini",
 		Type: "struct/ini",
+	}, {
+		Key:   "/yaml",
+		Value: "json: '{\"ini\":\"k=\\\"v\\\"\\nkey=\\\"value\\\"\\n\"}'\n",
 	}}
 
 	if !cmp.Equal(want, got) {
 		t.Fatalf("got != want:\n%s", cmp.Diff(want, got))
 	}
 
-	if err := o.Decode(codec.Default); err != nil {
+	if err := o.Decode(context.TODO(), codec.Default); err != nil {
 		t.Fatalf("o.Decode(nil)=%+v", err)
 	}
 
 	egot := o.Fields()
 	ewant := big.Fields{{
-		Key: "/ascii",
-	}, {
 		Key:   "/ascii/48",
 		Type:  "field/number",
 		Value: int('a'),
@@ -70,11 +63,6 @@ func TestObject(t *testing.T) {
 		Key:   "/ascii/50",
 		Type:  "field/number",
 		Value: int('c'),
-	}, {
-		Key: "/foo",
-	}, {
-		Key:  "/foo/bar",
-		Type: "struct/json",
 	}, {
 		Key:   "/foo/bar/0",
 		Type:  "field/string",
@@ -84,15 +72,6 @@ func TestObject(t *testing.T) {
 		Type:  "field/string",
 		Value: "baz",
 	}, {
-		Key:  "/yaml",
-		Type: "struct/yaml",
-	}, {
-		Key:  "/yaml/json",
-		Type: "struct/json",
-	}, {
-		Key:  "/yaml/json/ini",
-		Type: "struct/ini",
-	}, {
 		Key:   "/yaml/json/ini/k",
 		Type:  "field/string",
 		Value: "v",
@@ -100,6 +79,18 @@ func TestObject(t *testing.T) {
 		Key:   "/yaml/json/ini/key",
 		Type:  "field/string",
 		Value: "value",
+	}, {
+		Key:  "/yaml/json/ini",
+		Type: "struct/ini",
+	}, {
+		Key:  "/yaml/json",
+		Type: "struct/json",
+	}, {
+		Key:  "/yaml",
+		Type: "struct/yaml",
+	}, {
+		Key:  "/foo/bar",
+		Type: "struct/json",
 	}}
 
 	if !cmp.Equal(ewant, egot) {
@@ -147,9 +138,8 @@ func TestObject(t *testing.T) {
 	}
 
 	var cgot big.Fields
-	want[6].Type = "struct/yaml"
 
-	if err := o.Encode(codec.Default); err != nil {
+	if err := o.Encode(context.TODO(), codec.Default); err != nil {
 		t.Fatalf("o.Encode()=%+v", err)
 	}
 
