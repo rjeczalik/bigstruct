@@ -124,6 +124,8 @@ func (g Gorm) txUpsertOverlay(n *model.Overlay) Func {
 			return err
 		}
 
+		n.ID = cur.ID
+
 		var (
 			db     = tx.db().Model(&cur).Where("`id` = ?", cur.ID)
 			update = &model.Overlay{

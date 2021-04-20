@@ -130,7 +130,7 @@ func (s *Server) txDoGet(ctx context.Context, op *Op) storage.Func {
 			return fmt.Errorf("error templating object: %w", err)
 		}
 
-		op.Struct = obj.Fields().Merge().ShakeTypes().Shake()
+		op.Struct = obj.Struct()
 
 		if op.Encode {
 			if err = op.Struct.Encode(ctx, s.codec()); err != nil {

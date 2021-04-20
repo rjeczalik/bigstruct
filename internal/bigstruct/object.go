@@ -20,31 +20,20 @@ type Scope struct {
 	Value   model.Values
 }
 
-func NewScope(ns *model.Overlay, s big.Struct) *Scope {
+func NewScope(ov *model.Overlay, s big.Struct) *Scope {
 	var (
 		f = s.Fields()
 	)
 
 	return &Scope{
-		Overlay: ns,
-		Schema:  model.MakeSchemas(ns, f),
-		Value:   model.MakeValues(ns, f),
+		Overlay: ov,
+		Schema:  model.MakeSchemas(ov, f),
+		Value:   model.MakeValues(ov, f),
 	}
 }
 
 func (s *Scope) Fields() big.Fields {
-	if s.Overlay.Meta().Schema {
-		return s.fields()
-	}
-	return s.Value.Fields()
-}
-
-func (s *Scope) fields() big.Fields {
 	return append(s.Schema.Fields(), s.Value.Fields()...)
-}
-
-func (s *Scope) Struct() big.Struct {
-	return s.Fields().Struct()
 }
 
 func (s *Scope) Encode(ctx context.Context, codec big.Codec) error {
@@ -53,7 +42,7 @@ func (s *Scope) Encode(ctx context.Context, codec big.Codec) error {
 	}
 
 	var (
-		o = s.fields().Struct()
+		o = s.Fields().Struct()
 		f big.Fields
 	)
 
@@ -243,12 +232,22 @@ func (obj *Object) Overlays() model.Overlays {
 	return overlays
 }
 
-func (obj *Object) Fields() big.Fields {
-	var f big.Fields
+func (obj *Object) Struct() big.Struct {
+	s := make(big.Struct)
 
-	for _, s := range obj.Scopes {
-		f = append(f, s.Fields()...)
+	for _, scope := range obj.Scopes {
+		for _, f := range scope.Value.Fields() {
+			s.Put(f.Key, f.Set)
+		}
 	}
 
-	return f
+	for _, scope := range obj.Scopes {
+		if scope.Overlay.Meta().Schema {
+			for _, f := range scope.Schema.Fields() {
+				s.Put(f.Key, f.Put)
+			}
+		}
+	}
+
+	return s.ShakeTypes().Shake()
 }
