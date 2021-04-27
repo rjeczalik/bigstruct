@@ -163,15 +163,11 @@ func (r *Reader) Read(ctx context.Context, fs pak.FS) (*pak.Pak, error) {
 			return nil, fmt.Errorf("error decoding values for %q overlay: %w", ref, err)
 		}
 
-		f = s.Fields()
-
 		var (
-			o      = pk.Overlays.ByRef(ref)
-			schema = model.MakeSchemas(o, f)
-			value  = model.MakeValues(o, f)
+			o     = pk.Overlays.ByRef(ref)
+			value = model.MakeValues(o, s.Fields())
 		)
 
-		pk.Schemas = append(pk.Schemas, schema...)
 		pk.Values = append(pk.Values, value...)
 	}
 
